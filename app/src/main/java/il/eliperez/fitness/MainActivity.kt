@@ -20,6 +20,10 @@ import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
+import android.widget.FrameLayout
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
@@ -144,7 +148,22 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         web = WebView(this)
-        setContentView(web)
+        // אנדרואיד 15 מצייר את האפליקציה מתחת לשורת המצב ולכפתורי הניווט של הטלפון.
+        // מרחיקים את הדף מהם, אחרת תפריט הלשוניות למטה מוסתר ולא לחיץ.
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        val root = FrameLayout(this).apply { setBackgroundColor(0xFFFFFFFF.toInt()) }
+        root.addView(web, FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT))
+        setContentView(root)
+        WindowCompat.getInsetsController(window, root).apply {
+            isAppearanceLightStatusBars = true
+            isAppearanceLightNavigationBars = true
+        }
+        ViewCompat.setOnApplyWindowInsetsListener(root) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            val ime = insets.getInsets(WindowInsetsCompat.Type.ime())
+            v.setPadding(bars.left, bars.top, bars.right, maxOf(bars.bottom, ime.bottom))
+            WindowInsetsCompat.CONSUMED
+        }
 
         with(web.settings) {
             javaScriptEnabled = true
@@ -290,7 +309,7 @@ class MainActivity : ComponentActivity() {
 
     /** בודק אם יש גרסה חדשה. auto = בדיקה שקטה פעם ב-6 שעות. */
     private fun checkApk(auto: Boolean) {
-        if (auto && System.currentTimeMillis() - prefs.getLong("apkCheck", 0) < 6 * 3600 * 1000L) return
+        if (auto && System.currentTimeMillis() - prefs.getLong("apkCheck", 0) < 3600 * 1000L) return
         lifecycleScope.launch {
             val l = AppUpdater.latest()
             if (l != null) prefs.edit().putLong("apkCheck", System.currentTimeMillis()).apply()

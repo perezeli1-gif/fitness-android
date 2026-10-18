@@ -160,6 +160,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--tape);outline:none}
 .tour-bub .tb{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .tour-bub .btn.pri{background:var(--c-sh);border-color:var(--c-sh);color:#fff}
 .tour-block{position:fixed;inset:0;z-index:59}
+/* the tab bar stays on top of the tour so it can always be tapped */
+body .nav{z-index:62}
 .day .ok{font-size:11px;color:var(--good);font-weight:600;min-height:16px}
 /* exercise */
 .anim{width:100%;aspect-ratio:200/160;max-width:100%;display:block;background:var(--sunk);border-radius:10px}
@@ -251,7 +253,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="2.4",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="2.5",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -924,6 +926,7 @@ function render(){
   renderNav();
   if(!S.ready){main.innerHTML='<div class="card"><p class="muted">טוען את הנתונים שלך…</p></div>';return}
   var h="";
+  try{
   if(!S.profile)h=viewSetup();
   else if(TAB==="home")h=viewHome();
   else if(TAB==="workout")h=viewWorkout();
@@ -932,18 +935,18 @@ function render(){
   else if(TAB==="walk")h=viewWalk();
   else if(TAB==="measure")h=viewMeasure();
   else if(TAB==="food")h=viewFood();
+  }catch(err){h='<div class="card stack"><h3 class="h3">המסך הזה לא נטען</h3><p class="small" style="margin:0">אפשר לעבור למסך אחר בתפריט. שלח צילום של ההודעה הזו כדי שנתקן:</p><pre class="small" style="white-space:pre-wrap;direction:ltr;text-align:left;margin:0">'+esc(TAB+": "+(err&&err.message||err))+'</pre></div>'}
   var fav="";try{fav=FA&&FA.version?FA.version():""}catch(e){}
   main.innerHTML='<div class="mhead"><div><b>יומן כושר ביתי</b><br>הליכה · משקולות · מדידות</div><div style="text-align:left">גרסה '+APP_VERSION+(fav?' · טלפון '+esc(fav):'')+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div></div>'+(S.apkNew&&FA?'<div class="banner small" style="margin-bottom:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span><b>גרסה חדשה לאפליקציית הטלפון: '+esc(S.apkNew)+'</b><br><span data-apkmsg></span></span><button type="button" class="btn sm pri" data-apkgo>עדכן עכשיו</button></div>':"")+(S.mode==="phone"&&!phLinked()?'<div class="banner small" style="margin-bottom:14px">האפליקציה עובדת ושומרת הכול בטלפון. כדי לסנכרן גם עם המחשב: "פרופיל והגדרות" ← "חיבור לשרת".</div>':"")+(S.mode==="local"?'<div class="banner small" style="margin-bottom:14px">הנתונים נשמרים כרגע רק בדפדפן הזה. כדי לסנכרן בין המחשב לטלפון, פתח את הקישור כשאתה מחובר לחשבון Claude.</div>':"")+h;
   main.insertAdjacentHTML("beforeend",'<footer class="appfoot">יומן כושר ביתי · גרסה '+APP_VERSION+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</footer>');
   var bv=document.getElementById("brand-ver");if(bv)bv.textContent="הליכה · משקולות · מדידות גרסה "+APP_VERSION;
   var bd=document.getElementById("brand-dev");if(bd)bd.textContent="מפתח האפליקציה · "+APP_AUTHOR;
-  mountAnims(main);
-  bind();
+  try{mountAnims(main);bind()}catch(err){toast("שגיאה: "+(err&&err.message||err))}
   document.querySelectorAll("[data-apkgo]").forEach(function(b){b.onclick=apkGo});
   document.getElementById("helpfab").hidden=!S.profile;
   var hg=document.getElementById("hm-guide");hg.hidden=S.mode!=="server"&&S.mode!=="phone";if(S.mode==="phone"){try{hg.href=FA.serverUrl()+"help"}catch(e){}}
   if(TOUR)endTour(true);
-  maybeTour();
+  try{maybeTour()}catch(e){}
 }
 
 /* ---------- setup ---------- */
@@ -1463,7 +1466,7 @@ function startTour(tab){
   var blk=document.createElement("div"),hole=document.createElement("div"),bub=document.createElement("div");
   blk.className="tour-block";hole.className="tour-hole";bub.className="tour-bub";bub.setAttribute("role","dialog");bub.setAttribute("aria-live","polite");
   document.body.appendChild(blk);document.body.appendChild(hole);document.body.appendChild(bub);
-  TOUR={tab:tab,steps:steps,i:0,blk:blk,hole:hole,bub:bub};blk.onclick=function(){tourGo(1)};showStep();
+  TOUR={tab:tab,steps:steps,i:0,blk:blk,hole:hole,bub:bub};blk.onclick=function(){endTour()};showStep();
 }
 function showStep(){var t=TOUR,st=t.steps[t.i],el=document.querySelector(st.sel);if(!el)return tourGo(1);
   try{el.scrollIntoView({block:"center"})}catch(e){}
@@ -1485,7 +1488,7 @@ function tourGo(d){var t=TOUR;if(!t)return;t.i+=d;if(t.i<0)t.i=0;if(t.i>=t.steps
 function endTour(silent){var t=TOUR;if(!t)return;[t.blk,t.hole,t.bub].forEach(function(e){e.remove()});try{localStorage.setItem("kg-tour-"+t.tab,"1")}catch(e){}TOUR=null}
 window.addEventListener("resize",placeTour);window.addEventListener("scroll",function(){if(TOUR)placeTour()},{passive:true});
 document.addEventListener("keydown",function(e){if(!TOUR)return;if(e.key==="Escape")endTour();else if(e.key==="ArrowLeft")tourGo(1);else if(e.key==="ArrowRight")tourGo(-1)});
-function maybeTour(){var tab=TAB;var seen=false;try{seen=!!localStorage.getItem("kg-tour-"+tab)}catch(e){seen=true}
+function maybeTour(){var tab=TAB;if(tab!=="home")return;var seen=false;try{seen=!!localStorage.getItem("kg-tour-"+tab)}catch(e){seen=true}
   if(!seen&&S.profile&&!TOUR)setTimeout(function(){if(TAB===tab&&!TOUR&&!window.NO_TOUR&&!document.getElementById("dlg").open)startTour(tab)},700)}
 function helpMenu(open){var m=document.getElementById("helpmenu");m.hidden=!open}
 document.getElementById("helpfab").onclick=function(e){e.stopPropagation();helpMenu(document.getElementById("helpmenu").hidden)};
