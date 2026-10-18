@@ -143,6 +143,9 @@ input:focus,select:focus,textarea:focus{border-color:var(--tape);outline:none}
 @media (max-width:560px){.schrow{grid-template-columns:1fr 1fr}.schrow>.row{grid-column:1/-1}}
 .plancard ol{margin:0;padding-inline-start:20px;font-size:14px;display:flex;flex-direction:column;gap:2px}
 .plancard.today{box-shadow:0 0 0 3px var(--dc)}
+.mhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:-6px 0 14px;padding:8px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;color:var(--muted);line-height:1.35}
+.mhead b{color:var(--ink);font-size:14px}
+@media (min-width:900px){.mhead{display:none}}
 .appfoot{margin-top:28px;padding-top:14px;border-top:1px solid var(--line);text-align:center;font-size:13px;color:var(--muted)}
 .helpfab{position:fixed;z-index:25;left:max(14px,env(safe-area-inset-left,0px));bottom:calc(86px + env(safe-area-inset-bottom,0px));width:52px;height:52px;border-radius:50%;border:0;background:var(--c-sh);color:#fff;font-size:26px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
 @media (min-width:900px){.helpfab{bottom:24px}}
@@ -248,7 +251,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="2.1",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="2.2",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -922,7 +925,8 @@ function render(){
   else if(TAB==="walk")h=viewWalk();
   else if(TAB==="measure")h=viewMeasure();
   else if(TAB==="food")h=viewFood();
-  main.innerHTML=(S.mode==="phone"&&!phLinked()?'<div class="banner small" style="margin-bottom:14px">האפליקציה עובדת ושומרת הכול בטלפון. כדי לסנכרן גם עם המחשב: "פרופיל והגדרות" ← "חיבור לשרת".</div>':"")+(S.mode==="local"?'<div class="banner small" style="margin-bottom:14px">הנתונים נשמרים כרגע רק בדפדפן הזה. כדי לסנכרן בין המחשב לטלפון, פתח את הקישור כשאתה מחובר לחשבון Claude.</div>':"")+h;
+  var fav="";try{fav=FA&&FA.version?FA.version():""}catch(e){}
+  main.innerHTML='<div class="mhead"><div><b>יומן כושר ביתי</b><br>הליכה · משקולות · מדידות</div><div style="text-align:left">גרסה '+APP_VERSION+(fav?' · טלפון '+esc(fav):'')+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div></div>'+(S.mode==="phone"&&!phLinked()?'<div class="banner small" style="margin-bottom:14px">האפליקציה עובדת ושומרת הכול בטלפון. כדי לסנכרן גם עם המחשב: "פרופיל והגדרות" ← "חיבור לשרת".</div>':"")+(S.mode==="local"?'<div class="banner small" style="margin-bottom:14px">הנתונים נשמרים כרגע רק בדפדפן הזה. כדי לסנכרן בין המחשב לטלפון, פתח את הקישור כשאתה מחובר לחשבון Claude.</div>':"")+h;
   main.insertAdjacentHTML("beforeend",'<footer class="appfoot">יומן כושר ביתי · גרסה '+APP_VERSION+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</footer>');
   var bv=document.getElementById("brand-ver");if(bv)bv.textContent="הליכה · משקולות · מדידות גרסה "+APP_VERSION;
   var bd=document.getElementById("brand-dev");if(bd)bd.textContent="מפתח האפליקציה · "+APP_AUTHOR;
