@@ -14,13 +14,8 @@ import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
 import androidx.health.connect.client.time.TimeRangeFilter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.OutputStreamWriter
-import java.net.HttpURLConnection
-import java.net.URL
 import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
@@ -29,7 +24,7 @@ import java.time.Period
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-/** קורא הליכות וצעדים מ-Health Connect ושולח אותם לשרת יומן הכושר. */
+/** קריאת הליכות וצעדים מ-Health Connect. */
 object HealthSync {
 
     val PERMISSIONS: Set<String> = setOf(
@@ -63,11 +58,12 @@ object HealthSync {
             .put("found", found).put("message", message).toString()
     }
 
-    suspend fun run(context: Context, server: String, token: String, days: Long = 30): Result {
+    /** קורא הליכות וצעדים מ-Health Connect ומחזיר JSON לדף. הדף שומר אותם בטלפון ושולח לשרת כשיש חיבור. */
+    suspend fun read(context: Context, days: Long = 30): String {
         val client = HealthConnectClient.getOrCreate(context)
         val have = client.permissionController.getGrantedPermissions()
         if (!have.contains(HealthPermission.getReadPermission(ExerciseSessionRecord::class))) {
-            return Result(false, 0, 0, 0, "אין הרשאה לקרוא אימונים מ-Health Connect")
+            return Result(false, 0, 0, 0, "אין הרשאה לקרוא אימונים מ-Health Connect").toJson()
         }
         fun can(cls: kotlin.reflect.KClass<out androidx.health.connect.client.records.Record>) =
             have.contains(HealthPermission.getReadPermission(cls))
@@ -135,27 +131,6 @@ object HealthSync {
             } catch (_: Exception) { }
         }
 
-        val body = JSONObject().put("walks", walks).put("steps", steps).toString()
-        return withContext(Dispatchers.IO) {
-            try {
-                val url = URL(server.trimEnd('/') + "/api/sync")
-                val c = (url.openConnection() as HttpURLConnection).apply {
-                    requestMethod = "POST"
-                    connectTimeout = 15000
-                    readTimeout = 20000
-                    doOutput = true
-                    setRequestProperty("Content-Type", "application/json; charset=utf-8")
-                    setRequestProperty("Authorization", "Bearer $token")
-                }
-                OutputStreamWriter(c.outputStream, Charsets.UTF_8).use { it.write(body) }
-                val code = c.responseCode
-                if (code == 401) return@withContext Result(false, 0, 0, sessions.size, "קוד החיבור לא תקין. היכנס שוב לאפליקציה.")
-                if (code != 200) return@withContext Result(false, 0, 0, sessions.size, "השרת החזיר שגיאה $code")
-                val r = JSONObject(c.inputStream.bufferedReader().readText())
-                Result(true, r.optInt("added"), r.optInt("skipped"), sessions.size, "")
-            } catch (e: Exception) {
-                Result(false, 0, 0, sessions.size, "אין חיבור לשרת. בדוק אינטרנט.")
-            }
-        }
+        return JSONObject().put("ok", true).put("walks", walks).put("steps", steps).put("found", sessions.size).toString()
     }
 }

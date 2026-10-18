@@ -11,11 +11,11 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.speech.tts.TextToSpeech
 import android.view.WindowManager
-import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
@@ -25,37 +25,116 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.health.connect.client.PermissionController
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
+import java.io.ByteArrayInputStream
+import java.io.File
+import java.io.FileInputStream
+import java.io.InputStream
+import java.io.OutputStreamWriter
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.Locale
 
+/**
+ * יומן הכושר רץ מתוך הטלפון: הדף שמור בתוך האפליקציה והנתונים נשמרים בטלפון.
+ * השרת (PythonAnywhere) משמש רק לסנכרון עם המחשב ולעדכוני גרסה. בלעדיו הכול ממשיך לעבוד.
+ */
 class MainActivity : ComponentActivity() {
 
     companion object {
         const val DEFAULT_SERVER = "https://eli1959fit.pythonanywhere.com/"
+        private const val HOST = "appassets.androidplatform.net"
+        private const val PAGE_URL = "https://$HOST/app.html"
         private const val AUTO_SYNC_EVERY_MS = 10 * 60 * 1000L
+        private const val FONT_CSS = "@font-face{font-family:'Rubik';font-style:normal;font-weight:300 900;font-display:swap;" +
+            "src:url(https://$HOST/fonts/rh.woff2) format('woff2');unicode-range:U+0307-0308,U+0590-05FF,U+200C-2010,U+20AA,U+25CC,U+FB1D-FB4F;}" +
+            "@font-face{font-family:'Rubik';font-style:normal;font-weight:300 900;font-display:swap;" +
+            "src:url(https://$HOST/fonts/rl.woff2) format('woff2');unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;}"
     }
 
     private lateinit var web: WebView
     private var tts: TextToSpeech? = null
     private var fileCallback: ValueCallback<Array<Uri>>? = null
+    private var pendingSave: String? = null
     private var lastAutoSync = 0L
-    private var syncRunning = false
+    private var healthRunning = false
 
     private val prefs by lazy { getSharedPreferences("fitness", Context.MODE_PRIVATE) }
     private val server: String get() = prefs.getString("server", DEFAULT_SERVER) ?: DEFAULT_SERVER
     private val token: String? get() = prefs.getString("token", null)
+    private val webDir by lazy { File(filesDir, "web").apply { mkdirs() } }
+    private val dataFile by lazy { File(filesDir, "fitness-data.json") }
 
     private val askPermissions = registerForActivityResult(
         PermissionController.createRequestPermissionResultContract()
     ) { granted ->
-        if (granted.isNotEmpty()) syncNow(manual = true)
-        else reportToPage(HealthSync.Result(false, 0, 0, 0, "לא ניתנה הרשאה ל-Health Connect").toJson())
+        if (granted.isNotEmpty()) readHealth(manual = true)
+        else toPage("onFitHealth", HealthSync.Result(false, 0, 0, 0, "לא ניתנה הרשאה ל-Health Connect").toJson())
     }
 
     private val pickFiles = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
         fileCallback?.onReceiveValue(uris.toTypedArray())
         fileCallback = null
+    }
+
+    private val createDoc = registerForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
+        val text = pendingSave
+        pendingSave = null
+        if (uri == null || text == null) return@registerForActivityResult
+        try {
+            contentResolver.openOutputStream(uri)?.use { it.write(text.toByteArray(Charsets.UTF_8)) }
+            Toast.makeText(this, "הגיבוי נשמר", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "השמירה נכשלה", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // ---------- הדף מתוך האפליקציה ----------
+    private fun versionOf(s: String?): List<Int> =
+        (s ?: "0").trim().split('.').map { it.toIntOrNull() ?: 0 }
+
+    private fun newer(a: String?, b: String?): Boolean {
+        val x = versionOf(a); val y = versionOf(b)
+        for (i in 0 until maxOf(x.size, y.size)) {
+            val d = x.getOrElse(i) { 0 } - y.getOrElse(i) { 0 }
+            if (d != 0) return d > 0
+        }
+        return false
+    }
+
+    private fun bundledVersion(): String = assets.open("web/version.txt").bufferedReader().readText().trim()
+    private fun downloadedVersion(): String? = File(webDir, "version.txt").takeIf { it.exists() }?.readText()?.trim()
+    private fun currentVersion(): String {
+        val d = downloadedVersion()
+        val b = bundledVersion()
+        return if (d != null && newer(d, b) && File(webDir, "app.html").exists()) d else b
+    }
+
+    private fun pageStream(): InputStream {
+        val d = downloadedVersion()
+        val f = File(webDir, "app.html")
+        return if (d != null && f.exists() && newer(d, bundledVersion())) FileInputStream(f) else assets.open("web/app.html")
+    }
+
+    private fun intercept(u: Uri): WebResourceResponse? {
+        val host = u.host ?: return null
+        if (host == "fonts.googleapis.com")
+            return WebResourceResponse("text/css", "utf-8", ByteArrayInputStream(FONT_CSS.toByteArray()))
+        if (host != HOST) return null
+        val path = u.path ?: "/"
+        return try {
+            when {
+                path == "/" || path == "/app.html" -> WebResourceResponse("text/html", "utf-8", pageStream())
+                path.startsWith("/fonts/") -> WebResourceResponse("font/woff2", null, assets.open("fonts/" + path.substringAfterLast('/')))
+                path.endsWith(".png") -> WebResourceResponse("image/png", null, assets.open("web/" + path.substringAfterLast('/')))
+                else -> WebResourceResponse("text/plain", "utf-8", 404, "Not found", emptyMap(), ByteArrayInputStream(ByteArray(0)))
+            }
+        } catch (e: Exception) {
+            WebResourceResponse("text/plain", "utf-8", 404, "Not found", emptyMap(), ByteArrayInputStream(ByteArray(0)))
+        }
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -64,25 +143,24 @@ class MainActivity : ComponentActivity() {
         web = WebView(this)
         setContentView(web)
 
-        CookieManager.getInstance().setAcceptCookie(true)
-        CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
         with(web.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true
             mediaPlaybackRequiresUserGesture = false
             textZoom = 100
-            saveFormData = false
+            allowFileAccess = false
+            allowContentAccess = false
         }
         web.addJavascriptInterface(Bridge(), "FitAndroid")
         web.webViewClient = object : WebViewClient() {
+            override fun shouldInterceptRequest(view: WebView, req: WebResourceRequest): WebResourceResponse? =
+                intercept(req.url)
+
             override fun shouldOverrideUrlLoading(view: WebView, req: WebResourceRequest): Boolean {
                 val u = req.url
-                if (u.host == Uri.parse(server).host) return false
+                if (u.host == HOST) return false
                 openExternal(u)
                 return true
-            }
-            override fun onPageFinished(view: WebView, url: String) {
-                CookieManager.getInstance().flush()
             }
         }
         web.webChromeClient = object : WebChromeClient() {
@@ -95,7 +173,6 @@ class MainActivity : ComponentActivity() {
                 return true
             }
         }
-        web.setDownloadListener { url, _, _, _, _ -> openExternal(Uri.parse(url)) }
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
@@ -107,27 +184,22 @@ class MainActivity : ComponentActivity() {
             if (st == TextToSpeech.SUCCESS) tts?.language = Locale("he", "IL")
         }
 
-        if (savedInstanceState != null) web.restoreState(savedInstanceState) else web.loadUrl(server)
-    }
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        web.saveState(outState)
+        web.loadUrl(PAGE_URL)
+        checkPageUpdate()
     }
 
     override fun onResume() {
         super.onResume()
         web.onResume()
-        // סנכרון שקט כשחוזרים לאפליקציה (למשל אחרי הליכה)
-        if (token != null && System.currentTimeMillis() - lastAutoSync > AUTO_SYNC_EVERY_MS) {
+        // קריאה שקטה מהשעון כשחוזרים לאפליקציה (למשל אחרי הליכה)
+        if (System.currentTimeMillis() - lastAutoSync > AUTO_SYNC_EVERY_MS) {
             lastAutoSync = System.currentTimeMillis()
-            syncNow(manual = false)
+            web.postDelayed({ readHealth(manual = false) }, 2500)
         }
     }
 
     override fun onPause() {
         web.onPause()
-        CookieManager.getInstance().flush()
         super.onPause()
     }
 
@@ -140,18 +212,67 @@ class MainActivity : ComponentActivity() {
         try { startActivity(Intent(Intent.ACTION_VIEW, u)) } catch (_: ActivityNotFoundException) { }
     }
 
-    private fun reportToPage(json: String) {
-        runOnUiThread {
-            web.evaluateJavascript("window.onFitSync&&window.onFitSync($json)", null)
+    private fun toPage(fn: String, json: String) {
+        runOnUiThread { web.evaluateJavascript("window.$fn&&window.$fn($json)", null) }
+    }
+
+    // ---------- רשת: רק כשהשרת זמין ----------
+    private data class Http(val code: Int, val body: String)
+
+    private suspend fun request(method: String, path: String, body: String?, auth: Boolean = true): Http =
+        withContext(Dispatchers.IO) {
+            try {
+                val c = (URL(server.trimEnd('/') + "/" + path.trimStart('/')).openConnection() as HttpURLConnection).apply {
+                    requestMethod = method
+                    connectTimeout = 12000
+                    readTimeout = 25000
+                    setRequestProperty("Accept", "application/json")
+                    val t = token
+                    if (auth && t != null) setRequestProperty("Authorization", "Bearer $t")
+                    if (!body.isNullOrEmpty()) {
+                        doOutput = true
+                        setRequestProperty("Content-Type", "application/json; charset=utf-8")
+                    }
+                }
+                if (!body.isNullOrEmpty()) OutputStreamWriter(c.outputStream, Charsets.UTF_8).use { it.write(body) }
+                val code = c.responseCode
+                val text = (if (code < 400) c.inputStream else c.errorStream)?.bufferedReader()?.readText() ?: ""
+                Http(code, text)
+            } catch (e: Exception) {
+                Http(0, "")
+            }
+        }
+
+    private fun answer(cb: Int, r: Http) {
+        val body = JSONObject.quote(r.body)
+        runOnUiThread { web.evaluateJavascript("window.__fitHttp&&window.__fitHttp($cb,${r.code},$body)", null) }
+    }
+
+    /** מוריד גרסה חדשה של הדף מהשרת. אם השרת לא זמין, ממשיכים עם מה שיש. */
+    private fun checkPageUpdate() {
+        lifecycleScope.launch {
+            val v = request("GET", "api/version", null, auth = false)
+            if (v.code != 200) return@launch
+            val remote = try { JSONObject(v.body).optString("version") } catch (_: Exception) { "" }
+            if (remote.isEmpty() || !newer(remote, currentVersion()) || token == null) return@launch
+            val r = request("GET", "api/app", null)
+            if (r.code != 200) return@launch
+            try {
+                val o = JSONObject(r.body)
+                val html = o.getString("html")
+                if (!html.contains("FIT_PHONE") || !html.contains("APP_VERSION")) return@launch
+                withContext(Dispatchers.IO) {
+                    File(webDir, "app.html.tmp").writeText(html)
+                    File(webDir, "app.html.tmp").renameTo(File(webDir, "app.html"))
+                    File(webDir, "version.txt").writeText(o.getString("version"))
+                }
+                toPage("onFitUpdate", JSONObject.quote(o.getString("version")))
+            } catch (_: Exception) { }
         }
     }
 
-    private fun syncNow(manual: Boolean) {
-        val tok = token
-        if (tok == null) {
-            if (manual) reportToPage(HealthSync.Result(false, 0, 0, 0, "היכנס לאפליקציה עם הסיסמה ונסה שוב").toJson())
-            return
-        }
+    // ---------- Health Connect ----------
+    private fun readHealth(manual: Boolean) {
         when (HealthSync.availability(this)) {
             1 -> {
                 if (manual) {
@@ -161,54 +282,91 @@ class MainActivity : ComponentActivity() {
                 return
             }
             2 -> {
-                if (manual) reportToPage(HealthSync.Result(false, 0, 0, 0, "Health Connect לא זמין במכשיר הזה").toJson())
+                if (manual) toPage("onFitHealth", HealthSync.Result(false, 0, 0, 0, "Health Connect לא זמין במכשיר הזה").toJson())
                 return
             }
         }
-        if (syncRunning) return
-        syncRunning = true
+        if (healthRunning) return
+        healthRunning = true
         lifecycleScope.launch {
             try {
                 val have = HealthSync.granted(this@MainActivity)
-                if (!have.containsAll(HealthSync.PERMISSIONS) && manual) {
-                    syncRunning = false
-                    askPermissions.launch(HealthSync.PERMISSIONS)
-                    return@launch
+                if (!have.containsAll(HealthSync.PERMISSIONS)) {
+                    if (manual) {
+                        healthRunning = false
+                        askPermissions.launch(HealthSync.PERMISSIONS)
+                        return@launch
+                    }
+                    if (have.isEmpty()) return@launch
                 }
-                val r = HealthSync.run(this@MainActivity, server, tok)
-                if (manual || r.added > 0) reportToPage(r.toJson())
+                val json = HealthSync.read(this@MainActivity)
+                toPage("onFitHealth", json)
             } catch (e: Exception) {
-                if (manual) reportToPage(HealthSync.Result(false, 0, 0, 0, "הסנכרון נכשל: ${e.message ?: ""}").toJson())
+                if (manual) toPage("onFitHealth", HealthSync.Result(false, 0, 0, 0, "הקריאה מהשעון נכשלה: ${e.message ?: ""}").toJson())
             } finally {
-                syncRunning = false
+                healthRunning = false
             }
         }
     }
 
-    private fun isOurPage(): Boolean {
-        val cur = web.url ?: return false
-        return Uri.parse(cur).host == Uri.parse(server).host
-    }
-
-    /** פונקציות שדף יומן הכושר יכול לקרוא להן: window.FitAndroid.xxx() */
+    /** פונקציות שהדף יכול לקרוא להן: window.FitAndroid.xxx() */
     inner class Bridge {
         @JavascriptInterface
-        fun version(): String = "1.0"
+        fun version(): String = "2.0"
 
         @JavascriptInterface
-        fun setToken(t: String) {
+        fun serverUrl(): String = server
+
+        /** בקשה לשרת. התשובה חוזרת ל-window.__fitHttp(cb, status, text). status 0 = אין חיבור. */
+        @JavascriptInterface
+        fun http(method: String, path: String, body: String, cb: Int) {
+            if (method !in setOf("GET", "PUT", "DELETE", "POST") || !path.startsWith("api/")) return
+            lifecycleScope.launch { answer(cb, request(method, path, body.ifEmpty { null })) }
+        }
+
+        /** התחברות לשרת עם הסיסמה. שומר קוד חיבור קבוע. */
+        @JavascriptInterface
+        fun connect(password: String, cb: Int) {
+            lifecycleScope.launch {
+                val r = request("POST", "api/token", JSONObject().put("password", password).toString(), auth = false)
+                if (r.code == 200) {
+                    try {
+                        val t = JSONObject(r.body).optString("token")
+                        if (t.length >= 10) prefs.edit().putString("token", t).apply()
+                    } catch (_: Exception) { }
+                }
+                answer(cb, r)
+            }
+        }
+
+        /** עותק נוסף של כל הנתונים בקובץ באפליקציה (נכלל בגיבוי של גוגל). */
+        @JavascriptInterface
+        fun persist(text: String) {
+            try {
+                val tmp = File(filesDir, "fitness-data.json.tmp")
+                tmp.writeText(text)
+                tmp.renameTo(dataFile)
+            } catch (_: Exception) { }
+        }
+
+        @JavascriptInterface
+        fun restore(): String = try { if (dataFile.exists()) dataFile.readText() else "" } catch (_: Exception) { "" }
+
+        @JavascriptInterface
+        fun saveFile(name: String, text: String) {
             runOnUiThread {
-                if (!isOurPage() || t.length < 10) return@runOnUiThread
-                val first = token == null
-                prefs.edit().putString("token", t).apply()
-                if (first) this@MainActivity.syncNow(manual = false)
+                pendingSave = text
+                createDoc.launch(name)
             }
         }
 
         @JavascriptInterface
         fun syncNow() {
-            runOnUiThread { if (isOurPage()) this@MainActivity.syncNow(manual = true) }
+            runOnUiThread { readHealth(manual = true) }
         }
+
+        @JavascriptInterface
+        fun setToken(t: String) { /* גרסה ישנה של הדף. לא בשימוש. */ }
 
         @JavascriptInterface
         fun keepScreenOn(on: Boolean) {
@@ -235,13 +393,14 @@ class MainActivity : ComponentActivity() {
                 val input = EditText(this@MainActivity).apply { setText(server) }
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle("כתובת השרת")
+                    .setMessage("אם עוברים לשרת אחר: כותבים את הכתובת, ואז מתחברים עם הסיסמה. הנתונים בטלפון נשמרים.")
                     .setView(input)
                     .setPositiveButton("שמור") { _, _ ->
                         var s = input.text.toString().trim()
                         if (!s.startsWith("https://")) s = "https://" + s.removePrefix("http://")
                         if (!s.endsWith("/")) s += "/"
                         prefs.edit().putString("server", s).remove("token").apply()
-                        web.loadUrl(s)
+                        web.reload()
                     }
                     .setNegativeButton("ביטול", null)
                     .show()
@@ -252,6 +411,7 @@ class MainActivity : ComponentActivity() {
         fun status(): String = JSONObject()
             .put("connected", token != null)
             .put("health", HealthSync.availability(this@MainActivity))
+            .put("page", currentVersion())
             .toString()
     }
 }
