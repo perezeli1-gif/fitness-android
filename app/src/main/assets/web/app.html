@@ -4,6 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;800&display=swap">
 <style>
+[hidden]{display:none!important}
 /* Layout: right-hand rail on desktop, bottom tab bar on phone; one column of cards; every training day owns a color that follows it everywhere */
 :root{
   --bg:#F2F6FC; --surface:#FFFFFF; --sunk:#EDF2F9; --ink:#1B2433; --muted:#5A687D; --line:#DAE2ED;
@@ -254,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="2.6",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="2.7",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1183,7 +1184,9 @@ var FI={/* name, amount, kcal, protein(g), kind: d=dairy m=meat p=parve */
  labane:["לבנה 5%","2 כפות (40 ג׳)",60,3,"d"],milk:["חלב 1%","כוס (240 מ״ל)",100,8,"d"],yog:["יוגורט חלבון","גביע 200 ג׳",140,20,"d"],
  veg:["ירקות חתוכים","כוס גדושה, בלי הגבלה",25,1,"p"],salad:["סלט ירקות גדול","קערה",50,2,"p"],soup:["מרק ירקות","קערה (בלי שקדי מרק)",100,3,"p"],
  stir:["ירקות מוקפצים","2 כוסות",80,3,"p"],apple:["תפוח בינוני","אחד",80,0,"p"],banana:["בננה קטנה","אחת",90,1,"p"],fruit:["פרי עונה","אחד בינוני",80,1,"p"],
- berries:["פירות יער קפואים","חצי כוס",35,0.5,"p"],almonds:["שקדים טבעיים","10 יחידות (12 ג׳)",70,2.5,"p"],dates:["תמרים ממולאים","2 תמרי מג׳הול, בכל אחד חצי אגוז מלך או 2 שקדים",160,2.5,"p"],dates1:["תמר ממולא","תמר מג׳הול אחד עם חצי אגוז מלך או 2 שקדים",80,1.2,"p"],
+ berries:["פירות יער קפואים","חצי כוס",35,0.5,"p"],almonds:["שקדים טבעיים","10 יחידות (12 ג׳)",70,2.5,"p"],bulgur:["בורגול מבושל","כוס (180 ג׳)",150,5.5,"p"],lentils:["עדשים מבושלות","כוס (200 ג׳)",230,18,"p"],
+ turkeyp:["פסטרמה מחזה הודו","4 פרוסות (60 ג׳)",65,12,"m"],challah:["חלה","פרוסה (40 ג׳)",115,3.5,"p"],bulgarian:["גבינה בולגרית 5%","50 ג׳ (קובייה)",60,8,"d"],
+ dates:["תמרים ממולאים","2 תמרי מג׳הול, בכל אחד חצי אגוז מלך או 2 שקדים",160,2.5,"p"],dates1:["תמר ממולא","תמר מג׳הול אחד עם חצי אגוז מלך או 2 שקדים",80,1.2,"p"],
  walnuts:["אגוזי מלך","3 חצאים גדולים (15 ג׳)",100,2,"p"],
  rice:["אורז מלא מבושל","כוס (150 ג׳)",165,3.5,"p"],quinoa:["קינואה מבושלת","כוס (180 ג׳)",220,8,"p"],sweet:["בטטה אפויה","150 ג׳ (בינונית)",130,2.5,"p"],
  potato:["תפוח אדמה אפוי","200 ג׳ (גדול)",170,4,"p"],pasta:["פסטה מלאה מבושלת","כוס (140 ג׳)",175,7,"p"],sauce:["רוטב עגבניות ביתי","חצי כוס",40,1.5,"p"],
@@ -1197,8 +1200,36 @@ var MENUS=[
  {name:"עוף ויוגורט",m:[["egg2","tspoil","bread2","cottage","veg"],["dates"],["chicken","rice","salad","tbspoil"],["rice2","hummus","cuc"],["yog","oats","berries","walnuts"]]},
  {name:"דג ושקשוקה",m:[["bread2","white","yellow","veg"],["milk","banana"],["salmon","sweet","salad","tahini"],["apple","almonds"],["shak","pita","labane","salad"]]},
  {name:"בקר וטונה",m:[["oats40","milk","almonds","berries","cottage"],["yog"],["beef","quinoa","stir","tspoil"],["fruit","walnuts"],["soup","tuna","salad","bread1"]]},
- {name:"עוף ופסטה",m:[["egg2","bread2","hummus","veg"],["yog"],["soup","chicken","potato","salad","tbspoil"],["fruit","dates1"],["pasta","sauce","cottage","salad"]]}
+ {name:"עוף ופסטה",m:[["egg2","bread2","hummus","veg"],["yog"],["soup","chicken","potato","salad","tbspoil"],["fruit","dates1"],["pasta","sauce","cottage","salad"]]},
+ {name:"בורגול ופסטרמה",m:[["egg2","tspoil","bread2","bulgarian","veg"],["fruit","walnuts"],["chicken","bulgur","salad","tahini"],["bread1","turkeyp","cuc"],["shak","pita","salad"]]},
+ {name:"מג׳דרה (צמחוני)",m:[["oats40","milk","dates1","cottage"],["yog"],["lentils","rice","salad","tahini"],["apple","almonds"],["egg2","bread2","white","salad"]]},
+ {name:"שבת",m:[["shak","bread1","bulgarian","salad"],["fruit","almonds"],["challah","chicken","sweet","salad","tspoil"],["dates1"],["tuna","egg2","bread1","salad"]]}
 ];
+var RCP={
+ rice:"כוס אורז מלא שטוף ל־2.5 כוסות מים רותחים, כפית מלח, קורט כורכום או כמון. מכסים, 40 דקות על אש קטנה, מכבים ומשאירים 10 דקות מכוסה. כוס יבש נותן כ־3 כוסות מבושל. תוספות: בצל מטוגן בכפית שמן, פטרוזיליה, שמיר.",
+ bulgur:"בצל קצוץ בכפית שמן עד שמזהיב. מוסיפים כוס בורגול גס ו־2 כוסות מים רותחים, מלח, פלפל שחור, כמון ופפריקה מתוקה. מכסים, 15 דקות על אש קטנה, ו־10 דקות מנוחה. גרסה בלי בישול: משרים במים רותחים 20 דקות, ומערבבים עם פטרוזיליה, נענע, לימון ועגבנייה (טאבולה).",
+ quinoa:"שוטפים היטב במסננת (מוריד מרירות). כוס קינואה ל־2 כוסות מים ומלח, 15 דקות על אש קטנה ו־5 דקות מנוחה. תיבול: לימון, שום כתוש, פטרוזיליה וכמון.",
+ lentils:"שוטפים כוס עדשים ירוקות או חומות, מבשלים במים 25 דקות עד שרכות, מלח וכמון. מג׳דרה: מערבבים עם אורז או בורגול מבושל ובצל מטוגן בכפית שמן. מגישים עם סלט ויוגורט או טחינה.",
+ pasta:"במים רותחים עם מלח, לפי הזמן שעל האריזה פחות דקה (״אל דנטה״ משביע יותר). כוס מבושלת היא כ־50 ג׳ פסטה יבשה.",
+ sauce:"שום כתוש בכפית שמן זית, קופסת עגבניות מרוסקות, מלח, בזיליקום או אורגנו, ומעט סוכר רק אם חמוץ. 15 דקות בישול.",
+ sweet:"פלחים עם הקליפה, כפית שמן, מלח גס, פפריקה מתוקה ורוזמרין. תנור 200°, 30–35 דקות.",
+ potato:"פלחים עם הקליפה, כפית שמן, מלח, פפריקה ושום גבישי. תנור 200°, 35 דקות. או שלם בתנור כשעה עד שרך.",
+ chicken:"משטחים לעובי אחיד. מרינדה: כפית שמן זית, מיץ לימון, שום, פפריקה מתוקה, כורכום, מלח ופלפל, 20 דקות במקרר. תנור 200° 18–20 דקות, או מחבת פסים 5–6 דקות לכל צד. מגוון: זעתר ולימון, או שווארמה (כמון, כורכום, פפריקה).",
+ beef:"500 ג׳ בקר טחון רזה (עד 5% שומן), בצל מגורר, פטרוזיליה, ביצה, 2 כפות פירורי לחם, כמון, מלח ופלפל. 12–14 קציצות. תנור 200° 20 דקות, או 25 דקות ברוטב עגבניות.",
+ salmon:"מלח, פלפל, לימון ושמיר. תנור 200°, 12–15 דקות. לא צריך שמן, יש בדג מספיק.",
+ tuna:"מסננים היטב. מערבבים עם בצל סגול, מלפפון חמוץ, לימון ופלפל, ומעט מיונז לייט או טחינה במקום מיונז.",
+ tofu:"סוחטים מהנוזלים וחותכים לקוביות. רוטב סויה מופחת נתרן, שום, ג׳ינג׳ר וכפית שמן שומשום. תנור 220°, 25 דקות.",
+ shak:"בצל ופלפל בכפית שמן, קופסת עגבניות מרוסקות או 4 עגבניות, שום, פפריקה, כמון, מלח ומעט חריף. 10 דקות, שוברים 2 ביצים, מכסים 6–8 דקות.",
+ egg2:"חביתה במחבת נון־סטיק עם כפית שמן. ביצה קשה: 10 דקות ממים רותחים ואז מים קרים. תיבול: מלח, פלפל, זעתר, בצל ירוק.",
+ stir:"פלפלים, גזר, ברוקולי, פטריות, בצל ושעועית ירוקה. כפית שמן, אש גבוהה 5–7 דקות, רוטב סויה מופחת נתרן, שום וג׳ינג׳ר.",
+ soup:"בצל, גזר, קישוא, דלעת, סלרי ותפוח אדמה קטן. מים לכיסוי, מלח, פלפל, כורכום, 40 דקות. בלי אבקת מרק רגילה (הרבה מלח).",
+ salad:"עגבנייה, מלפפון, פלפל, בצל וחסה. לימון, מלח, פלפל, וסומאק או זעתר. השמן נספר בנפרד.",
+ oats:"עם חצי כוס מים או חלב, 3 דקות על אש קטנה. קינמון, בלי סוכר: המתיקות מהפירות.",oats40:"עם כוס החלב, 3–4 דקות על אש קטנה. קינמון, בלי סוכר: המתיקות מהתמר.",
+ tahini:"טחינה גולמית עם מים קרים, לימון, שום ומלח, מערבבים עד שמבהיר. כף גולמית היא כ־3 כפות מוכנה.",
+ dates:"חוצים כל תמר לאורך, מוציאים את הגלעין, מכניסים חצי אגוז מלך או 2 שקדים וסוגרים.",dates1:"חוצים לאורך, מוציאים את הגלעין, מכניסים חצי אגוז מלך או 2 שקדים.",
+ turkeyp:"בוחרים פסטרמה מחזה הודו עם פחות מ־500 מ״ג נתרן ל־100 ג׳. מתאים 2–3 פעמים בשבוע, לא כל יום.",
+ challah:"פרוסה אחת. חלה מקמח מלא משביעה יותר."
+};
 var ADDON=[["dates1",80],["fruit",80],["bread1",75],["almonds",70],["milk",100]];
 function foodTargets(){var p=P(),w=+currentWeight()||p.startWeight,bmr=10*w+6.25*(+p.height||180)-5*(+p.age||67)+5;
   var tdee=bmr*1.4,kcal=Math.max(1500,Math.round((tdee-500)/50)*50),prot=Math.min(140,Math.round(w*1.4/5)*5),water=Math.round(w*0.03*10)/10;
@@ -1206,14 +1237,14 @@ function foodTargets(){var p=P(),w=+currentWeight()||p.startWeight,bmr=10*w+6.25
 function mealKind(ids){var k="p";ids.forEach(function(i){var x=FI[i][4];if(x!=="p")k=x});return k}
 var KIND={d:["חלבי","var(--c-pull)"],m:["בשרי","var(--c-push)"],p:["פרווה","var(--c-legs)"]};
 function viewFood(){
-  var p=P(),T=foodTargets(),mi=Math.min(MENUS.length-1,+S.fmenu||0),menu=MENUS[mi],wait=+p.meatWait||6;
+  var p=P(),T=foodTargets(),mi=Math.min(MENUS.length-1,S.fmenu!=null?+S.fmenu:new Date().getDay()),menu=MENUS[mi],wait=+p.meatWait||6;
   var tot=0,pr=0;menu.m.forEach(function(ids){ids.forEach(function(i){tot+=FI[i][2];pr+=FI[i][3]})});
   var gap=T.kcal-tot,adds=[];ADDON.forEach(function(a){if(gap>=a[1]-15){adds.push(a[0]);gap-=a[1]}});
   var meatAt=null,clash=false;menu.m.forEach(function(ids,i){var k=mealKind(ids);if(k==="m")meatAt=i;if(k==="d"&&meatAt!=null){var h=(parseInt(MEALS[i][0])-parseInt(MEALS[meatAt][0]));if(h<wait)clash=true}});
   var kpi=function(l,v,u,sub){return'<div class="card"><div class="eyebrow">'+l+'</div><div class="row" style="align-items:baseline;gap:6px;margin-top:4px"><span class="big" style="font-size:34px">'+v+'</span><span class="muted small">'+u+'</span></div><div class="small muted">'+sub+'</div></div>'};
   return '<div class="stack">'+
   '<div class="hero" style="--dc:var(--c-legs)"><div class="eyebrow">תזונה לירידה במשקל</div><h1 class="h1">מה, מתי וכמה לאכול</h1><p class="muted" style="margin:0">הכול כשר. המספרים מחושבים לפי הגיל, הגובה והמשקל האחרון שלך ('+n1(T.w)+' ק״ג), ומתעדכנים לבד כשהמשקל יורד.</p></div>'+
-  '<div class="grid g4" id="t-ftarget">'+kpi("קלוריות ביום",T.kcal.toLocaleString("he-IL"),"קל׳","בערך 500 פחות ממה שאתה שורף ("+T.tdee.toLocaleString("he-IL")+")")+kpi("חלבון ביום",T.prot,"גרם","כ־30 גרם בכל ארוחה. שומר על השריר")+kpi("מים ביום",T.water,"ליטר","ועוד חצי ליטר על כל שעת הליכה")+kpi("קצב ירידה",0.5,"ק״ג לשבוע",T.toGo>0?"עוד "+n1(T.toGo)+" ק״ג: כ־"+T.weeks+" שבועות":"הגעת ליעד")+'</div>'+
+  '<div class="grid g4" id="t-ftarget">'+kpi("קלוריות ביום",T.kcal.toLocaleString("he-IL"),"קל׳","בערך 500 פחות ממה שאתה שורף ("+T.tdee.toLocaleString("he-IL")+")")+kpi("חלבון ביום",T.prot,"גרם","כ־30 גרם בכל ארוחה. שומר על השריר")+kpi("מים ביום",T.water,"ליטר","לפחות. מותר יותר, ועוד חצי ליטר על כל שעת הליכה")+kpi("קצב ירידה",0.5,"ק״ג לשבוע",T.toGo>0?"עוד "+n1(T.toGo)+" ק״ג: כ־"+T.weeks+" שבועות":"הגעת ליעד")+'</div>'+
   '<div class="card stack" id="t-fsched" style="--dc:var(--c-legs)"><h3 class="h3">שעות קבועות</h3>'+
    '<p class="small muted" style="margin:0">3 ארוחות ו־2 ביניים, כל 3 שעות. כך אין רעב גדול ואין נשנושים. לא אוכלים 3 שעות לפני השינה.</p>'+
    '<div class="stack" style="gap:6px">'+[["07:00","כוס מים גדולה כשקמים"]].concat(MEALS.map(function(m,i){var k=0;menu.m[i].forEach(function(x){k+=FI[x][2]});return[m[0],m[1]+" · כ־"+Math.round(k/10)*10+" קל׳"]})).concat([["21:30","סוף האוכל להיום. מים, תה או קפה בלי סוכר"]]).map(function(r){return'<div class="row" style="gap:12px;flex-wrap:nowrap"><b style="min-width:52px;direction:ltr;text-align:right">'+r[0]+'</b><span>'+esc(r[1])+'</span></div>'}).join("")+'</div>'+
@@ -1222,7 +1253,7 @@ function viewFood(){
    '<div class="chips">'+MENUS.map(function(m,i){return'<button type="button" class="chip" data-fmenu="'+i+'" aria-pressed="'+(i===mi)+'">'+(i+1)+'. '+esc(m.name)+'</button>'}).join("")+'</div>'+
    menu.m.map(function(ids,i){var k=mealKind(ids),kc=0,pp=0;ids.forEach(function(x){kc+=FI[x][2];pp+=FI[x][3]});
      return'<div class="card" style="padding:12px;border-inline-start:5px solid '+KIND[k][1]+'"><div class="row" style="justify-content:space-between;gap:6px"><b>'+MEALS[i][0]+' · '+MEALS[i][1]+'</b><span class="pill" style="background:color-mix(in srgb,'+KIND[k][1]+' 16%,transparent)">'+KIND[k][0]+'</span></div>'+
-      '<ul style="margin:8px 0 4px;padding-inline-start:18px">'+ids.map(function(x){return'<li><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+'</li>'}).join("")+'</ul><div class="small muted">כ־'+Math.round(kc/10)*10+' קל׳ · '+Math.round(pp)+' ג׳ חלבון</div></div>'}).join("")+
+      '<ul style="margin:8px 0 4px;padding-inline-start:18px">'+ids.map(function(x){return RCP[x]?'<li><details class="rcp"><summary><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+' <span class="small" style="color:var(--c-legs);white-space:nowrap">· איך מכינים?</span></summary><div class="small" style="margin:4px 0 6px;color:var(--ink)">'+esc(RCP[x])+'</div></details></li>':'<li><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+'</li>'}).join("")+'</ul><div class="small muted">כ־'+Math.round(kc/10)*10+' קל׳ · '+Math.round(pp)+' ג׳ חלבון</div></div>'}).join("")+
    (adds.length?'<div class="note small"><b>להשלמה עד '+T.kcal.toLocaleString("he-IL")+' קל׳:</b> '+adds.map(function(x){return FI[x][0]+" ("+FI[x][1]+")"}).join(", ")+'. מוסיפים לאחת הביניים.</div>':(T.kcal<tot-60?'<div class="note small"><b>היעד שלך '+T.kcal.toLocaleString("he-IL")+' קל׳:</b> מורידים פרוסת לחם או חצי מנת פחמימה בצהריים.</div>':""))+
    (clash?'<div class="note warnn small">בתפריט הזה יש פחות מ־'+wait+' שעות בין הבשר בצהריים לחלב בערב. אפשר להזיז את ארוחת הערב לשעה מאוחרת יותר, או לאכול ערב פרווה: טונה, ביצים או טופו.</div>':"")+
   '</div>'+
@@ -1230,8 +1261,8 @@ function viewFood(){
    '<li>הבוקר והערב חלביים או פרווה, והצהריים בשרי. כך ההפרדה קלה.</li>'+
    '<li>המתנה בין בשר לחלב לפי המנהג שלך. בחר: <span class="chips" style="display:inline-flex" id="f-wait">'+[1,3,6].map(function(h){return'<button type="button" class="chip" data-wait="'+h+'" aria-pressed="'+(wait===h)+'">'+h+(h===1?" שעה":" שעות")+'</button>'}).join("")+'</span></li>'+
    '<li>דג הוא פרווה, אבל לא אוכלים אותו יחד עם בשר.</li><li>ביצים, ירקות, פירות, קטניות, דגנים ואגוזים הם פרווה ומתאימים לכל ארוחה.</li><li>במוצרים קנויים: לבדוק הכשר מוכר.</li></ul></div>'+
-  '<div class="card stack" id="t-frules"><h3 class="h3">10 כללים שעובדים</h3><ol class="steps" style="margin:0">'+
-   ['<b>צלחת חכמה:</b> חצי ירקות, רבע חלבון, רבע פחמימה מלאה.','<b>חלבון בכל ארוחה:</b> בגיל 67 הוא שומר על השריר בזמן הירידה במשקל.','<b>שמן נמדד בכפית,</b> לא שופכים מהבקבוק. כף שמן היא 120 קלוריות.','<b>שותים מים:</b> מים, סודה, תה וקפה בלי סוכר. בלי מיצים ומשקאות מתוקים.','<b>אוכלים לאט:</b> 20 דקות לארוחה, ומפסיקים כשכמעט שבעים.','<b>בלי שקדי מרק, בורקס, מאפים, מטוגנים ונקניקים.</b>','<b>שבת וחג:</b> פרוסת חלה אחת, כוס קטנה של יין לקידוש, ארוחה חגיגית אחת והשנייה קלה.','<b>מסעדה ואירוע:</b> מתחילים בסלט, בוחרים מנה צלויה, ומוותרים על הלחם או על הקינוח.','<b>מתוק:</b> תמר ממולא באגוז מלך או בשקדים, פרי, או 2 קוביות שוקולד מריר. לא ממתקים בין הארוחות.','<b>שוקלים פעם בשבוע,</b> באותו יום ובאותה שעה. ירידה של חצי קילו בשבוע היא הצלחה.'].map(function(x){return"<li>"+x+"</li>"}).join("")+'</ol></div>'+
+  '<div class="card stack" id="t-frules"><h3 class="h3">כללים שעובדים</h3><ol class="steps" style="margin:0">'+
+   ['<b>צלחת חכמה:</b> חצי ירקות, רבע חלבון, רבע פחמימה מלאה.','<b>חלבון בכל ארוחה:</b> בגיל 67 הוא שומר על השריר בזמן הירידה במשקל.','<b>שמן נמדד בכפית,</b> לא שופכים מהבקבוק. כף שמן היא 120 קלוריות.','<b>שותים מים:</b> מים, סודה, תה וקפה בלי סוכר. בלי מיצים ומשקאות מתוקים. היעד הוא מינימום, לא תקרה: מותר לשתות יותר, רק לא יותר מכליטר בשעה. מי שהרופא הגביל לו נוזלים (לב, כליות, משתנים) – לפי הרופא.','<b>אוכלים לאט:</b> 20 דקות לארוחה, ומפסיקים כשכמעט שבעים.','<b>מעט מאוד:</b> בורקס, מאפים, מטוגנים ושקדי מרק. הרבה קלוריות ומעט שובע.','<b>נקניק ונקניקיות – להמעיט, לא אסור:</b> בשר מעובד מסווג על ידי ארגון הבריאות העולמי כגורם לסרטן המעי הגס, יש בו הרבה מלח (מעלה לחץ דם) וחומרים משמרים (ניטריטים), ובנקניק רגיל גם הרבה שומן. <b>פסטרמה מחזה הודו</b> רזה ועשירה בחלבון: 2–3 פעמים בשבוע, 50–60 ג׳, ועדיף עם פחות נתרן.','<b>שבת וחג:</b> פרוסת חלה אחת, כוס קטנה של יין לקידוש, ארוחה חגיגית אחת והשנייה קלה.','<b>מסעדה ואירוע:</b> מתחילים בסלט, בוחרים מנה צלויה, ומוותרים על הלחם או על הקינוח.','<b>מתוק:</b> תמר ממולא באגוז מלך או בשקדים, פרי, או 2 קוביות שוקולד מריר. לא ממתקים בין הארוחות.','<b>שוקלים פעם בשבוע,</b> באותו יום ובאותה שעה. ירידה של חצי קילו בשבוע היא הצלחה.'].map(function(x){return"<li>"+x+"</li>"}).join("")+'</ol></div>'+
   '<div class="card stack" id="t-fswap"><h3 class="h3">החלפות טובות</h3><div class="stack" style="gap:6px">'+
    [["לחם לבן, לחמניה","לחם מלא או קל, פרוסה אחת"],["אורז לבן, פתיתים","אורז מלא, קינואה או בורגול, כוס"],["שניצל מטוגן","חזה עוף או הודו בתנור"],["גבינה צהובה 28%","גבינה 9% או קוטג׳ 5%"],["מיץ פירות","פרי שלם"],["עוגיות, ופלים","2 תמרים ממולאים באגוז מלך או בשקדים"],["שמנת לרוטב","יוגורט 3%"],["ביסלי, במבה","פופקורן ביתי בלי חמאה, 2 כוסות"],["קפה עם סוכר","קפה עם חלב 1%, בלי סוכר"]].map(function(r){return'<div class="row small" style="gap:8px;flex-wrap:nowrap"><span style="flex:1;color:var(--muted)">'+r[0]+'</span><b aria-hidden="true">←</b><span style="flex:1"><b>'+r[1]+'</b></span></div>'}).join("")+'</div></div>'+
   '<div class="note small">המידע כאן כללי ולא מחליף רופא או דיאטנית. אם יש לך סוכרת, בעיה בכליות, או שאתה לוקח תרופות ללחץ דם או לדילול דם, בדוק עם הרופא לפני שינוי בתזונה. הקלוריות בתפריטים הן הערכה.</div>'+
@@ -1460,7 +1491,7 @@ var TOURS={
  food:[
   {sel:"#t-ftarget",t:"היעדים שלך",d:"כמה קלוריות, חלבון ומים ביום. מחושב מהמשקל האחרון שמדדת, ומתעדכן לבד."},
   {sel:"#t-fsched",t:"שעות קבועות",d:"מתי אוכלים וכמה קלוריות בכל ארוחה. למטה: מה לאכול לפני ואחרי אימון."},
-  {sel:"#t-fmenu",t:"תפריט ליום",d:"4 תפריטים כשרים לבחירה. כל ארוחה מסומנת חלבי, בשרי או פרווה, עם הכמויות."},
+  {sel:"#t-fmenu",t:"תפריט ליום",d:"7 תפריטים כשרים, אחד לכל יום בשבוע (כולל שבת). כל ארוחה מסומנת חלבי, בשרי או פרווה, עם כמויות. לחיצה על מאכל מציגה איך מכינים ובאילו תבלינים."},
   {sel:"#t-fkosher",t:"כשרות",d:"בחר את זמן ההמתנה בין בשר לחלב לפי המנהג שלך. התפריט יתריע אם הזמן קצר מדי."},
   {sel:"#t-fswap",t:"החלפות",d:"מה לאכול במקום מאכלים משמינים."}]
 };
