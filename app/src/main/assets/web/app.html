@@ -47,11 +47,12 @@ h1,h2,h3{margin:0;text-wrap:balance}
 .nav button{min-width:50px}
 .brand{display:none}
 @media (min-width:900px){
-  .app{grid-template-columns:220px 1fr}
-  .nav{position:sticky;top:0;height:100vh;flex-direction:column;justify-content:flex-start;gap:4px;border-top:0;border-left:1px solid var(--line);padding:20px 14px;grid-column:1;grid-row:1}
+  .app{grid-template-columns:max-content 1fr}
+  .nav{position:sticky;top:0;height:100vh;flex-direction:column;justify-content:flex-start;gap:4px;border-top:0;border-left:1px solid var(--line);padding:16px 8px;grid-column:1;grid-row:1}
   .main{grid-column:2;grid-row:1;padding-block:28px 60px}
-  .nav button{flex-direction:row;gap:12px;font-size:15px;padding:10px 12px;justify-content:flex-start}
-  .brand{display:block;font-family:var(--display);font-size:24px;line-height:1.1;font-weight:800;padding:4px 12px 18px}
+  .nav button{flex-direction:row;gap:10px;font-size:15px;padding:9px 10px;justify-content:flex-start}
+  .brand{display:block;font-family:var(--display);font-size:22px;line-height:1.1;font-weight:800;padding:4px 8px 16px}
+  .brand .bver{font-family:var(--body);font-size:12px;font-weight:500;color:var(--muted)}
   .brand small{display:block;font-family:var(--body);font-size:12px;color:var(--muted);font-weight:400;margin-top:6px}
 }
 /* type */
@@ -234,7 +235,7 @@ details summary{cursor:pointer;font-weight:600}
 
 <div class="app">
   <nav class="nav" id="nav" aria-label="ניווט">
-    <div class="brand">יומן כושר<small id="brand-ver">הליכה · משקולות · מדידות</small><small id="brand-dev"></small></div>
+    <div class="brand"><span style="white-space:nowrap">יומן כושר <span class="bver" id="brand-v"></span></span><small id="brand-ver">הליכה · משקולות · מדידות</small><small id="brand-dev"></small></div>
   </nav>
   <main class="main" id="main"></main>
 </div>
@@ -253,7 +254,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="2.5",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="2.6",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -920,7 +921,7 @@ function renderNav(){
   nav.querySelectorAll("button").forEach(function(b){b.remove()});
   TABS.forEach(function(t){var b=document.createElement("button");b.type="button";b.innerHTML=ICON[t[0]]+"<span>"+t[1]+"</span>";b.style.setProperty("--tc","var("+t[2]+")");if(TAB===t[0])b.setAttribute("aria-current","page");b.onclick=function(){go(t[0])};nav.appendChild(b)});
 }
-function go(t){if(t!=="workout"&&TAB==="workout"&&WAKE)unwake();TAB=t;try{localStorage.setItem("kg-tab",t)}catch(e){}render();window.scrollTo(0,0)}
+function go(t){if(!S.profile&&S.ready){toast("קודם שמור את הפרטים למטה"+(S.mode==="phone"&&!phLinked()?" או התחבר לשרת":""));return}if(t!=="workout"&&TAB==="workout"&&WAKE)unwake();TAB=t;try{localStorage.setItem("kg-tab",t)}catch(e){}render();window.scrollTo(0,0)}
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(function(){t.hidden=true},2400)}
 function render(){
   renderNav();
@@ -939,7 +940,7 @@ function render(){
   var fav="";try{fav=FA&&FA.version?FA.version():""}catch(e){}
   main.innerHTML='<div class="mhead"><div><b>יומן כושר ביתי</b><br>הליכה · משקולות · מדידות</div><div style="text-align:left">גרסה '+APP_VERSION+(fav?' · טלפון '+esc(fav):'')+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div></div>'+(S.apkNew&&FA?'<div class="banner small" style="margin-bottom:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span><b>גרסה חדשה לאפליקציית הטלפון: '+esc(S.apkNew)+'</b><br><span data-apkmsg></span></span><button type="button" class="btn sm pri" data-apkgo>עדכן עכשיו</button></div>':"")+(S.mode==="phone"&&!phLinked()?'<div class="banner small" style="margin-bottom:14px">האפליקציה עובדת ושומרת הכול בטלפון. כדי לסנכרן גם עם המחשב: "פרופיל והגדרות" ← "חיבור לשרת".</div>':"")+(S.mode==="local"?'<div class="banner small" style="margin-bottom:14px">הנתונים נשמרים כרגע רק בדפדפן הזה. כדי לסנכרן בין המחשב לטלפון, פתח את הקישור כשאתה מחובר לחשבון Claude.</div>':"")+h;
   main.insertAdjacentHTML("beforeend",'<footer class="appfoot">יומן כושר ביתי · גרסה '+APP_VERSION+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</footer>');
-  var bv=document.getElementById("brand-ver");if(bv)bv.textContent="הליכה · משקולות · מדידות גרסה "+APP_VERSION;
+  var bv=document.getElementById("brand-v");if(bv)bv.textContent=APP_VERSION;
   var bd=document.getElementById("brand-dev");if(bd)bd.textContent="מפתח האפליקציה · "+APP_AUTHOR;
   try{mountAnims(main);bind()}catch(err){toast("שגיאה: "+(err&&err.message||err))}
   document.querySelectorAll("[data-apkgo]").forEach(function(b){b.onclick=apkGo});
@@ -954,6 +955,10 @@ function viewSetup(){
   var p=P();
   return '<div class="stack" style="max-width:640px">'+
   '<div><div class="eyebrow">ברוך הבא</div><h1 class="h1">נגדיר נקודת התחלה</h1></div>'+
+  (S.mode==="phone"&&!phLinked()?'<div class="card stack" style="border:2px solid var(--c-walk)"><h3 class="h3">כבר יש לך נתונים ביומן?</h3><p class="small" style="margin:0">התחבר לשרת עם הסיסמה, וכל הנתונים יגיעו לטלפון: פרופיל, מדידות, אימונים והליכות.</p>'+
+   '<label class="f">סיסמת יומן הכושר<span class="pwbox"><input type="password" id="su-pw" dir="ltr" autocapitalize="none" autocomplete="current-password"><button type="button" class="eye" data-eye="su-pw" aria-label="הצג סיסמה">'+EYE+'</button></span></label>'+
+   '<div class="row"><button type="button" class="btn pri" id="su-connect">התחבר והבא את הנתונים</button><span class="small" id="su-msg"></span></div></div>'+
+   '<p class="small muted" style="margin:0">או: משתמש חדש? מלא את הפרטים למטה.</p>':'')+
   '<p>הערכים מולאו לפי מה שסיפרת. אפשר לתקן כל דבר גם אחר כך.</p>'+
   '<div class="card stack"><div class="grid g4">'+
   fld("s-age","גיל",p.age)+fld("s-h","גובה (ס״מ)",p.height)+fld("s-w","משקל היום (ק״ג)",p.startWeight)+fld("s-g","יעד (ק״ג)",p.goalWeight)+
@@ -1586,6 +1591,11 @@ function bind(){
   main.querySelectorAll("[data-go-w]").forEach(function(b){b.onclick=function(){S.wsel=b.dataset.goW;go("workout")}});
   main.querySelectorAll("[data-open]").forEach(function(b){b.onclick=function(ev){ev.stopPropagation();openEx(b.dataset.open)}});
   if($("edit-profile"))$("edit-profile").onclick=openProfile;
+  if($("su-connect")){
+    main.querySelectorAll("[data-eye]").forEach(function(b){b.onclick=function(){var i=$(b.dataset.eye);i.type=i.type==="password"?"text":"password"}});
+    $("su-connect").onclick=function(){var pw=$("su-pw").value,m=$("su-msg");if(!pw){m.textContent="הקלד סיסמה";return}m.textContent="מתחבר…";
+      var id=++FAN;FACB[id]=function(r){if(r.status===200&&r.data&&r.data.ok){m.textContent="מחובר. מביא את הנתונים…";PH.known={};PH.pulled=false;phSync().then(function(){if(!S.profile)m.textContent="מחובר, אבל בשרת אין עדיין פרופיל. מלא את הפרטים למטה.";else render()})}else m.textContent=r.status===401?"סיסמה שגויה":"אין חיבור לשרת. בדוק אינטרנט"};
+      try{FA.connect(pw,id)}catch(e){m.textContent="החיבור נכשל"}}}
   if($("s-save")){chipGroup("s-days");$("s-save").onclick=function(){
     var w=num("s-w"),tk=today();
     var np=Object.assign({},DEF_PROFILE,{age:num("s-age"),height:num("s-h"),startWeight:w,goalWeight:num("s-g"),dumbbells:$("s-db").value,planDays:+document.querySelector("#s-days [aria-pressed=true]").dataset.v,start:tk});
