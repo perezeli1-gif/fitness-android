@@ -251,7 +251,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="2.2",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="2.3",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -819,6 +819,13 @@ window.onFitHealth=function(r){
   Object.keys(bym).forEach(function(m){var cur=S.steps[m]||{},days=Object.assign({},cur.days||{},bym[m]);if(JSON.stringify(days)!==JSON.stringify(cur.days||{}))put("steps",m,Object.assign({},cur,{days:days}))});
   window.onFitSync({ok:true,added:added,updated:updated,found:(r.walks||[]).length});soft();
 };
+/* update of the Android app itself (APK) */
+window.onApkUpdate=function(info){if(!info)return;
+  if(info.newer){S.apkNew=info.latest;soft();if(S.apkManual)apkMsg("יש גרסה חדשה: "+info.latest)}
+  else if(S.apkManual)apkMsg(info.ok?"מותקנת הגרסה האחרונה ("+info.current+")":"אין חיבור לאינטרנט");S.apkManual=false};
+window.onApkProgress=function(p){if(!p)return;var t=p.error?p.error:p.installing?"מתקין… אם מופיע חלון אישור, לחץ \"עדכן\". האפליקציה תיסגר ותיפתח מעודכנת.":"מוריד גרסה "+p.version+": "+p.pct+"%";apkMsg(t);if(p.error||p.installing)toast(t)};
+function apkMsg(t){document.querySelectorAll("[data-apkmsg]").forEach(function(e){e.textContent=t})}
+function apkGo(){try{FA.updateApk();apkMsg("מתחיל…")}catch(e){toast("צריך להתקין פעם אחת את הגרסה החדשה ידנית")}}
 window.onFitUpdate=function(v){if(TAB==="workout"&&S.draft){toast("גרסה "+v+" ירדה. היא תיכנס בפתיחה הבאה.");return}location.reload()};
 async function init(){
   if(window.FIT_PHONE&&FA){S.mode="phone";phLoad();
@@ -926,12 +933,13 @@ function render(){
   else if(TAB==="measure")h=viewMeasure();
   else if(TAB==="food")h=viewFood();
   var fav="";try{fav=FA&&FA.version?FA.version():""}catch(e){}
-  main.innerHTML='<div class="mhead"><div><b>יומן כושר ביתי</b><br>הליכה · משקולות · מדידות</div><div style="text-align:left">גרסה '+APP_VERSION+(fav?' · טלפון '+esc(fav):'')+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div></div>'+(S.mode==="phone"&&!phLinked()?'<div class="banner small" style="margin-bottom:14px">האפליקציה עובדת ושומרת הכול בטלפון. כדי לסנכרן גם עם המחשב: "פרופיל והגדרות" ← "חיבור לשרת".</div>':"")+(S.mode==="local"?'<div class="banner small" style="margin-bottom:14px">הנתונים נשמרים כרגע רק בדפדפן הזה. כדי לסנכרן בין המחשב לטלפון, פתח את הקישור כשאתה מחובר לחשבון Claude.</div>':"")+h;
+  main.innerHTML='<div class="mhead"><div><b>יומן כושר ביתי</b><br>הליכה · משקולות · מדידות</div><div style="text-align:left">גרסה '+APP_VERSION+(fav?' · טלפון '+esc(fav):'')+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div></div>'+(S.apkNew&&FA?'<div class="banner small" style="margin-bottom:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span><b>גרסה חדשה לאפליקציית הטלפון: '+esc(S.apkNew)+'</b><br><span data-apkmsg></span></span><button type="button" class="btn sm pri" data-apkgo>עדכן עכשיו</button></div>':"")+(S.mode==="phone"&&!phLinked()?'<div class="banner small" style="margin-bottom:14px">האפליקציה עובדת ושומרת הכול בטלפון. כדי לסנכרן גם עם המחשב: "פרופיל והגדרות" ← "חיבור לשרת".</div>':"")+(S.mode==="local"?'<div class="banner small" style="margin-bottom:14px">הנתונים נשמרים כרגע רק בדפדפן הזה. כדי לסנכרן בין המחשב לטלפון, פתח את הקישור כשאתה מחובר לחשבון Claude.</div>':"")+h;
   main.insertAdjacentHTML("beforeend",'<footer class="appfoot">יומן כושר ביתי · גרסה '+APP_VERSION+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</footer>');
   var bv=document.getElementById("brand-ver");if(bv)bv.textContent="הליכה · משקולות · מדידות גרסה "+APP_VERSION;
   var bd=document.getElementById("brand-dev");if(bd)bd.textContent="מפתח האפליקציה · "+APP_AUTHOR;
   mountAnims(main);
   bind();
+  document.querySelectorAll("[data-apkgo]").forEach(function(b){b.onclick=apkGo});
   document.getElementById("helpfab").hidden=!S.profile;
   var hg=document.getElementById("hm-guide");hg.hidden=S.mode!=="server"&&S.mode!=="phone";if(S.mode==="phone"){try{hg.href=FA.serverUrl()+"help"}catch(e){}}
   if(TOUR)endTour(true);
@@ -1515,7 +1523,11 @@ function openProfile(){
    '<p class="small muted" style="margin:0">כל הנתונים נשמרים בטלפון, והאפליקציה עובדת גם בלי השרת. כשיש חיבור, השינויים עוברים לשרת ולמחשב ומשם לטלפון.</p>'+
    '<label class="f">סיסמת יומן הכושר<span class="pwbox"><input type="password" id="ph-pw" dir="ltr" autocapitalize="none" autocomplete="current-password"><button type="button" class="eye" data-eye="ph-pw" aria-label="הצג סיסמה">'+EYE+'</button></span></label>'+
    '<div class="row"><button type="button" class="btn sm pri" id="ph-connect">'+(phLinked()?"התחבר מחדש":"התחבר")+'</button><button type="button" class="btn sm" id="ph-now">סנכרן עכשיו</button><button type="button" class="btn sm ghost" id="p-server">כתובת השרת</button></div>'+
-   '<div class="small" id="ph-msg"></div></div></details>':
+   '<div class="small" id="ph-msg"></div></div></details>'+
+   '<details'+(S.apkNew?' open':'')+'><summary>עדכון אפליקציית הטלפון</summary><div class="stack" style="margin-top:10px">'+
+   '<p class="small" style="margin:0">מותקנת גרסה <b>'+esc((function(){try{return FA.version()}catch(e){return"?"}})())+'</b>'+(S.apkNew?' · יש גרסה חדשה: <b>'+esc(S.apkNew)+'</b>':'')+'</p>'+
+   '<p class="small muted" style="margin:0">האפליקציה בודקת לבד אם יש גרסה חדשה. העדכון מוריד ומתקין בלחיצה אחת.</p>'+
+   '<div class="row"><button type="button" class="btn sm pri" data-apkgo>עדכן עכשיו</button><button type="button" class="btn sm" id="apk-check">בדוק אם יש עדכון</button></div><div class="small" data-apkmsg></div></div></details>':
    (FA?'<div><button type="button" class="btn sm" id="p-server">כתובת השרת באפליקציה</button></div>':''))+
   (S.mode==="server"?'<details><summary>שינוי סיסמה</summary><div class="grid g4" style="margin-top:10px"><label class="f">סיסמה נוכחית<span class="pwbox"><input type="password" id="pw-cur" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-cur" aria-label="הצג סיסמה">'+EYE+'</button></span></label><label class="f">סיסמה חדשה<span class="pwbox"><input type="password" id="pw-new" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-new" aria-label="הצג סיסמה">'+EYE+'</button></span></label></div><div style="margin-top:8px"><button type="button" class="btn sm" id="pw-save">שנה סיסמה</button> <span class="small" id="pw-msg"></span></div></details><div><a class="btn ghost sm" href="logout">התנתק</a></div>':"")+
   '</div>';
@@ -1525,6 +1537,8 @@ function openProfile(){
   if(document.getElementById("ph-connect"))document.getElementById("ph-connect").onclick=function(){var pw=document.getElementById("ph-pw").value,m=document.getElementById("ph-msg");if(!pw){m.textContent="הקלד סיסמה";return}m.textContent="מתחבר…";
     var id=++FAN;FACB[id]=function(r){if(r.status===200&&r.data&&r.data.ok){m.textContent="מחובר. מסנכרן…";PH.known={};PH.pulled=false;phSync().then(function(){m.textContent="מחובר ומסונכרן"})}else m.textContent=r.status===401?"סיסמה שגויה":"אין חיבור לשרת"};
     try{FA.connect(pw,id)}catch(e){m.textContent="צריך לעדכן את אפליקציית הטלפון"}};
+  dl.querySelectorAll("[data-apkgo]").forEach(function(b){b.onclick=apkGo});
+  if(document.getElementById("apk-check"))document.getElementById("apk-check").onclick=function(){S.apkManual=true;apkMsg("בודק…");try{FA.checkApk()}catch(e){apkMsg("צריך להתקין פעם אחת את הגרסה החדשה ידנית")}};
   if(document.getElementById("ph-now"))document.getElementById("ph-now").onclick=function(){var m=document.getElementById("ph-msg");m.textContent="מסנכרן…";phSync().then(function(){m.textContent=phStatusText()})};
   bindBackup();
   document.getElementById("dlg-x").onclick=function(){dl.close()};

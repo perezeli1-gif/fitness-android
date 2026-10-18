@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.speech.tts.TextToSpeech
@@ -61,6 +62,8 @@ class MainActivity : ComponentActivity() {
     private var pendingSave: String? = null
     private var lastAutoSync = 0L
     private var healthRunning = false
+    private var updating = false
+    private var resumeUpdate = false
 
     private val prefs by lazy { getSharedPreferences("fitness", Context.MODE_PRIVATE) }
     private val server: String get() = prefs.getString("server", DEFAULT_SERVER) ?: DEFAULT_SERVER
@@ -186,11 +189,17 @@ class MainActivity : ComponentActivity() {
 
         web.loadUrl(PAGE_URL)
         checkPageUpdate()
+        web.postDelayed({ checkApk(auto = true) }, 4000)
     }
 
     override fun onResume() {
         super.onResume()
         web.onResume()
+        // חזרה ממסך ההרשאה "התקנת אפליקציות לא מוכרות": ממשיכים בעדכון
+        if (resumeUpdate && packageManager.canRequestPackageInstalls()) {
+            resumeUpdate = false
+            updateApk()
+        }
         // קריאה שקטה מהשעון כשחוזרים לאפליקציה (למשל אחרי הליכה)
         if (System.currentTimeMillis() - lastAutoSync > AUTO_SYNC_EVERY_MS) {
             lastAutoSync = System.currentTimeMillis()
@@ -268,6 +277,57 @@ class MainActivity : ComponentActivity() {
                 }
                 toPage("onFitUpdate", JSONObject.quote(o.getString("version")))
             } catch (_: Exception) { }
+        }
+    }
+
+    // ---------- עדכון אפליקציית הטלפון ----------
+    private fun apkInfo(l: AppUpdater.Latest?): String = JSONObject()
+        .put("current", BuildConfig.VERSION_NAME)
+        .put("latest", l?.version ?: "")
+        .put("newer", l != null && AppUpdater.newer(l.version, BuildConfig.VERSION_NAME))
+        .put("ok", l != null)
+        .toString()
+
+    /** בודק אם יש גרסה חדשה. auto = בדיקה שקטה פעם ב-6 שעות. */
+    private fun checkApk(auto: Boolean) {
+        if (auto && System.currentTimeMillis() - prefs.getLong("apkCheck", 0) < 6 * 3600 * 1000L) return
+        lifecycleScope.launch {
+            val l = AppUpdater.latest()
+            if (l != null) prefs.edit().putLong("apkCheck", System.currentTimeMillis()).apply()
+            if (!auto || (l != null && AppUpdater.newer(l.version, BuildConfig.VERSION_NAME)))
+                toPage("onApkUpdate", apkInfo(l))
+        }
+    }
+
+    private fun updateApk() {
+        if (updating) return
+        if (!packageManager.canRequestPackageInstalls()) {
+            resumeUpdate = true
+            Toast.makeText(this, "פעם אחת בלבד: הפעל את המתג \"אפשר מהמקור הזה\" וחזור", Toast.LENGTH_LONG).show()
+            try {
+                startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
+            } catch (_: ActivityNotFoundException) { }
+            return
+        }
+        updating = true
+        lifecycleScope.launch {
+            try {
+                val l = AppUpdater.latest()
+                if (l == null) { toPage("onApkProgress", JSONObject().put("error", "אין חיבור לאינטרנט").toString()); return@launch }
+                if (!AppUpdater.newer(l.version, BuildConfig.VERSION_NAME)) {
+                    toPage("onApkProgress", JSONObject().put("error", "כבר מותקנת הגרסה האחרונה (${BuildConfig.VERSION_NAME})").toString()); return@launch
+                }
+                val f = AppUpdater.download(this@MainActivity, l) { p ->
+                    toPage("onApkProgress", JSONObject().put("pct", p).put("version", l.version).toString())
+                }
+                if (f == null) { toPage("onApkProgress", JSONObject().put("error", "ההורדה נכשלה. נסה שוב").toString()); return@launch }
+                toPage("onApkProgress", JSONObject().put("installing", true).put("version", l.version).toString())
+                withContext(Dispatchers.IO) { AppUpdater.install(this@MainActivity, f) }
+            } catch (e: Exception) {
+                toPage("onApkProgress", JSONObject().put("error", "העדכון נכשל: ${e.message ?: ""}").toString())
+            } finally {
+                updating = false
+            }
         }
     }
 
@@ -359,6 +419,12 @@ class MainActivity : ComponentActivity() {
                 createDoc.launch(name)
             }
         }
+
+        @JavascriptInterface
+        fun checkApk() { runOnUiThread { this@MainActivity.checkApk(auto = false) } }
+
+        @JavascriptInterface
+        fun updateApk() { runOnUiThread { this@MainActivity.updateApk() } }
 
         @JavascriptInterface
         fun syncNow() {
