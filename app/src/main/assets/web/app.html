@@ -248,7 +248,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="2.0",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="2.1",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -745,7 +745,7 @@ async function poll(){
 }
 var FA=window.FitAndroid||null;
 window.onFitSync=function(r){var el=document.getElementById("k-sync-msg");
-  var msg=r.ok?(r.added?("יובאו "+r.added+" הליכות חדשות מהשעון. הליכות קצרות עוברות ל'הליכות יומיומיות'."):(r.found?"ההליכות מהשעון כבר מעודכנות":"לא נמצאו הליכות ב־30 הימים האחרונים")):(r.message||"הסנכרון נכשל");
+  var msg=r.ok?(r.updated&&!r.added?("עודכנו הנתונים של "+r.updated+" הליכות לפי השעון"):r.added?("יובאו "+r.added+" הליכות חדשות מהשעון. הליכות קצרות עוברות ל'הליכות יומיומיות'."):(r.found?"ההליכות מהשעון כבר מעודכנות":"לא נמצאו הליכות ב־30 הימים האחרונים")):(r.message||"הסנכרון נכשל");
   toast(msg);if(el)el.textContent=msg;var b=document.getElementById("k-sync");if(b){b.disabled=false;b.textContent="סנכרן מהשעון עכשיו"}
   if(r.ok&&r.added&&S.mode==="server"){LASTSIG=null;poll()}};
 async function linkPhone(){if(!FA||S.mode!=="server")return;try{var r=await srv("GET","api/sync/token");if(r&&r.token)FA.setToken(r.token)}catch(e){}}
@@ -800,18 +800,21 @@ function phBadge(){var e=document.getElementById("ph-status");if(e)e.textContent
 function hm(t){var p=String(t||"").split(":");return p.length<2?null:(+p[0])*60+(+p[1])}
 window.onFitHealth=function(r){
   if(!r||!r.ok){window.onFitSync(r||{ok:false});return}
-  var added=0,months={};
+  var added=0,updated=0,months={};
   function mdoc(m){if(!months[m])months[m]=S.walks[m]?JSON.parse(JSON.stringify(S.walks[m])):{items:{}};months[m].items=months[m].items||{};return months[m]}
   (r.walks||[]).forEach(function(w){if(!w.date||w.date.length!==10||!w.id)return;
     var wid="hc"+String(w.id).replace(/[^A-Za-z0-9]/g,"").slice(0,40),doc=mdoc(w.date.slice(0,7)),it=doc.items,t0=hm(w.time);
-    if(it[wid]){if(w.rec!=null&&it[wid].rec==null)it[wid].rec=w.rec;return}
-    for(var k in it){var x=it[k];if(x.date===w.date&&hm(x.time)!=null&&t0!=null&&Math.abs(hm(x.time)-t0)<=3)return}
     var nz=function(v,d){return v==null||v===""||!+v?null:(d?Math.round(v*Math.pow(10,d))/Math.pow(10,d):Math.round(v))};
-    it[wid]={id:wid,date:w.date,time:String(w.time||"").slice(0,5),min:nz(w.min),km:nz(w.km,2),steps:nz(w.steps),hr:nz(w.hr),kcal:nz(w.kcal),rec:w.rec==null?null:w.rec,src:"watch"};added++});
+    var data={min:w.sec?Math.round(w.sec)/60:nz(w.min,2),sec:w.sec?Math.round(w.sec):null,km:nz(w.km,2),steps:nz(w.steps),hr:nz(w.hr),kcal:nz(w.kcal),kcalT:nz(w.kcalT),kcalA:nz(w.kcalA),rec:w.rec==null?null:w.rec,app:w.app||null};
+    if(it[wid]){/* already here: refresh the numbers from the watch (keeps the note and the fitness/daily choice) */
+      if(it[wid].src==="watch"&&w.sec){var before=JSON.stringify(it[wid]);Object.keys(data).forEach(function(f){if(data[f]!=null)it[wid][f]=data[f]});if(JSON.stringify(it[wid])!==before)updated++}
+      else if(w.rec!=null&&it[wid].rec==null)it[wid].rec=w.rec;return}
+    for(var k in it){var x=it[k];if(x.date===w.date&&hm(x.time)!=null&&t0!=null&&Math.abs(hm(x.time)-t0)<=3)return}
+    it[wid]=Object.assign({id:wid,date:w.date,time:String(w.time||"").slice(0,5),src:"watch"},data);added++});
   Object.keys(months).forEach(function(m){if(JSON.stringify(months[m])!==JSON.stringify(S.walks[m]||null))put("walks",m,months[m])});
   var st=r.steps||{},bym={};Object.keys(st).forEach(function(k){if(k.length===10)(bym[k.slice(0,7)]=bym[k.slice(0,7)]||{})[k]=Math.round(+st[k])});
   Object.keys(bym).forEach(function(m){var cur=S.steps[m]||{},days=Object.assign({},cur.days||{},bym[m]);if(JSON.stringify(days)!==JSON.stringify(cur.days||{}))put("steps",m,Object.assign({},cur,{days:days}))});
-  window.onFitSync({ok:true,added:added,found:(r.walks||[]).length});soft();
+  window.onFitSync({ok:true,added:added,updated:updated,found:(r.walks||[]).length});soft();
 };
 window.onFitUpdate=function(v){if(TAB==="workout"&&S.draft){toast("גרסה "+v+" ירדה. היא תיכנס בפתיחה הבאה.");return}location.reload()};
 async function init(){
@@ -884,8 +887,8 @@ function isFitWalk(w){if(w.kind==="fit")return true;if(w.kind==="daily")return f
   if(w.rec===1)return true;if(w.rec===2)return false;
   var r=walkRule();if(!(+w.min>=r.min))return false;if(w.km&&+w.min/ +w.km>r.pace)return false;return true}
 function fitWalks(){return walkList().filter(isFitWalk)}
-function walkedOn(k){return fitWalks().filter(function(w){return w.date===k}).reduce(function(a,w){return a+(+w.min||0)},0)}
-function weekMinutes(ws){var we=addDays(ws,6);return fitWalks().filter(function(w){return w.date>=ws&&w.date<=we}).reduce(function(s,w){return s+(+w.min||0)},0)}
+function walkedOn(k){return Math.round(fitWalks().filter(function(w){return w.date===k}).reduce(function(a,w){return a+(+w.min||0)},0))}
+function weekMinutes(ws){var we=addDays(ws,6);return Math.round(fitWalks().filter(function(w){return w.date>=ws&&w.date<=we}).reduce(function(s,w){return s+(+w.min||0)},0))}
 function walkGoalWeek(){var w=programWeek();return w<=2?120:w<=6?150:200}
 
 /* ---------- ui helpers ---------- */
@@ -1215,8 +1218,9 @@ function viewFood(){
 }
 
 /* ---------- walking ---------- */
-function fmtPace(min,km){if(!min||!km)return"–";var p=min/km,m=Math.floor(p),sec=Math.round((p-m)*60);if(sec===60){m++;sec=0}return m+":"+pad(sec)}
-function fmtDur(min){if(!min)return"–";min=Math.round(min);var h=Math.floor(min/60),m=min%60;return h?h+":"+pad(m)+" ש׳":m+" דק׳"}
+function fmtPace(min,km){if(!min||!km)return"–";var t=Math.floor(min/km*60+1e-6),m=Math.floor(t/60),sec=t%60;return m+":"+pad(sec)}
+function fmtDur(min){if(!min)return"–";var t=Math.round(min*60),h=Math.floor(t/3600),m=Math.floor(t%3600/60),sec=t%60;
+  if(h)return h+":"+pad(m)+(sec?":"+pad(sec):"")+" ש׳";return sec&&min<100?m+":"+pad(sec)+" דק׳":m+" דק׳"}
 function walkStats(list){var km=0,min=0,kmMin=0,kmKm=0;list.forEach(function(w){km+=+w.km||0;min+=+w.min||0;if(w.km&&w.min){kmKm+=+w.km;kmMin+=+w.min}});return{n:list.length,km:km,min:min,pace:kmKm?kmMin/kmKm:null}}
 S.wm="min";
 function viewWalk(){
@@ -1226,7 +1230,7 @@ function viewWalk(){
   var longest=list.reduce(function(b,w){return(+w.km||0)>(b?+b.km||0:0)?w:b},null);
   var fastest=list.filter(function(w){return w.km>=1&&w.min}).reduce(function(b,w){return!b||w.min/w.km<b.min/b.km?w:b},null);
   var goal=walkGoalWeek(),metric=S.wm;
-  var weeks=[];for(var i=7;i>=0;i--){var s0=addDays(ws,-7*i),st=walkStats(list.filter(function(w){return w.date>=s0&&w.date<=addDays(s0,6)}));weeks.push({k:s0,v:metric==="km"?Math.round(st.km*10)/10:st.min})}
+  var weeks=[];for(var i=7;i>=0;i--){var s0=addDays(ws,-7*i),st=walkStats(list.filter(function(w){return w.date>=s0&&w.date<=addDays(s0,6)}));weeks.push({k:s0,v:metric==="km"?Math.round(st.km*10)/10:Math.round(st.min)})}
   var g=metric==="km"?null:goal;
   var mx=Math.max(g?g*1.15:1,Math.max.apply(null,weeks.map(function(w){return w.v}))*1.12||1);
   var W=600,H=210,pl=34,pb=26,pt=16,bw=(W-pl-10)/8;
@@ -1238,10 +1242,10 @@ function viewWalk(){
    weeks.map(function(w,i){var x=W-10-(i+1)*bw+6,hh=Math.max(0,H-pb-y(w.v)),ok=g?w.v>=g:w.v>0;return'<rect x="'+x+'" y="'+y(w.v)+'" width="'+(bw-12)+'" height="'+hh+'" rx="5" fill="'+(ok?"var(--walk)":"var(--fig2)")+'"/><text x="'+(x+(bw-12)/2)+'" y="'+(H-8)+'" text-anchor="middle">'+fmtD(w.k)+'</text>'+(w.v?'<text x="'+(x+(bw-12)/2)+'" y="'+(y(w.v)-5)+'" text-anchor="middle" style="fill:var(--ink);font-weight:600">'+w.v+'</text>':"")}).join("")+'</svg>';
   var stat=function(l,v,u){return'<div class="wst"><div class="eyebrow">'+l+'</div><div><span class="big" style="font-size:30px">'+v+'</span> <span class="small muted">'+(u||"")+'</span></div></div>'};
   var card=function(w,fit){
-    var sp=w.km&&w.min?(w.km/(w.min/60)).toFixed(1):null;
+    var sp=w.km&&w.min?(Math.floor(w.km/(w.min/60)*10+1e-6)/10).toFixed(1):null;
     return'<div class="walkc"><div class="head" style="align-items:center"><div><b>'+fmtDL(w.date)+'</b>'+(w.time?' <span class="muted small">· '+esc(w.time)+'</span>':"")+'</div><div class="row" style="gap:6px">'+((w.src==="samsung"||w.src==="watch")?'<span class="pill walk">מהשעון</span>':'<span class="pill">ידני</span>')+'<button class="btn sm" data-wkind="'+w.month+"|"+w.id+"|"+(fit?"daily":"fit")+'">'+(fit?"לא הליכת כושר":"זו הליכת כושר")+'</button><button class="btn ghost sm" data-delwalk="'+w.month+"|"+w.id+'">מחק</button></div></div>'+
     '<div class="wgrid">'+
-     '<div><div class="eyebrow">מרחק</div><b class="num">'+(w.km?n1(w.km)+" ק״מ":"–")+'</b></div>'+
+     '<div><div class="eyebrow">מרחק</div><b class="num">'+(w.km?(+w.km).toFixed(2)+" ק״מ":"–")+'</b></div>'+
      '<div><div class="eyebrow">זמן</div><b class="num">'+fmtDur(w.min)+'</b></div>'+
      '<div><div class="eyebrow">קצב</div><b class="num">'+fmtPace(w.min,w.km)+'</b> <span class="small muted">לק״מ</span></div>'+
      '<div><div class="eyebrow">מהירות</div><b class="num">'+(sp||"–")+'</b> <span class="small muted">קמ״ש</span></div>'+
@@ -1255,7 +1259,7 @@ function viewWalk(){
   return '<div class="stack"><div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div></div><div class="tape walk"></div>'+
   '<div class="card stack" id="t-wsum" style="--dc:var(--c-walk)"><div class="head"><h3 class="h3">השבוע</h3><span class="small muted">'+fmtD(ws)+'–'+fmtD(addDays(ws,6))+'</span></div><div class="wstats">'+
     stat("מרחק",n1(wk.km),"ק״מ")+stat("זמן הליכה",fmtDur(wk.min))+stat("קצב ממוצע",wk.pace?fmtPace(wk.pace,1):"–","דק׳ לק״מ")+stat("הליכות",wk.n)+'</div>'+
-    '<div class="prog walk"><i style="width:'+Math.min(100,wk.min/goal*100)+'%"></i></div><div class="small muted">'+wk.min+' מתוך '+goal+' דקות'+(wk.min>=goal?' · הגעת ליעד!':"")+'</div></div>'+
+    '<div class="prog walk"><i style="width:'+Math.min(100,wk.min/goal*100)+'%"></i></div><div class="small muted">'+Math.round(wk.min)+' מתוך '+goal+' דקות'+(wk.min>=goal?' · הגעת ליעד!':"")+'</div></div>'+
   '<div class="card stack"><h3 class="h3">החודש ושיאים</h3><div class="wstats">'+stat("מרחק החודש",n1(mo.km),"ק״מ")+stat("זמן החודש",fmtDur(mo.min))+stat("ההליכה הארוכה",longest&&longest.km?n1(longest.km):"–","ק״מ")+stat("הקצב הטוב",fastest?fmtPace(fastest.min,fastest.km):"–","דק׳ לק״מ")+'</div></div>'+
   '<div class="grid g2"><div class="card stack" id="t-walkform"><h3 class="h3">רישום הליכה</h3><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">'+
    '<label class="f">תאריך<input type="date" id="k-date" value="'+tk+'"></label><label class="f">שעת התחלה<input type="time" id="k-time" value="'+nowT+'"></label>'+

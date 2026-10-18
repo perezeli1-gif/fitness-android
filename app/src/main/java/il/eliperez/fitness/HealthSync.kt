@@ -10,6 +10,8 @@ import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
 import androidx.health.connect.client.records.TotalCaloriesBurnedRecord
 import androidx.health.connect.client.aggregate.AggregateMetric
+import androidx.health.connect.client.aggregate.AggregationResult
+import androidx.health.connect.client.records.metadata.DataOrigin
 import androidx.health.connect.client.request.AggregateGroupByPeriodRequest
 import androidx.health.connect.client.request.AggregateRequest
 import androidx.health.connect.client.request.ReadRecordsRequest
@@ -76,7 +78,7 @@ object HealthSync {
             )
         ).records.filter { it.exerciseType in WALK_TYPES }
 
-        val metrics = mutableSetOf<AggregateMetric<*>>()
+        val metrics = mutableSetOf<AggregateMetric<*>>(ExerciseSessionRecord.EXERCISE_DURATION_TOTAL)
         if (can(DistanceRecord::class)) metrics += DistanceRecord.DISTANCE_TOTAL
         if (can(StepsRecord::class)) metrics += StepsRecord.COUNT_TOTAL
         if (can(HeartRateRecord::class)) metrics += HeartRateRecord.BPM_AVG
@@ -90,26 +92,36 @@ object HealthSync {
             val off = s.startZoneOffset
             val start = if (off != null) s.startTime.atOffset(off).toLocalDateTime()
             else LocalDateTime.ofInstant(s.startTime, ZoneId.systemDefault())
+            val totalSec = Duration.between(s.startTime, s.endTime).seconds
             val w = JSONObject()
                 .put("id", s.metadata.id)
                 .put("date", start.format(dayFmt))
                 .put("time", start.format(timeFmt))
-                .put("min", Duration.between(s.startTime, s.endTime).toMinutes())
                 .put("rec", s.metadata.recordingMethod)
                 .put("title", s.title ?: "")
-            if (metrics.isNotEmpty()) {
-                try {
-                    val a = client.aggregate(
-                        AggregateRequest(metrics, TimeRangeFilter.between(s.startTime, s.endTime))
-                    )
-                    a[DistanceRecord.DISTANCE_TOTAL]?.let { w.put("km", it.inKilometers) }
-                    a[StepsRecord.COUNT_TOTAL]?.let { w.put("steps", it) }
-                    a[HeartRateRecord.BPM_AVG]?.let { w.put("hr", it) }
-                    val kcal = a[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
-                        ?: a[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories
-                    kcal?.let { w.put("kcal", it) }
-                } catch (_: Exception) { /* חלק מהנתונים חסרים: שולחים מה שיש */ }
-            }
+                .put("app", s.metadata.dataOrigin.packageName)
+            var sec = totalSec
+            try {
+                // רק הנתונים שהאפליקציה שרשמה את האימון כתבה (Samsung Health), בלי צעדים מהטלפון או מאפליקציות אחרות
+                val range = TimeRangeFilter.between(s.startTime, s.endTime)
+                var a: AggregationResult = client.aggregate(AggregateRequest(metrics, range, setOf(s.metadata.dataOrigin)))
+                if (a[DistanceRecord.DISTANCE_TOTAL] == null && a[StepsRecord.COUNT_TOTAL] == null)
+                    a = client.aggregate(AggregateRequest(metrics, range, emptySet<DataOrigin>()))
+                a[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]?.let { d ->
+                    if (d.seconds in 60..totalSec) sec = d.seconds   // זמן האימון בלי ההפסקות
+                }
+                a[DistanceRecord.DISTANCE_TOTAL]?.let { w.put("km", it.inKilometers) }
+                a[StepsRecord.COUNT_TOTAL]?.let { w.put("steps", it) }
+                a[HeartRateRecord.BPM_AVG]?.let { w.put("hr", it) }
+                val total = a[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories
+                val active = a[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
+                total?.let { w.put("kcalT", it) }
+                active?.let { w.put("kcalA", it) }
+                // Samsung Health מציג את סך הקלוריות באימון
+                val kcal = if (total != null && total > 0) total else active
+                kcal?.let { w.put("kcal", it) }
+            } catch (_: Exception) { /* חלק מהנתונים חסרים: שולחים מה שיש */ }
+            w.put("sec", sec).put("min", sec / 60.0)
             walks.put(w)
         }
 
