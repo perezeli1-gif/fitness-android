@@ -65,11 +65,13 @@ class MainActivity : ComponentActivity() {
         setContentView(web)
 
         CookieManager.getInstance().setAcceptCookie(true)
+        CookieManager.getInstance().setAcceptThirdPartyCookies(web, true)
         with(web.settings) {
             javaScriptEnabled = true
             domStorageEnabled = true
             mediaPlaybackRequiresUserGesture = false
             textZoom = 100
+            saveFormData = false
         }
         web.addJavascriptInterface(Bridge(), "FitAndroid")
         web.webViewClient = object : WebViewClient() {
