@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="2.8",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="2.9",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1282,16 +1282,16 @@ function viewFood(){
 
 /* ---------- detailed coaching + demo videos for every exercise ---------- */
 var VID={
- squat_chair:[["Jt9K5kuClVQ","he"],["xxUok-bsgpQ","en","סקוואט לכיסא עם משקולת"]],rdl:[["Njt-jH4a75E","he"]],glute_bridge:[["KI6fjDqGZh4","en"]],
- calf_raise:[["4HQ8Am9IuME","en"]],reverse_lunge:[["2dYvzoocUp4","he"]],floor_press:[["T0Y3OBF1bNI","en"]],floor_fly:[["k7tQfcQf0IQ","he"]],
- pushup_incline:[["v0CBk3vZgjk","he"]],row_one_arm:[["J3DhFFdDUm4","he"]],bent_row:[["g4GKF68ymz8","he"]],
- reverse_fly:[["D5_zfFhfyzE","en"],["i_UWGO55fnw","he","גרסה בשכיבה על ספסל"]],lateral_raise:[["ITPxHsAAqsQ","he"]],front_raise:[["XFOYJamX4vs","en"]],
- biceps_curl:[["hxbeaM6GYJY","he"]],hammer_curl:[["b-xA3a44VPc","he"]],triceps_kickback:[["IqgklYrtcUo","en"]],lying_tri:[["tj81tVq3wLo","en"]],
- dead_bug:[["zAhEhk5gQUQ","en"]],plank:[["KoiXnz0r_Qs","he"]],side_plank:[["tht1-D7YeWo","he"]],crunch:[["9IbOnXwRnJo","he"]],bird_dog:[["dDMvch2Z9yY","en"]],
- farmer_carry:[["8OtwXwrJizk","en"]],db_bench_press:[["MjpHpe9bpUw","he"]],db_incline_press:[["0F4Cea8OTpA","he"]],chest_supported_row:[["Nx0TzjgsI-0","en"]],
+ squat_chair:[["JuhCL47kWgQ",""]],rdl:[["Njt-jH4a75E","he"]],glute_bridge:[["vKMFABTGOy4",""]],
+ calf_raise:[["92iEFFDX3rw","he"],["4HQ8Am9IuME","en"]],reverse_lunge:[["2dYvzoocUp4","he"]],floor_press:[["MjpHpe9bpUw",""]],floor_fly:[["k7tQfcQf0IQ",""]],
+ pushup_incline:[["w3ehj1udEX8",""]],row_one_arm:[["tCLGcu1tZtY",""]],bent_row:[["g4GKF68ymz8","he"]],
+ reverse_fly:[["7GnqnB4d41M",""]],lateral_raise:[["PZW0ZowqTXk",""]],front_raise:[["XFOYJamX4vs","en"]],
+ biceps_curl:[["hxbeaM6GYJY","he"]],hammer_curl:[["UF-6Rw3Nrkg",""]],triceps_kickback:[["U_bmvytvP90",""]],lying_tri:[["R6VhgKk3xWw",""]],
+ dead_bug:[["GbSC02oU3To",""]],plank:[["DgsOJbSwYgk",""]],side_plank:[["eepgyS7WCjs",""]],crunch:[["9IbOnXwRnJo","he"]],bird_dog:[["xEDnlOxeJH4",""]],
+ farmer_carry:[["w7N9RNxNprc","he"]],db_bench_press:[["MjpHpe9bpUw","he"]],db_incline_press:[["0F4Cea8OTpA","he"]],chest_supported_row:[["Nx0TzjgsI-0","en"]],
  preacher_curl:[["HjyDyd0k3Vw","en"]],leg_extension:[["fOKlyBajtVo","he"],["IYP1cTiyppA","en","בתוספת הרגליים של ספסל"]],leg_curl:[["94OmAFqnmuU","en"]],
  hip_thrust:[["22qRXb0FrHI","he"]],mcgill_curlup:[["_tz9WGVH25g","en"]],cat_camel:[["RbM1xnQOM_Y","en"]],suitcase_carry:[["nrRoOgox5Kg","en"]],
- bb_rdl:[["Q79kW80xQOY","he"]],bb_row:[["X_itpbAeLjM","he"]],bb_curl:[["Qi4Y8G5pssk","he"]],bb_floor_press:[["gacJl2rHwtg","en"]]
+ bb_rdl:[["Q79kW80xQOY","he"]],bb_row:[["X_itpbAeLjM","he"]],bb_curl:[["s24zN9CCod0",""]],bb_floor_press:[["gacJl2rHwtg","en"]]
 };
 var DET={
  squat_chair:{pos:"עמידה, מול כיסא יציב שהגב שלו צמוד לקיר.",cues:["רגליים מעט רחבות מהכתפיים, קצות האצבעות מעט החוצה.","המשקולת אנכית, צמודה לחזה, מרפקים למטה.","הישבן הולך אחורה כמו להתיישב, המשקל על העקבים.","הברכיים בכיוון האצבעות, לא נופלות פנימה."],errs:["ברכיים שנסגרות פנימה.","עקבים שמתרוממים מהרצפה.","גב שמתעגל או ראש שמסתכל למטה.","\"נופלים\" על הכיסא במקום לגעת בו קלות."],breath:"שואפים בירידה, נושפים בעלייה."},
@@ -1340,7 +1340,7 @@ function detHtml(e,posOnly){var d=DET[e.id]||{},h="";
   if(d.breath)h+='<div class="small"><b>נשימה:</b> '+esc(d.breath)+'</div>';
   return h}
 function vidHtml(e,small){var v=VID[e.id]||[];if(!v.length)return"";
-  return'<div class="row" style="gap:6px">'+v.map(function(x,i){return'<a class="btn sm'+(i?' ghost':'')+'" style="text-decoration:none;color:var(--ink)" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+x[0]+'">▶ '+(small?"סרטון":"סרטון הדגמה")+(x[1]==="he"?" בעברית":" (אנגלית)")+(x[2]?' · '+esc(x[2]):'')+'</a>'}).join("")+'</div>'}
+  return'<div class="row" style="gap:6px">'+v.map(function(x,i){return'<a class="btn sm'+(i?' ghost':'')+'" style="text-decoration:none;color:var(--ink)" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+x[0]+'">▶ '+(small?"סרטון":"סרטון הדגמה")+(x[1]==="he"?" בעברית":x[1]==="en"?" (אנגלית)":"")+(x[2]?' · '+esc(x[2]):'')+'</a>'}).join("")+'</div>'}
 
 /* ---------- walking ---------- */
 function fmtPace(min,km){if(!min||!km)return"–";var t=Math.floor(min/km*60+1e-6),m=Math.floor(t/60),sec=t%60;return m+":"+pad(sec)}
