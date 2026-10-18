@@ -99,6 +99,8 @@ object HealthSync {
                 .put("date", start.format(dayFmt))
                 .put("time", start.format(timeFmt))
                 .put("min", Duration.between(s.startTime, s.endTime).toMinutes())
+                .put("rec", s.metadata.recordingMethod)
+                .put("title", s.title ?: "")
             if (metrics.isNotEmpty()) {
                 try {
                     val a = client.aggregate(
