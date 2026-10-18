@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="2.7",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="2.8",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -281,12 +281,16 @@ function shapes(ex,p){
   function C(k,A,r,c,ring){out.push({k:k,type:"c",x:A[0],y:A[1],r:r,c:c,ring:ring})}
   if(ex.view==="e"){
     /* seen from the feet: lying on the back, arms open sideways in an arc */
-    var ty=p.ty||ex.ty||124,R=63,ang=-80-108*p.a,sh=[[74,ty+8],[126,ty+8]];
+    var ty=p.ty||ex.ty||124,R=63,sh=[[74,ty+8],[126,ty+8]],hands=[];
     C("hd",[100,ty-4],11,"fig");
     L("tT",[80,ty+12],[120,ty+12],26,"fig");
-    [0,1].forEach(function(i){var th=d2r(ang),hx=sh[0][0]+R*Math.cos(th),hy=sh[0][1]+R*Math.sin(th);
-      var H=i?[200-hx,hy]:[hx,hy],ar=ik(sh[i],H,34,30,i?1:-1);
-      L("ua"+i,sh[i],ar[0],10,"fig");L("fa"+i,ar[0],ar[1],9,"fig");C("db"+i,ar[1],9,"tape",true)});
+    [0,1].forEach(function(i){var H;
+      if(p.h)H=p.h[i];else{var th=d2r(-80-108*p.a),hx=sh[0][0]+R*Math.cos(th),hy=sh[0][1]+R*Math.sin(th);H=i?[200-hx,hy]:[hx,hy]}
+      var ar=ik(sh[i],H,34,30,i?1:-1);hands.push(ar[1]);
+      L("uah"+i,sh[i],ar[0],15,"halo");L("fah"+i,ar[0],ar[1],14,"halo");
+      L("ua"+i,sh[i],ar[0],10,"fig");L("fa"+i,ar[0],ar[1],9,"fig")});
+    if(ex.bb){L("bar",[hands[0][0]-22,hands[0][1]],[hands[1][0]+22,hands[1][1]],5,"tape");C("pl0",[hands[0][0]-24,hands[0][1]],10,"tape",true);C("pl1",[hands[1][0]+24,hands[1][1]],10,"tape",true)}
+    else{C("db0",hands[0],9,"tape",true);C("db1",hands[1],9,"tape",true)}
     return out;
   }
   if(ex.view==="f"){
@@ -301,6 +305,7 @@ function shapes(ex,p){
     L("nk",[cx,sy],[cx,sy-10],7,"fig");C("hd",[cx,sy-17],LEN.head,"fig");
     [0,1].forEach(function(i){
       var ar=ik(S[i],p.h[i],LEN.ua,LEN.fa,eb[i]);
+      L("uah"+i,S[i],ar[0],14,"halo");L("fah"+i,ar[0],ar[1],13,"halo");
       L("ua"+i,S[i],ar[0],9,"fig");L("fa"+i,ar[0],ar[1],8,"fig");
       if(ex.db)C("db"+i,ar[1],ex.bb?10:7,"tape",true);
     });
@@ -319,6 +324,7 @@ function shapes(ex,p){
   }
   function arm(i,col){
     var ar=ik(S,p.h[i],LEN.ua,LEN.fa,eb[i]);
+    if(col==="fig"){L("uah"+i,S,ar[0],14,"halo");L("fah"+i,ar[0],ar[1],13,"halo")}  /* outline: the arm stays visible in front of the body */
     L("ua"+i,S,ar[0],9,col);L("fa"+i,ar[0],ar[1],8,col);
     if(dbs[i])C("db"+i,ar[1],ex.bb?10:7,i?"tape2":"tape",true);
   }
@@ -351,8 +357,8 @@ var EX=[
  {id:"calf_raise",ar:"calves",g:"legs",name:"הרמות עקבים",mus:"שוקיים",eq:"זוג משקולות (אפשר בלי)",unit:"reps",sets:3,reps:"15",rest:45,
   steps:["עמוד זקוף. אפשר לגעת בקיר לשיווי משקל.","עלה על קצות האצבעות הכי גבוה שאפשר.","החזק שנייה ורד לאט."],
   tips:"מחזק גם את היציבות בהליכה.",
-  view:"s",db:true,dur:1000,
-  frames:[{hip:[100,92],t:-90,h:STAND_H,f:STAND_F,fa:[0,0]},{hip:[100,83],t:-90,h:[[101,85],[98,85]],f:[[100,141],[95,141]],fa:[55,55]}]},
+  view:"s",props:["lblside"],db:true,dur:1200,
+  frames:[{hip:[100,92],t:-90,h:STAND_H,f:STAND_F,fa:[0,0]},{hip:[100,79],t:-90,h:[[101,81],[98,81]],f:[[100,137],[95,137]],fa:[75,75]}]},
  {id:"reverse_lunge",ar:"quads,glutes",g:"legs",name:"מכרע לאחור",mus:"ירכיים, ישבן, שיווי משקל",eq:"זוג משקולות (או בלי)",unit:"reps",side:true,sets:2,reps:"8",rest:75,
   steps:["עמוד זקוף עם המשקולות בצדדים.","קח צעד גדול לאחור ורד עד שהברך האחורית קרובה לרצפה.","דחוף דרך העקב של הרגל הקדמית וחזור לעמידה."],
   tips:"הברך הקדמית מעל הקרסול. התחל בלי משקולות.",knee:"רק כשאין כאב בברך. אם יש כאב, בצע גשר ישבן במקום.",
@@ -362,8 +368,8 @@ var EX=[
  {id:"floor_press",ar:"chest,shoulders,triceps",g:"chest",name:"לחיצת חזה מהרצפה",mus:"חזה, כתף קדמית, יד אחורית",eq:"זוג משקולות, מזרן",unit:"reps",sets:3,reps:"10-12",rest:75,
   steps:["שכב על הגב עם ברכיים כפופות והמשקולות מעל החזה.","הורד את המשקולות עד שהמרפקים נוגעים ברצפה, בזווית של כ־45° מהגוף.","לחץ חזרה למעלה ונשוף."],
   tips:"הרצפה עוצרת את הטווח ולכן שומרת על הכתף. מחליף לחיצה על ספסל.",shoulder:"אם הכתף כואבת, קרב את המרפקים לגוף והחזק את המשקולות כשכפות הידיים פונות זו לזו.",
-  view:"s",props:["mat"],db:true,eb:[1,1],dur:1400,
-  frames:[{hip:[104,140],t:180,h:[[63,96],[59,96]],f:LIEF,fa:[0,0]},{hip:[104,140],t:180,h:[[72,121],[68,121]],f:LIEF,fa:[0,0]}]},
+  view:"e",props:["matflat","lblfeet"],db:true,dur:1600,
+  frames:[{h:[[82,70],[118,70]]},{h:[[44,116],[156,116]]}]},
  {id:"floor_fly",ar:"chest",g:"chest",name:"פרפר מהרצפה",mus:"חזה",eq:"זוג משקולות קלות, מזרן",unit:"reps",sets:3,reps:"12",rest:60,
   video:"https://youtu.be/k7tQfcQf0IQ",
   steps:["שכב על הגב על המזרן, ברכיים כפופות וכפות רגליים על הרצפה. משקולת בכל יד מעל החזה, כפות הידיים פונות זו לזו.","כופפים מעט את המרפקים ו“נועלים” את הזווית. היא לא משתנה עד סוף הסט.","שואפים ופותחים את הידיים לצדדים בקשת רחבה, לאט, עד שהמרפקים נוגעים קלות ברצפה.","נושפים וסוגרים בקשת חזרה למעלה, כמו חיבוק של עץ עבה, עד שהמשקולות כמעט נפגשות מעל החזה."],
@@ -391,13 +397,13 @@ var EX=[
  {id:"reverse_fly",ar:"shoulders,back",g:"back",name:"פרפר אחורי",mus:"כתף אחורית, גב עליון",eq:"זוג משקולות קלות",unit:"reps",sets:3,reps:"12-15",rest:60,
   steps:["התכופף קדימה בגב ישר, המשקולות תלויות מתחת לכתפיים.","פתח את הידיים לצדדים עד גובה הכתפיים, מרפקים כפופים מעט.","כווץ את השכמות והורד לאט."],
   tips:"תרגיל חשוב לבריאות הכתף וליציבה. משקל קל ותנועה איטית.",
-  view:"f",db:true,eb:[-1,1],kb:[1,-1],dur:1500,
-  frames:[{cx:100,sy:72,hy:98,h:[[90,118],[110,118]],f:[[86,150],[114,150]]},{cx:100,sy:72,hy:98,h:[[42,78],[158,78]],f:[[86,150],[114,150]]}]},
+  view:"f",props:["lblbent"],db:true,eb:[-1,1],kb:[1,-1],dur:1600,
+  frames:[{cx:100,sy:84,hy:100,h:[[88,128],[112,128]],f:[[86,150],[114,150]]},{cx:100,sy:84,hy:100,h:[[42,92],[158,92]],f:[[86,150],[114,150]]}]},
 
  {id:"lateral_raise",ar:"shoulders",g:"shoulders",name:"הרחקה לצדדים",mus:"כתף אמצעית",eq:"זוג משקולות קלות",unit:"reps",sets:3,reps:"12",rest:60,
   steps:["עמוד זקוף עם המשקולות בצדי הגוף.","הרם את הידיים לצדדים עד גובה הכתפיים בלבד, מרפקים כפופים מעט.","הורד לאט, במשך 2–3 שניות."],
   tips:"עדיף משקל קל ותנועה נקייה מאשר משקל כבד עם תנופה.",shoulder:"לא מעל גובה הכתף. אם כואב, הרם רק עד חצי הדרך.",
-  view:"f",db:true,eb:[-1,1],kb:[1,-1],dur:1500,
+  view:"f",props:["lblfront"],db:true,eb:[-1,1],kb:[1,-1],dur:1500,
   frames:[{cx:100,sy:48,hy:92,h:[[72,93],[128,93]],f:[[90,150],[110,150]]},{cx:100,sy:48,hy:92,h:[[40,53],[160,53]],f:[[90,150],[110,150]]}]},
  {id:"front_raise",ar:"shoulders",g:"shoulders",name:"הרמה קדמית",mus:"כתף קדמית",eq:"משקולת קלה",unit:"reps",sets:2,reps:"12",rest:60,
   steps:["עמוד עם המשקולות מול הירכיים.","הרם יד כמעט ישרה קדימה עד גובה הכתפיים.","הורד לאט. אפשר לסירוגין, יד אחרי יד."],
@@ -439,8 +445,8 @@ var EX=[
  {id:"side_plank",ar:"core",g:"core",name:"פלאנק צידי",mus:"בטן צידית, ישבן",eq:"מזרן",unit:"sec",side:true,sets:2,reps:"15-30",rest:45,
   steps:["שכב על הצד, האמה על המזרן מתחת לכתף.","הרם את האגן עד שהגוף בקו ישר.","החזק, ואז החלף צד."],
   tips:"גרסה קלה: ברכיים כפופות על המזרן.",shoulder:"אם הכתף שמתחת כואבת, בצע את הגרסה על הברכיים.",
-  view:"s",props:["mat"],eb:[1,1],db:false,dur:2200,
-  frames:[{hip:[96,139],t:-12,h:[[156,145],[98,134]],f:[[40,145],[44,141]],fa:[0,0]},{hip:[96,128],t:-16,h:[[156,145],[98,124]],f:[[40,145],[44,141]],fa:[0,0]}]},
+  view:"s",props:["mat","lblside"],eb:[1,1],db:false,dur:2200,
+  frames:[{hip:[96,141],t:-10,h:[[112,136],[160,146]],f:[[40,145],[44,141]],fa:[0,0]},{hip:[96,126],t:-16,h:[[140,62],[160,146]],f:[[40,145],[44,141]],fa:[0,0]}]},
  {id:"crunch",ar:"core",g:"core",name:"כפיפות בטן",mus:"בטן ישרה",eq:"מזרן",unit:"reps",sets:3,reps:"12-15",rest:45,
   steps:["שכב על הגב, ברכיים כפופות, ידיים ליד הרקות.","הרם את הכתפיים מעט מהמזרן תוך כיווץ הבטן.","רד לאט. המבט למעלה, בלי למשוך את הצוואר."],
   tips:"טווח קצר ומבוקר מספיק.",back:"עם כאבי גב תחתון עדיף 'כפיפת בטן מותאמת לגב'.",
@@ -463,8 +469,8 @@ var EXI={};EX.forEach(function(e){EXI[e.id]=e});
  {id:"db_bench_press",ar:"chest,shoulders,triceps",g:"chest",bench:true,name:"לחיצת חזה על ספסל",mus:"חזה, כתף קדמית, יד אחורית",eq:"ספסל שטוח, זוג משקולות",unit:"reps",sets:3,reps:"8-12",rest:90,
   steps:["שכב על הספסל, כפות הרגליים על הרצפה, משקולת בכל יד מעל החזה.","הורד את המשקולות לאט לצדי החזה, המרפקים בזווית של כ־45° מהגוף.","לחץ חזרה למעלה ונשוף. השכמות צמודות לספסל."],
   tips:"להתחלה: לשבת עם המשקולות על הירכיים ולהישכב איתן יחד. בסוף: להניח אותן על הירכיים ולהתיישב.",shoulder:"אל תוריד את המרפקים מתחת לגובה הספסל. אם כואב, אחיזה ניטרלית (כפות ידיים זו מול זו).",
-  view:"s",props:["bench"],db:true,eb:[1,1],dur:1500,
-  frames:[{hip:[110,104],t:180,h:[[68,60],[64,60]],f:[[132,150],[128,150]],fa:[0,0]},{hip:[110,104],t:180,h:[[80,86],[76,86]],f:[[132,150],[128,150]],fa:[0,0]}]},
+  view:"e",ty:106,props:["benche","lblfeet"],db:true,dur:1600,
+  frames:[{h:[[82,52],[118,52]]},{h:[[44,98],[156,98]]}]},
  {id:"db_incline_press",ar:"chest,shoulders,triceps",g:"chest",bench:true,name:"לחיצת חזה בשיפוע",mus:"חזה עליון, כתף קדמית",eq:"ספסל בשיפוע 30°, זוג משקולות",unit:"reps",sets:3,reps:"8-12",rest:90,
   steps:["כוונן את משענת הגב לשיפוע נמוך, כ־30°. שב עם הגב צמוד.","התחל עם המשקולות בגובה החזה העליון.","לחץ למעלה ומעט פנימה, והורד לאט."],
   tips:"שיפוע נמוך עדיף לכתף. שיפוע גבוה מעביר את העבודה לכתפיים.",shoulder:"התחל במשקל קל מהלחיצה על ספסל שטוח.",
@@ -570,13 +576,18 @@ var GROUPS=[["all","הכול"],["bench","עם ספסל"],["legs","רגליים"]
 
 /* ---------- animation runtime ---------- */
 var NS="http://www.w3.org/2000/svg";
-var COL={fig:"var(--fig)",fig2:"var(--fig2)",tape:"var(--tape)",tape2:"var(--fig2)"};
+var COL={halo:"var(--sunk)",fig:"var(--fig)",fig2:"var(--fig2)",tape:"var(--tape)",tape2:"var(--fig2)"};
 var REDUCED=matchMedia("(prefers-reduced-motion: reduce)").matches;
 var ANIMS=[];
 function propSVG(p){
   var s="";
   if(p==="mat")s+='<rect x="8" y="148" width="184" height="4" rx="2" fill="var(--prop)"/>';
   if(p==="flyarc")s+='<path d="M84.9,70.0 A63,63 0 0 0 11.6,140.8 M115.1,70.0 A63,63 0 0 1 188.4,140.8" fill="none" stroke="var(--tape)" stroke-width="2" stroke-dasharray="4 5" opacity=".7"/><text x="100" y="30" text-anchor="middle" font-size="11" fill="var(--muted)">מבט מכיוון הרגליים</text>';
+  if(p==="lblfront")s+='<text x="100" y="18" text-anchor="middle" font-size="11" fill="var(--muted)">מבט מלפנים</text>';
+  if(p==="lblbent")s+='<text x="100" y="18" text-anchor="middle" font-size="11" fill="var(--muted)">מבט מלפנים · הגוף מוטה קדימה</text>';
+  if(p==="lblfeet")s+='<text x="100" y="18" text-anchor="middle" font-size="11" fill="var(--muted)">מבט מכיוון הרגליים</text>';
+  if(p==="lblside")s+='<text x="100" y="18" text-anchor="middle" font-size="11" fill="var(--muted)">מבט מהצד</text>';
+  if(p==="benche")s+='<rect x="72" y="134" width="56" height="8" rx="3" fill="var(--prop)"/><rect x="84" y="142" width="6" height="10" fill="var(--prop)"/><rect x="110" y="142" width="6" height="10" fill="var(--prop)"/>';
   if(p==="matflat")s+='<rect x="20" y="148" width="160" height="4" rx="2" fill="var(--prop)"/>';
   if(p==="matf")s+='<rect x="50" y="20" width="100" height="134" rx="6" fill="var(--prop)" opacity=".55"/>';
   if(p==="chair")s+='<rect x="46" y="120" width="34" height="5" rx="2" fill="var(--prop)"/><rect x="48" y="125" width="4" height="25" fill="var(--prop)"/><rect x="74" y="125" width="4" height="25" fill="var(--prop)"/><rect x="46" y="84" width="4" height="40" fill="var(--prop)"/>';
@@ -1064,7 +1075,7 @@ function viewWorkout(){
        (isWeighted(e)?'<input type="number" inputmode="decimal" step="0.5" aria-label="משקל סט '+(i+1)+'" placeholder="–" id="w-'+id+'-'+i+'" value="'+esc(defW)+'">':'<span class="small muted" style="text-align:center">'+(e.id==="pushup_incline"?"משקל גוף":"—")+'</span>')+
        '<input type="number" inputmode="numeric" aria-label="'+(e.unit==="sec"?"שניות":"חזרות")+' סט '+(i+1)+'" placeholder="'+String(e.reps).split("-").pop()+'" id="r-'+id+'-'+i+'" value="'+esc(defR)+'">'+
        '<button type="button" class="chk" data-set="'+id+'|'+i+'" aria-pressed="'+(!!s.done)+'" aria-label="סיימתי סט">'+ICON.check+'</button></div>'}
-    return '<div class="card wex"'+(ix===0?' id="t-ex1"':'')+' data-exname="'+esc(e.name)+'" style="--dc:var(--c-'+w.col+')"><div style="min-width:0"><div class="row" style="justify-content:space-between;gap:6px"><b>'+(ix+1)+". "+esc(e.name)+'</b><button class="btn ghost sm" data-open="'+id+'">איך עושים</button></div>'+
+    return '<div class="card wex"'+(ix===0?' id="t-ex1"':'')+' data-exname="'+esc(e.name)+'" style="--dc:var(--c-'+w.col+')"><div style="min-width:0"><div class="row" style="justify-content:space-between;gap:6px"><b>'+(ix+1)+". "+esc(e.name)+'</b><span class="row" style="gap:4px"><button class="btn ghost sm" data-open="'+id+'">איך עושים</button>'+(VID[id]?'<a class="btn ghost sm" style="text-decoration:none;color:var(--ink)" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+VID[id][0][0]+'">▶ סרטון</a>':'')+'</span></div>'+
      '<div class="mus"><span class="pill tape">עובד על</span> '+esc(e.mus)+'</div>'+recBox(id,true)+
      '<div class="small muted">'+n+" סטים × "+e.reps+(e.unit==="sec"?" שניות":" חזרות")+(e.side?" לכל צד":"")+" · מנוחה "+e.rest+' שנ׳</div>'+
      (last?'<div class="small" style="margin-top:2px">בפעם הקודמת ('+fmtD(last.date)+'): '+last.sets.map(function(s){return(isWeighted(e)&&s.w?s.w+"×":"")+(s.r||"?")}).join(", ")+'</div>':"")+
@@ -1159,13 +1170,13 @@ function openEx(id){
   var e=EXI[id],dl=document.getElementById("dlg");
   var inPlans=[];var cp=curPlan();Object.keys(cp.w).forEach(function(k){if(cp.w[k].ex.indexOf(id)>=0)inPlans.push(cp.w[k].name)});
   dl.innerHTML='<div class="dlg"><div class="head"><div><div class="eyebrow">'+esc(GROUPS.find(function(g){return g[0]===e.g})[1])+'</div><h2 class="h2">'+esc(e.name)+'</h2></div><button class="btn sm" id="dlg-x">סגור</button></div>'+
-   '<div class="grid" style="grid-template-columns:1fr 130px;gap:12px;align-items:center"><div data-anim="'+id+'"></div>'+bodyMap((e.ar||"").split(","),"sh","bmap")+'</div>'+
+   '<div class="grid" style="grid-template-columns:1fr 130px;gap:12px;align-items:center"><div data-anim="'+id+'"></div>'+bodyMap((e.ar||"").split(","),"sh","bmap")+'</div>'+vidHtml(e)+
    '<div class="row small"><span class="pill tape">'+setsFor(e)+" סטים × "+e.reps+(e.unit==="sec"?" שניות":" חזרות")+(e.side?" לכל צד":"")+'</span><span class="pill">מנוחה '+e.rest+' שנ׳</span><span class="pill">'+esc(e.eq)+'</span></div>'+
    '<div><b class="small">שרירים: </b><span class="small">'+esc(e.mus)+'</span></div>'+recBox(id,false)+
+   detHtml(e,true)+
    '<ol class="steps">'+e.steps.map(function(s){return"<li>"+esc(s)+"</li>"}).join("")+'</ol>'+
    '<div class="note small">'+esc(e.tips)+'</div>'+
-   (e.errs?'<div class="note warnn small"><b>טעויות נפוצות</b><ul style="margin:6px 0 0;padding-inline-start:18px">'+e.errs.map(function(x){return"<li>"+esc(x)+"</li>"}).join("")+'</ul></div>':"")+
-   '<div><a class="btn sm" style="text-decoration:none;color:var(--ink)" target="_blank" rel="noopener" href="'+esc(e.video||("https://www.youtube.com/results?search_query="+encodeURIComponent("איך עושים "+e.name)))+'">'+(e.video?"▶ סרטון הדגמה":"▶ חפש סרטון הדגמה ביוטיוב")+'</a></div>'+
+   detHtml(e)+
    (e.knee?'<div class="note warnn small"><b>ברכיים:</b> '+esc(e.knee)+'</div>':"")+
    (e.shoulder?'<div class="note warnn small"><b>כתף:</b> '+esc(e.shoulder)+'</div>':"")+
    (e.back?'<div class="note warnn small"><b>גב:</b> '+esc(e.back)+'</div>':"")+
@@ -1268,6 +1279,68 @@ function viewFood(){
   '<div class="note small">המידע כאן כללי ולא מחליף רופא או דיאטנית. אם יש לך סוכרת, בעיה בכליות, או שאתה לוקח תרופות ללחץ דם או לדילול דם, בדוק עם הרופא לפני שינוי בתזונה. הקלוריות בתפריטים הן הערכה.</div>'+
   '</div>';
 }
+
+/* ---------- detailed coaching + demo videos for every exercise ---------- */
+var VID={
+ squat_chair:[["Jt9K5kuClVQ","he"],["xxUok-bsgpQ","en","סקוואט לכיסא עם משקולת"]],rdl:[["Njt-jH4a75E","he"]],glute_bridge:[["KI6fjDqGZh4","en"]],
+ calf_raise:[["4HQ8Am9IuME","en"]],reverse_lunge:[["2dYvzoocUp4","he"]],floor_press:[["T0Y3OBF1bNI","en"]],floor_fly:[["k7tQfcQf0IQ","he"]],
+ pushup_incline:[["v0CBk3vZgjk","he"]],row_one_arm:[["J3DhFFdDUm4","he"]],bent_row:[["g4GKF68ymz8","he"]],
+ reverse_fly:[["D5_zfFhfyzE","en"],["i_UWGO55fnw","he","גרסה בשכיבה על ספסל"]],lateral_raise:[["ITPxHsAAqsQ","he"]],front_raise:[["XFOYJamX4vs","en"]],
+ biceps_curl:[["hxbeaM6GYJY","he"]],hammer_curl:[["b-xA3a44VPc","he"]],triceps_kickback:[["IqgklYrtcUo","en"]],lying_tri:[["tj81tVq3wLo","en"]],
+ dead_bug:[["zAhEhk5gQUQ","en"]],plank:[["KoiXnz0r_Qs","he"]],side_plank:[["tht1-D7YeWo","he"]],crunch:[["9IbOnXwRnJo","he"]],bird_dog:[["dDMvch2Z9yY","en"]],
+ farmer_carry:[["8OtwXwrJizk","en"]],db_bench_press:[["MjpHpe9bpUw","he"]],db_incline_press:[["0F4Cea8OTpA","he"]],chest_supported_row:[["Nx0TzjgsI-0","en"]],
+ preacher_curl:[["HjyDyd0k3Vw","en"]],leg_extension:[["fOKlyBajtVo","he"],["IYP1cTiyppA","en","בתוספת הרגליים של ספסל"]],leg_curl:[["94OmAFqnmuU","en"]],
+ hip_thrust:[["22qRXb0FrHI","he"]],mcgill_curlup:[["_tz9WGVH25g","en"]],cat_camel:[["RbM1xnQOM_Y","en"]],suitcase_carry:[["nrRoOgox5Kg","en"]],
+ bb_rdl:[["Q79kW80xQOY","he"]],bb_row:[["X_itpbAeLjM","he"]],bb_curl:[["Qi4Y8G5pssk","he"]],bb_floor_press:[["gacJl2rHwtg","en"]]
+};
+var DET={
+ squat_chair:{pos:"עמידה, מול כיסא יציב שהגב שלו צמוד לקיר.",cues:["רגליים מעט רחבות מהכתפיים, קצות האצבעות מעט החוצה.","המשקולת אנכית, צמודה לחזה, מרפקים למטה.","הישבן הולך אחורה כמו להתיישב, המשקל על העקבים.","הברכיים בכיוון האצבעות, לא נופלות פנימה."],errs:["ברכיים שנסגרות פנימה.","עקבים שמתרוממים מהרצפה.","גב שמתעגל או ראש שמסתכל למטה.","\"נופלים\" על הכיסא במקום לגעת בו קלות."],breath:"שואפים בירידה, נושפים בעלייה."},
+ rdl:{pos:"עמידה, רגליים ברוחב האגן.",cues:["ברכיים כפופות מעט וקבועות.","האגן נשלח לאחור, הגב ישר לאורך כל התנועה.","המשקולות צמודות לרגליים."],errs:["גב מעוגל.","כפיפה בברכיים במקום באגן.","ירידה נמוכה מדי."],breath:"שואפים בירידה, נושפים בעלייה."},
+ glute_bridge:{pos:"שכיבה על הגב על מזרן, ברכיים כפופות, כפות רגליים על הרצפה ברוחב האגן.",cues:["ידיים לצדי הגוף.","דוחפים דרך העקבים ומכווצים את הישבן.","למעלה: קו ישר מהכתפיים לברכיים. עוצרים 2 שניות."],errs:["קשת בגב התחתון בחלק העליון.","דחיפה דרך האצבעות במקום העקבים.","ברכיים שנפתחות או נסגרות."],breath:"נושפים בהרמה, שואפים בהורדה."},
+ calf_raise:{pos:"עמידה זקופה, יד אחת על קיר או משענת כיסא.",cues:["רגליים ברוחב האגן.","עולים לאט הכי גבוה שאפשר, המשקל על הבוהן הגדולה.","עוצרים שנייה למעלה ויורדים לאט."],errs:["תנועה מהירה וקפיצית.","קרסוליים שנופלים החוצה.","טווח קצר."],breath:"נושפים בעלייה."},
+ reverse_lunge:{pos:"עמידה זקופה, משקולת בכל יד או בלי משקל, ליד קיר לביטחון.",cues:["צעד גדול לאחור, הנחיתה על כרית כף הרגל.","יורדים ישר למטה, הגו זקוף.","הברך הקדמית מעל הקרסול, לא מעבר לאצבעות.","חוזרים בדחיפה דרך העקב הקדמי."],errs:["צעד קצר מדי: עומס על הברך הקדמית.","גו נוטה קדימה.","ברך קדמית נופלת פנימה."],breath:"שואפים בירידה, נושפים בעלייה."},
+ floor_press:{pos:"שכיבה על הגב על מזרן, ברכיים כפופות, כפות רגליים על הרצפה.",cues:["משקולת בכל יד מעל הכתפיים, ידיים כמעט ישרות.","מורידים לאט עד שהמרפקים נוגעים קלות ברצפה.","המרפקים בזווית של כ־45° מהגוף, לא בקו הכתפיים.","האמות אנכיות לרצפה בנקודה התחתונה."],errs:["מרפקים פתוחים לצדדים ב־90°: עומס על הכתף.","\"הקפצה\" של המרפקים מהרצפה.","נעילה חזקה של המרפקים למעלה."],breath:"שואפים בירידה, נושפים בלחיצה."},
+ floor_fly:{pos:"שכיבה על הגב על מזרן, ברכיים כפופות.",cues:["כפות הידיים פונות זו לזו.","הזווית במרפק נעולה, כפיפה קלה.","הידיים נפתחות בקשת רחבה, כמו חיבוק."],breath:"שואפים בפתיחה, נושפים בסגירה."},
+ pushup_incline:{pos:"עמידה מול שולחן יציב או משטח עבודה, ידיים על הקצה.",cues:["ידיים מעט רחבות מהכתפיים.","הגוף בקו ישר מהראש לעקבים, הבטן מכווצת.","מורידים את החזה לקצה, המרפקים באלכסון לאחור.","ככל שהמשטח נמוך יותר, התרגיל קשה יותר."],errs:["אגן שנופל או ישבן למעלה.","מרפקים פתוחים לצדדים.","ראש שיורד לפני החזה."],breath:"שואפים בירידה, נושפים בדחיפה."},
+ row_one_arm:{pos:"עמידה בהטיה קדימה, יד ורגל אחת נשענות על כיסא או ספסל.",cues:["גב ישר, מקביל בערך לרצפה.","המשקולת תלויה מתחת לכתף.","מושכים את המרפק לאחור לכיוון הירך, לא למעלה לאוזן.","מכווצים את השכמה למעלה ויורדים לאט."],errs:["סיבוב הגו כדי להרים.","משיכה בכתף (כיווץ לאוזן) במקום במרפק.","גב מעוגל."],breath:"נושפים במשיכה, שואפים בהורדה."},
+ bent_row:{pos:"עמידה בהטיה קדימה, ברכיים כפופות מעט.",cues:["גב ישר, משקולת בכל יד.","מושכים את המרפקים לאחור לכיוון המותניים."],errs:["גב מעוגל.","תנופה מהגוף."],breath:"נושפים במשיכה."},
+ reverse_fly:{pos:"עמידה בהטיה קדימה (גב ישר, ברכיים כפופות), או ישיבה בקצה כיסא עם החזה קרוב לברכיים.",cues:["המשקולות תלויות מתחת לכתפיים, כפות ידיים פונות זו לזו.","מרפקים כפופים מעט ונעולים.","פותחים לצדדים עד גובה הכתפיים, מקרבים את השכמות.","יורדים לאט."],errs:["משקל כבד מדי ותנופה.","הרמה מעל גובה הכתף.","גב שמתעגל."],breath:"נושפים בפתיחה, שואפים בהורדה."},
+ lateral_raise:{pos:"עמידה זקופה, משקולת בכל יד לצד הגוף.",cues:["מרפקים כפופים מעט.","מרימים לצדדים עד גובה הכתף בלבד, המרפק מוביל.","הכתפיים למטה, רחוק מהאוזניים.","יורדים לאט, 2–3 שניות."],errs:["תנופה מהגב.","הרמה מעל הכתף.","כיווץ הכתפיים לאוזניים."],breath:"נושפים בהרמה."},
+ front_raise:{pos:"עמידה זקופה, משקולת קלה מול הירכיים.",cues:["אגודל כלפי מעלה (אחיזה ניטרלית) נוח יותר לכתף.","מרימים קדימה עד גובה הכתף.","יורדים לאט, בלי להתנדנד."],errs:["תנופה מהגב.","הרמה מעל הראש."],breath:"נושפים בהרמה."},
+ biceps_curl:{pos:"עמידה זקופה, משקולת בכל יד, כפות ידיים קדימה.",cues:["המרפקים צמודים לצדי הגוף ולא זזים.","מכופפים עד שהמשקולת ליד הכתף.","יורדים לאט עד יישור כמעט מלא."],errs:["תנופה מהגב.","מרפקים שזזים קדימה.","ירידה מהירה."],breath:"נושפים בכפיפה."},
+ hammer_curl:{pos:"עמידה זקופה, משקולות בצדדים, כפות ידיים פונות לגוף.",cues:["האחיזה נשארת \"פטיש\" כל התנועה.","מרפקים צמודים לגוף."],errs:["תנופה.","מרפקים שזזים."],breath:"נושפים בכפיפה."},
+ triceps_kickback:{pos:"עמידה בהטיה קדימה, יד אחת נשענת על כיסא או ספסל.",cues:["הזרוע העליונה צמודה לגוף ומקבילה לרצפה, לא זזה.","פושטים את המרפק עד שהיד ישרה לאחור.","עוצרים שנייה וחוזרים לאט ל־90°."],errs:["הזרוע העליונה נופלת למטה.","תנופה.","משקל כבד מדי."],breath:"נושפים בפשיטה."},
+ lying_tri:{pos:"שכיבה על הגב על מזרן, ברכיים כפופות.",cues:["משקולת אחת בשתי הידיים מעל החזה.","הזרועות העליונות אנכיות ולא זזות.","מכופפים רק במרפק, המשקולת יורדת לכיוון המצח.","פושטים חזרה למעלה."],errs:["מרפקים שנפתחים לצדדים.","הזרוע העליונה זזה לאחור.","ירידה מהירה ליד הראש."],breath:"שואפים בירידה, נושפים בפשיטה."},
+ dead_bug:{pos:"שכיבה על הגב, ידיים ישרות לתקרה, ברכיים ב־90° מעל האגן.",cues:["הגב התחתון צמוד למזרן כל הזמן.","מורידים יד ורגל נגדיות לאט, עד מעל הרצפה.","חוזרים ומחליפים צד."],errs:["קשת בגב.","תנועה מהירה.","עצירת נשימה."],breath:"נושפים כשהיד והרגל מתרחקות."},
+ plank:{pos:"על האמות ועל קצות האצבעות (או על הברכיים בגרסה קלה).",cues:["מרפקים מתחת לכתפיים.","קו ישר מהראש לעקבים.","מכווצים בטן וישבן."],errs:["אגן שנופל.","ישבן גבוה.","עצירת נשימה."],breath:"נושמים רגיל כל הזמן."},
+ side_plank:{pos:"שכיבה על הצד, האמה על המזרן מתחת לכתף.",cues:["הגוף בקו ישר מהראש לרגליים.","מרימים את האגן מהמזרן.","היד העליונה על המותן או לתקרה.","גרסה קלה: ברכיים כפופות על המזרן."],errs:["אגן שנופל.","מרפק רחוק מהכתף.","גוף שמתגלגל קדימה."],breath:"נושמים רגיל."},
+ crunch:{pos:"שכיבה על הגב, ברכיים כפופות, ידיים על החזה או ליד הרקות.",cues:["מרימים רק את השכמות מהמזרן.","הסנטר רחוק מהחזה, כמו תפוז מתחת לסנטר.","יורדים לאט."],errs:["משיכה בצוואר בידיים.","עלייה מלאה לישיבה.","תנופה."],breath:"נושפים בעלייה."},
+ bird_dog:{pos:"עמידת שש: ידיים מתחת לכתפיים, ברכיים מתחת לאגן.",cues:["מותחים יד ורגל נגדיות עד קו הגב.","האגן לא מסתובב, הגב לא מתקשת.","עוצרים 3 שניות וחוזרים לאט."],errs:["הרמת הרגל גבוה מדי (קשת בגב).","אגן שמסתובב.","תנועה מהירה."],breath:"נושפים כשמותחים."},
+ farmer_carry:{pos:"עמידה זקופה, משקולת בכל יד.",cues:["הכתפיים למטה ולאחור, החזה פתוח.","צעדים קצרים ושקטים.","הבטן מכווצת קלות."],errs:["כתפיים שנופלות קדימה.","גוף שמתנדנד.","הליכה מהירה."],breath:"נושמים רגיל."},
+ db_bench_press:{pos:"שכיבה על ספסל שטוח, כפות הרגליים על הרצפה.",cues:["השכמות צמודות לספסל ומעט מכווצות.","מורידים לצדי החזה, מרפקים ב־45° מהגוף.","עוצרים כשהמרפקים בגובה הספסל.","לוחצים למעלה בקו מעל החזה."],errs:["מרפקים מתחת לגובה הספסל.","גב תחתון מתרומם מהספסל.","הקפצה למטה."],breath:"שואפים בירידה, נושפים בלחיצה."},
+ db_incline_press:{pos:"שכיבה על ספסל בשיפוע של כ־30°.",cues:["אותם דגשים כמו בלחיצה על ספסל שטוח.","המשקולות לכיוון החזה העליון."],errs:["שיפוע גבוה מדי (מעביר לכתפיים).","מרפקים פתוחים."],breath:"שואפים בירידה, נושפים בלחיצה."},
+ chest_supported_row:{pos:"שכיבה על הבטן על ספסל משופע, הרגליים על הרצפה.",cues:["החזה צמוד לכרית כל הזמן.","מושכים את המרפקים לאחור ומקרבים שכמות.","יורדים לאט."],errs:["החזה מתרומם מהכרית.","משיכה בכתפיים לאוזניים."],breath:"נושפים במשיכה."},
+ preacher_curl:{pos:"ישיבה, האמה האחורית של הזרוע על הכרית המשופעת של הספסל.",cues:["הזרוע העליונה צמודה לכרית.","מכופפים לאט ויורדים לאט.","לא ננעלים לגמרי למטה."],errs:["ירידה מהירה ליישור מלא.","הרמת המרפק מהכרית."],breath:"נושפים בכפיפה."},
+ leg_extension:{pos:"ישיבה בקצה הספסל, הרולר מעל הקרסוליים.",cues:["הגב זקוף, אוחזים בצדי הספסל.","פושטים את הברכיים עד כמעט ישר.","יורדים לאט."],errs:["תנופה.","נעילה חזקה של הברך.","משקל כבד בכאבי ברכיים."],breath:"נושפים בפשיטה."},
+ leg_curl:{pos:"שכיבה על הבטן על הספסל, הרולר מאחורי הקרסוליים.",cues:["האגן צמוד לספסל.","מכופפים את הברכיים לכיוון הישבן.","יורדים לאט."],errs:["אגן שמתרומם.","תנופה."],breath:"נושפים בכפיפה."},
+ hip_thrust:{pos:"ישיבה על הרצפה, השכמות נשענות על קצה הספסל, ברכיים כפופות.",cues:["משקולת על האגן (עם מגבת).","דוחפים דרך העקבים עד קו ישר מהכתפיים לברכיים.","הסנטר מעט פנימה, עוצרים 2 שניות."],errs:["קשת בגב התחתון.","שוקיים לא אנכיות למעלה."],breath:"נושפים בהרמה."},
+ mcgill_curlup:{pos:"שכיבה על הגב, רגל אחת כפופה ואחת ישרה, ידיים מתחת לגב התחתון.",cues:["הגב התחתון נשאר בעקומה הטבעית שלו.","מרימים מעט את הראש והכתפיים כיחידה אחת.","מחזיקים 8–10 שניות."],errs:["כפיפת הצוואר.","שטיחת הגב לרצפה."],breath:"נושמים רגיל בזמן ההחזקה."},
+ cat_camel:{pos:"עמידת שש: ידיים מתחת לכתפיים, ברכיים מתחת לאגן.",cues:["מעגלים את הגב לתקרה ואז מורידים בעדינות.","תנועה איטית בטווח נוח.","8–10 חזרות לחימום."],errs:["כוח או טווח כואב.","תנועה מהירה."],breath:"נושפים בעיגול, שואפים בהורדה."},
+ suitcase_carry:{pos:"עמידה זקופה, משקולת ביד אחת.",cues:["לא נוטים לצד המשקולת.","הכתפיים ישרות, הבטן מכווצת.","מחליפים יד באמצע."],errs:["נטייה לצד.","כתף שנופלת."],breath:"נושמים רגיל."},
+ bb_rdl:{pos:"עמידה, המוט מול הירכיים, אחיזה ברוחב הכתפיים.",cues:["המוט מחליק צמוד לרגליים.","גב ישר, ברכיים כפופות מעט."],errs:["המוט מתרחק מהגוף.","גב מעוגל."],breath:"שואפים בירידה, נושפים בעלייה."},
+ bb_row:{pos:"עמידה בהטיה קדימה עם המוט.",cues:["גב ישר, מושכים לבטן."],errs:["תנופה.","גב מעוגל."],breath:"נושפים במשיכה."},
+ bb_curl:{pos:"עמידה זקופה, המוט מול הירכיים, אחיזה ברוחב הכתפיים.",cues:["מרפקים צמודים לגוף.","בלי תנופה מהגב."],errs:["מרפקים שזזים קדימה.","הטיית הגוף לאחור."],breath:"נושפים בכפיפה."},
+ bb_floor_press:{pos:"שכיבה על הגב על מזרן, ברכיים כפופות, המוט מעל החזה.",cues:["אחיזה מעט רחבה מהכתפיים.","מורידים עד שהמרפקים נוגעים ברצפה.","המוט מעל קו הפטמות."],errs:["מרפקים פתוחים ב־90°.","הקפצה מהרצפה."],breath:"שואפים בירידה, נושפים בלחיצה."}
+};
+function detHtml(e,posOnly){var d=DET[e.id]||{},h="";
+  if(posOnly)return d.pos?'<div class="note small" style="border-inline-start-color:var(--c-pull)"><b>תנוחת התחלה:</b> '+esc(d.pos)+'</div>':"";
+  if(false)h+='<div class="note small" style="border-inline-start-color:var(--c-pull)"><b>תנוחת התחלה:</b> '+esc(d.pos)+'</div>';
+  if(d.cues&&d.cues.length)h+='<div class="note small" style="border-inline-start-color:var(--c-legs)"><b>דגשים</b><ul style="margin:6px 0 0;padding-inline-start:18px">'+d.cues.map(function(x){return"<li>"+esc(x)+"</li>"}).join("")+'</ul></div>';
+  var er=e.errs||d.errs;if(er&&er.length)h+='<div class="note warnn small"><b>טעויות נפוצות</b><ul style="margin:6px 0 0;padding-inline-start:18px">'+er.map(function(x){return"<li>"+esc(x)+"</li>"}).join("")+'</ul></div>';
+  if(d.breath)h+='<div class="small"><b>נשימה:</b> '+esc(d.breath)+'</div>';
+  return h}
+function vidHtml(e,small){var v=VID[e.id]||[];if(!v.length)return"";
+  return'<div class="row" style="gap:6px">'+v.map(function(x,i){return'<a class="btn sm'+(i?' ghost':'')+'" style="text-decoration:none;color:var(--ink)" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+x[0]+'">▶ '+(small?"סרטון":"סרטון הדגמה")+(x[1]==="he"?" בעברית":" (אנגלית)")+(x[2]?' · '+esc(x[2]):'')+'</a>'}).join("")+'</div>'}
 
 /* ---------- walking ---------- */
 function fmtPace(min,km){if(!min||!km)return"–";var t=Math.floor(min/km*60+1e-6),m=Math.floor(t/60),sec=t%60;return m+":"+pad(sec)}
