@@ -312,7 +312,7 @@ class MainActivity : ComponentActivity() {
     /** פונקציות שהדף יכול לקרוא להן: window.FitAndroid.xxx() */
     inner class Bridge {
         @JavascriptInterface
-        fun version(): String = "2.0"
+        fun version(): String = BuildConfig.VERSION_NAME
 
         @JavascriptInterface
         fun serverUrl(): String = server

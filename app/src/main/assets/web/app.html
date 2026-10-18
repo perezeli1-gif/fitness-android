@@ -272,6 +272,16 @@ function shapes(ex,p){
   var out=[],kb=ex.kb||[-1,-1],eb=ex.eb||[1,1];
   function L(k,A,B,w,c){out.push({k:k,type:"l",x1:A[0],y1:A[1],x2:B[0],y2:B[1],w:w,c:c})}
   function C(k,A,r,c,ring){out.push({k:k,type:"c",x:A[0],y:A[1],r:r,c:c,ring:ring})}
+  if(ex.view==="e"){
+    /* seen from the feet: lying on the back, arms open sideways in an arc */
+    var ty=p.ty||ex.ty||124,R=63,ang=-80-108*p.a,sh=[[74,ty+8],[126,ty+8]];
+    C("hd",[100,ty-4],11,"fig");
+    L("tT",[80,ty+12],[120,ty+12],26,"fig");
+    [0,1].forEach(function(i){var th=d2r(ang),hx=sh[0][0]+R*Math.cos(th),hy=sh[0][1]+R*Math.sin(th);
+      var H=i?[200-hx,hy]:[hx,hy],ar=ik(sh[i],H,34,30,i?1:-1);
+      L("ua"+i,sh[i],ar[0],10,"fig");L("fa"+i,ar[0],ar[1],9,"fig");C("db"+i,ar[1],9,"tape",true)});
+    return out;
+  }
   if(ex.view==="f"){
     var cx=p.cx,sy=p.sy,hy=p.hy;
     var S=[[cx-16,sy],[cx+16,sy]],H=[[cx-9,hy],[cx+9,hy]];
@@ -348,10 +358,13 @@ var EX=[
   view:"s",props:["mat"],db:true,eb:[1,1],dur:1400,
   frames:[{hip:[104,140],t:180,h:[[63,96],[59,96]],f:LIEF,fa:[0,0]},{hip:[104,140],t:180,h:[[72,121],[68,121]],f:LIEF,fa:[0,0]}]},
  {id:"floor_fly",ar:"chest",g:"chest",name:"פרפר מהרצפה",mus:"חזה",eq:"זוג משקולות קלות, מזרן",unit:"reps",sets:3,reps:"12",rest:60,
-  steps:["שכב עם המשקולות מעל החזה, כפות ידיים זו מול זו ומרפקים כפופים מעט.","פתח את הידיים לצדדים בקשת רחבה עד שהזרועות קרובות לרצפה.","סגור בקשת חזרה למעלה, כמו חיבוק."],
-  tips:"תנועה איטית ושליטה. המרפקים כפופים מעט כל הזמן.",shoulder:"השתמש במשקולות הקלות בלבד ואל תפתח מעבר לגובה הגוף.",
-  view:"f",props:["matf"],db:true,eb:[1,-1],kb:[1,-1],dur:1600,
-  frames:[{cx:100,sy:44,hy:88,h:[[93,60],[107,60]],f:[[93,146],[107,146]]},{cx:100,sy:44,hy:88,h:[[42,58],[158,58]],f:[[93,146],[107,146]]}]},
+  video:"https://youtu.be/k7tQfcQf0IQ",
+  steps:["שכב על הגב על המזרן, ברכיים כפופות וכפות רגליים על הרצפה. משקולת בכל יד מעל החזה, כפות הידיים פונות זו לזו.","כופפים מעט את המרפקים ו“נועלים” את הזווית. היא לא משתנה עד סוף הסט.","שואפים ופותחים את הידיים לצדדים בקשת רחבה, לאט, עד שהמרפקים נוגעים קלות ברצפה.","נושפים וסוגרים בקשת חזרה למעלה, כמו חיבוק של עץ עבה, עד שהמשקולות כמעט נפגשות מעל החזה."],
+  tips:"הידיים זזות בקשת, לא למטה ולמעלה. מה שעובד זה החזה: הוא סוגר את החיבוק. על הספסל: עוצרים כשהמרפקים בגובה הגוף.",
+  errs:["כיפוף ויישור המרפקים בכל חזרה: זה הופך את התרגיל ללחיצת חזה. הזווית קבועה.","ידיים ישרות לגמרי: עומס על המרפק ועל הכתף.","ירידה עמוקה מדי: מותחת את הכתף. על הרצפה המרפק עוצר לבד, ולכן זה בטוח יותר לכתף שלך.","הקשה של המשקולות למעלה או תנועה מהירה: החזה מפסיק לעבוד.","כתפיים שמתרוממות מהמזרן: השכמות צמודות למזרן כל הזמן."],
+  shoulder:"משקולות קלות בלבד. אם יש כאב בכתף, פותחים פחות, עד חצי הדרך.",
+  view:"e",props:["matflat","flyarc"],db:true,dur:2200,
+  frames:[{a:0},{a:1}]},
  {id:"pushup_incline",ar:"chest,triceps,core",g:"chest",name:"שכיבות סמיכה בשיפוע",mus:"חזה, יד אחורית, ליבה",eq:"שולחן יציב או משטח עבודה",unit:"reps",sets:3,reps:"8-12",rest:60,
   steps:["הנח את הידיים על קצה שולחן יציב, מעט רחב מהכתפיים. הגוף בקו ישר.","הורד את החזה לעבר השולחן, המרפקים לאחור באלכסון.","דחוף חזרה. ככל שהמשטח נמוך יותר, התרגיל קשה יותר."],
   tips:"בלי משקולות. בכל כמה שבועות אפשר לעבור למשטח נמוך יותר.",
@@ -556,6 +569,8 @@ var ANIMS=[];
 function propSVG(p){
   var s="";
   if(p==="mat")s+='<rect x="8" y="148" width="184" height="4" rx="2" fill="var(--prop)"/>';
+  if(p==="flyarc")s+='<path d="M84.9,70.0 A63,63 0 0 0 11.6,140.8 M115.1,70.0 A63,63 0 0 1 188.4,140.8" fill="none" stroke="var(--tape)" stroke-width="2" stroke-dasharray="4 5" opacity=".7"/><text x="100" y="30" text-anchor="middle" font-size="11" fill="var(--muted)">מבט מכיוון הרגליים</text>';
+  if(p==="matflat")s+='<rect x="20" y="148" width="160" height="4" rx="2" fill="var(--prop)"/>';
   if(p==="matf")s+='<rect x="50" y="20" width="100" height="134" rx="6" fill="var(--prop)" opacity=".55"/>';
   if(p==="chair")s+='<rect x="46" y="120" width="34" height="5" rx="2" fill="var(--prop)"/><rect x="48" y="125" width="4" height="25" fill="var(--prop)"/><rect x="74" y="125" width="4" height="25" fill="var(--prop)"/><rect x="46" y="84" width="4" height="40" fill="var(--prop)"/>';
   if(p==="chairR")s+='<rect x="128" y="115" width="38" height="5" rx="2" fill="var(--prop)"/><rect x="130" y="120" width="4" height="30" fill="var(--prop)"/><rect x="160" y="120" width="4" height="30" fill="var(--prop)"/><rect x="162" y="78" width="4" height="40" fill="var(--prop)"/>';
@@ -875,7 +890,7 @@ function walkGoalWeek(){var w=programWeek();return w<=2?120:w<=6?150:200}
 
 /* ---------- ui helpers ---------- */
 var main=document.getElementById("main"),TAB="home";
-var ICON={
+var ICON={food:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7c-2-3-7-2-7 3 0 5 4 11 7 11s7-6 7-11c0-5-5-6-7-3z"/><path d="M12 7c0-2 1-4 3-5"/></svg>',
  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
  workout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 7v10M3 9v6M18 7v10M21 9v6M6 12h12"/></svg>',
  library:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"/><path d="M12 7v6l-4 7M12 13l4 7M7 10l5-2 5 2"/></svg>',
@@ -884,7 +899,7 @@ var ICON={
  measure:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="8" width="20" height="8" rx="1.5"/><path d="M6 8v3M10 8v4M14 8v3M18 8v4"/></svg>',
  check:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>'
 };
-var TABS=[["home","היום","--tape"],["plan","תוכנית","--c-sh"],["workout","אימון","--c-push"],["library","תרגילים","--c-core"],["walk","הליכה","--c-walk"],["measure","מדידות","--c-pull"]];
+var TABS=[["home","היום","--tape"],["plan","תוכנית","--c-sh"],["workout","אימון","--c-push"],["library","תרגילים","--c-core"],["walk","הליכה","--c-walk"],["measure","מדידות","--c-pull"],["food","תזונה","--c-legs"]];
 function renderNav(){
   var nav=document.getElementById("nav");
   nav.querySelectorAll("button").forEach(function(b){b.remove()});
@@ -903,6 +918,7 @@ function render(){
   else if(TAB==="library")h=viewLibrary();
   else if(TAB==="walk")h=viewWalk();
   else if(TAB==="measure")h=viewMeasure();
+  else if(TAB==="food")h=viewFood();
   main.innerHTML=(S.mode==="phone"&&!phLinked()?'<div class="banner small" style="margin-bottom:14px">האפליקציה עובדת ושומרת הכול בטלפון. כדי לסנכרן גם עם המחשב: "פרופיל והגדרות" ← "חיבור לשרת".</div>':"")+(S.mode==="local"?'<div class="banner small" style="margin-bottom:14px">הנתונים נשמרים כרגע רק בדפדפן הזה. כדי לסנכרן בין המחשב לטלפון, פתח את הקישור כשאתה מחובר לחשבון Claude.</div>':"")+h;
   main.insertAdjacentHTML("beforeend",'<footer class="appfoot">יומן כושר ביתי · גרסה '+APP_VERSION+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</footer>');
   var bv=document.getElementById("brand-ver");if(bv)bv.textContent="הליכה · משקולות · מדידות גרסה "+APP_VERSION;
@@ -1124,6 +1140,8 @@ function openEx(id){
    '<div><b class="small">שרירים: </b><span class="small">'+esc(e.mus)+'</span></div>'+recBox(id,false)+
    '<ol class="steps">'+e.steps.map(function(s){return"<li>"+esc(s)+"</li>"}).join("")+'</ol>'+
    '<div class="note small">'+esc(e.tips)+'</div>'+
+   (e.errs?'<div class="note warnn small"><b>טעויות נפוצות</b><ul style="margin:6px 0 0;padding-inline-start:18px">'+e.errs.map(function(x){return"<li>"+esc(x)+"</li>"}).join("")+'</ul></div>':"")+
+   '<div><a class="btn sm" style="text-decoration:none;color:var(--ink)" target="_blank" rel="noopener" href="'+esc(e.video||("https://www.youtube.com/results?search_query="+encodeURIComponent("איך עושים "+e.name)))+'">'+(e.video?"▶ סרטון הדגמה":"▶ חפש סרטון הדגמה ביוטיוב")+'</a></div>'+
    (e.knee?'<div class="note warnn small"><b>ברכיים:</b> '+esc(e.knee)+'</div>':"")+
    (e.shoulder?'<div class="note warnn small"><b>כתף:</b> '+esc(e.shoulder)+'</div>':"")+
    (e.back?'<div class="note warnn small"><b>גב:</b> '+esc(e.back)+'</div>':"")+
@@ -1133,6 +1151,68 @@ function openEx(id){
   document.getElementById("dlg-x").onclick=function(){dl.close()};
 }
 document.getElementById("dlg").addEventListener("click",function(ev){if(ev.target===this)this.close()});
+
+/* ---------- nutrition ---------- */
+var FI={/* name, amount, kcal, protein(g), kind: d=dairy m=meat p=parve */
+ egg2:["2 ביצים","חביתה או קשות",150,13,"p"],tspoil:["שמן זית","כפית אחת",40,0,"p"],tbspoil:["שמן זית","כף אחת",120,0,"p"],
+ bread2:["לחם מלא","2 פרוסות (60 ג׳)",150,7,"p"],bread1:["לחם מלא","פרוסה אחת (30 ג׳)",75,3.5,"p"],pita:["פיתה מלאה","חצי (35 ג׳)",90,3,"p"],
+ cottage:["קוטג׳ 5%","100 ג׳ (חצי גביע)",95,11,"d"],white:["גבינה לבנה 5%","100 ג׳ (4 כפות)",95,9,"d"],yellow:["גבינה צהובה 9%","2 פרוסות (40 ג׳)",110,10,"d"],
+ labane:["לבנה 5%","2 כפות (40 ג׳)",60,3,"d"],milk:["חלב 1%","כוס (240 מ״ל)",100,8,"d"],yog:["יוגורט חלבון","גביע 200 ג׳",140,20,"d"],
+ veg:["ירקות חתוכים","כוס גדושה, בלי הגבלה",25,1,"p"],salad:["סלט ירקות גדול","קערה",50,2,"p"],soup:["מרק ירקות","קערה (בלי שקדי מרק)",100,3,"p"],
+ stir:["ירקות מוקפצים","2 כוסות",80,3,"p"],apple:["תפוח בינוני","אחד",80,0,"p"],banana:["בננה קטנה","אחת",90,1,"p"],fruit:["פרי עונה","אחד בינוני",80,1,"p"],
+ berries:["פירות יער קפואים","חצי כוס",35,0.5,"p"],almonds:["שקדים טבעיים","10 יחידות (12 ג׳)",70,2.5,"p"],walnuts:["אגוזי מלך","3 חצאים גדולים (15 ג׳)",100,2,"p"],
+ rice:["אורז מלא מבושל","כוס (150 ג׳)",165,3.5,"p"],quinoa:["קינואה מבושלת","כוס (180 ג׳)",220,8,"p"],sweet:["בטטה אפויה","150 ג׳ (בינונית)",130,2.5,"p"],
+ potato:["תפוח אדמה אפוי","200 ג׳ (גדול)",170,4,"p"],pasta:["פסטה מלאה מבושלת","כוס (140 ג׳)",175,7,"p"],sauce:["רוטב עגבניות ביתי","חצי כוס",40,1.5,"p"],
+ oats:["שיבולת שועל","3 כפות (30 ג׳)",115,4,"p"],oats40:["שיבולת שועל","4 כפות (40 ג׳)",150,5,"p"],rice2:["פריכיות אורז מלא","2 יחידות",70,1.5,"p"],
+ hummus:["חומוס","2 כפות (40 ג׳)",100,3,"p"],tahini:["טחינה גולמית","כף (15 ג׳)",90,3,"p"],cuc:["מלפפון","אחד",15,0.5,"p"],
+ chicken:["חזה עוף בתנור","150 ג׳ מבושל (כף יד)",245,46,"m"],beef:["קציצות בקר רזה בתנור","150 ג׳ (4 קציצות קטנות)",300,38,"m"],
+ turkey:["חזה הודו פרוס","100 ג׳",110,22,"m"],salmon:["סלמון אפוי","150 ג׳",300,33,"p"],tuna:["טונה במים","קופסה, 100 ג׳ מסונן",110,25,"p"],
+ shak:["שקשוקה","2 ביצים ברוטב עגבניות",210,14,"p"],tofu:["טופו בתנור","150 ג׳",180,18,"p"]};
+var MEALS=[["07:30","ארוחת בוקר"],["10:30","ביניים"],["13:30","ארוחת צהריים"],["16:30","ביניים"],["19:30","ארוחת ערב"]];
+var MENUS=[
+ {name:"עוף ויוגורט",m:[["egg2","tspoil","bread2","cottage","veg"],["apple","almonds"],["chicken","rice","salad","tbspoil"],["rice2","hummus","cuc"],["yog","oats","berries","walnuts"]]},
+ {name:"דג ושקשוקה",m:[["bread2","white","yellow","veg"],["milk","banana"],["salmon","sweet","salad","tahini"],["apple","almonds"],["shak","pita","labane","salad"]]},
+ {name:"בקר וטונה",m:[["oats40","milk","almonds","berries","cottage"],["yog"],["beef","quinoa","stir","tspoil"],["fruit","walnuts"],["soup","tuna","salad","bread1"]]},
+ {name:"עוף ופסטה",m:[["egg2","bread2","hummus","veg"],["yog"],["soup","chicken","potato","salad","tbspoil"],["apple","almonds"],["pasta","sauce","cottage","salad"]]}
+];
+var ADDON=[["fruit",80],["bread1",75],["almonds",70],["milk",100]];
+function foodTargets(){var p=P(),w=+currentWeight()||p.startWeight,bmr=10*w+6.25*(+p.height||180)-5*(+p.age||67)+5;
+  var tdee=bmr*1.4,kcal=Math.max(1500,Math.round((tdee-500)/50)*50),prot=Math.min(140,Math.round(w*1.4/5)*5),water=Math.round(w*0.03*10)/10;
+  var toGo=Math.max(0,w-(+p.goalWeight||75));return{w:w,bmr:Math.round(bmr),tdee:Math.round(tdee/50)*50,kcal:kcal,prot:prot,water:Math.min(3,Math.max(2,water)),weeks:Math.ceil(toGo/0.5),toGo:toGo}}
+function mealKind(ids){var k="p";ids.forEach(function(i){var x=FI[i][4];if(x!=="p")k=x});return k}
+var KIND={d:["חלבי","var(--c-pull)"],m:["בשרי","var(--c-push)"],p:["פרווה","var(--c-legs)"]};
+function viewFood(){
+  var p=P(),T=foodTargets(),mi=Math.min(MENUS.length-1,+S.fmenu||0),menu=MENUS[mi],wait=+p.meatWait||6;
+  var tot=0,pr=0;menu.m.forEach(function(ids){ids.forEach(function(i){tot+=FI[i][2];pr+=FI[i][3]})});
+  var gap=T.kcal-tot,adds=[];ADDON.forEach(function(a){if(gap>=a[1]-15){adds.push(a[0]);gap-=a[1]}});
+  var meatAt=null,clash=false;menu.m.forEach(function(ids,i){var k=mealKind(ids);if(k==="m")meatAt=i;if(k==="d"&&meatAt!=null){var h=(parseInt(MEALS[i][0])-parseInt(MEALS[meatAt][0]));if(h<wait)clash=true}});
+  var kpi=function(l,v,u,sub){return'<div class="card"><div class="eyebrow">'+l+'</div><div class="row" style="align-items:baseline;gap:6px;margin-top:4px"><span class="big" style="font-size:34px">'+v+'</span><span class="muted small">'+u+'</span></div><div class="small muted">'+sub+'</div></div>'};
+  return '<div class="stack">'+
+  '<div class="hero" style="--dc:var(--c-legs)"><div class="eyebrow">תזונה לירידה במשקל</div><h1 class="h1">מה, מתי וכמה לאכול</h1><p class="muted" style="margin:0">הכול כשר. המספרים מחושבים לפי הגיל, הגובה והמשקל האחרון שלך ('+n1(T.w)+' ק״ג), ומתעדכנים לבד כשהמשקל יורד.</p></div>'+
+  '<div class="grid g4" id="t-ftarget">'+kpi("קלוריות ביום",T.kcal.toLocaleString("he-IL"),"קל׳","בערך 500 פחות ממה שאתה שורף ("+T.tdee.toLocaleString("he-IL")+")")+kpi("חלבון ביום",T.prot,"גרם","כ־30 גרם בכל ארוחה. שומר על השריר")+kpi("מים ביום",T.water,"ליטר","ועוד חצי ליטר על כל שעת הליכה")+kpi("קצב ירידה",0.5,"ק״ג לשבוע",T.toGo>0?"עוד "+n1(T.toGo)+" ק״ג: כ־"+T.weeks+" שבועות":"הגעת ליעד")+'</div>'+
+  '<div class="card stack" id="t-fsched" style="--dc:var(--c-legs)"><h3 class="h3">שעות קבועות</h3>'+
+   '<p class="small muted" style="margin:0">3 ארוחות ו־2 ביניים, כל 3 שעות. כך אין רעב גדול ואין נשנושים. לא אוכלים 3 שעות לפני השינה.</p>'+
+   '<div class="stack" style="gap:6px">'+[["07:00","כוס מים גדולה כשקמים"]].concat(MEALS.map(function(m,i){var k=0;menu.m[i].forEach(function(x){k+=FI[x][2]});return[m[0],m[1]+" · כ־"+Math.round(k/10)*10+" קל׳"]})).concat([["21:30","סוף האוכל להיום. מים, תה או קפה בלי סוכר"]]).map(function(r){return'<div class="row" style="gap:12px;flex-wrap:nowrap"><b style="min-width:52px;direction:ltr;text-align:right">'+r[0]+'</b><span>'+esc(r[1])+'</span></div>'}).join("")+'</div>'+
+   '<div class="note small"><b>ביום אימון משקולות:</b> שעה עד שעה וחצי לפני: פרי או פרוסה עם מעט חומוס. עד שעתיים אחרי: ארוחה עם חלבון. <b>הליכה בבוקר:</b> כוס מים לפני, ואפשר ללכת לפני ארוחת הבוקר אם אתה מרגיש טוב.</div></div>'+
+  '<div class="card stack" id="t-fmenu"><div class="row" style="justify-content:space-between"><h3 class="h3">תפריט ליום</h3><span class="small muted">'+tot.toLocaleString("he-IL")+' קל׳ · '+Math.round(pr)+' ג׳ חלבון</span></div>'+
+   '<div class="chips">'+MENUS.map(function(m,i){return'<button type="button" class="chip" data-fmenu="'+i+'" aria-pressed="'+(i===mi)+'">'+(i+1)+'. '+esc(m.name)+'</button>'}).join("")+'</div>'+
+   menu.m.map(function(ids,i){var k=mealKind(ids),kc=0,pp=0;ids.forEach(function(x){kc+=FI[x][2];pp+=FI[x][3]});
+     return'<div class="card" style="padding:12px;border-inline-start:5px solid '+KIND[k][1]+'"><div class="row" style="justify-content:space-between;gap:6px"><b>'+MEALS[i][0]+' · '+MEALS[i][1]+'</b><span class="pill" style="background:color-mix(in srgb,'+KIND[k][1]+' 16%,transparent)">'+KIND[k][0]+'</span></div>'+
+      '<ul style="margin:8px 0 4px;padding-inline-start:18px">'+ids.map(function(x){return'<li><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+'</li>'}).join("")+'</ul><div class="small muted">כ־'+Math.round(kc/10)*10+' קל׳ · '+Math.round(pp)+' ג׳ חלבון</div></div>'}).join("")+
+   (adds.length?'<div class="note small"><b>להשלמה עד '+T.kcal.toLocaleString("he-IL")+' קל׳:</b> '+adds.map(function(x){return FI[x][0]+" ("+FI[x][1]+")"}).join(", ")+'. מוסיפים לאחת הביניים.</div>':(T.kcal<tot-60?'<div class="note small"><b>היעד שלך '+T.kcal.toLocaleString("he-IL")+' קל׳:</b> מורידים פרוסת לחם או חצי מנת פחמימה בצהריים.</div>':""))+
+   (clash?'<div class="note warnn small">בתפריט הזה יש פחות מ־'+wait+' שעות בין הבשר בצהריים לחלב בערב. אפשר להזיז את ארוחת הערב לשעה מאוחרת יותר, או לאכול ערב פרווה: טונה, ביצים או טופו.</div>':"")+
+  '</div>'+
+  '<div class="card stack" id="t-fkosher"><h3 class="h3">כשרות</h3><ul style="margin:0;padding-inline-start:18px" class="small">'+
+   '<li>הבוקר והערב חלביים או פרווה, והצהריים בשרי. כך ההפרדה קלה.</li>'+
+   '<li>המתנה בין בשר לחלב לפי המנהג שלך. בחר: <span class="chips" style="display:inline-flex" id="f-wait">'+[1,3,6].map(function(h){return'<button type="button" class="chip" data-wait="'+h+'" aria-pressed="'+(wait===h)+'">'+h+(h===1?" שעה":" שעות")+'</button>'}).join("")+'</span></li>'+
+   '<li>דג הוא פרווה, אבל לא אוכלים אותו יחד עם בשר.</li><li>ביצים, ירקות, פירות, קטניות, דגנים ואגוזים הם פרווה ומתאימים לכל ארוחה.</li><li>במוצרים קנויים: לבדוק הכשר מוכר.</li></ul></div>'+
+  '<div class="card stack" id="t-frules"><h3 class="h3">10 כללים שעובדים</h3><ol class="steps" style="margin:0">'+
+   ['<b>צלחת חכמה:</b> חצי ירקות, רבע חלבון, רבע פחמימה מלאה.','<b>חלבון בכל ארוחה:</b> בגיל 67 הוא שומר על השריר בזמן הירידה במשקל.','<b>שמן נמדד בכפית,</b> לא שופכים מהבקבוק. כף שמן היא 120 קלוריות.','<b>שותים מים:</b> מים, סודה, תה וקפה בלי סוכר. בלי מיצים ומשקאות מתוקים.','<b>אוכלים לאט:</b> 20 דקות לארוחה, ומפסיקים כשכמעט שבעים.','<b>בלי שקדי מרק, בורקס, מאפים, מטוגנים ונקניקים.</b>','<b>שבת וחג:</b> פרוסת חלה אחת, כוס קטנה של יין לקידוש, ארוחה חגיגית אחת והשנייה קלה.','<b>מסעדה ואירוע:</b> מתחילים בסלט, בוחרים מנה צלויה, ומוותרים על הלחם או על הקינוח.','<b>מתוק:</b> פרי או 2 קוביות שוקולד מריר אחרי ארוחה. לא ממתקים בין הארוחות.','<b>שוקלים פעם בשבוע,</b> באותו יום ובאותה שעה. ירידה של חצי קילו בשבוע היא הצלחה.'].map(function(x){return"<li>"+x+"</li>"}).join("")+'</ol></div>'+
+  '<div class="card stack" id="t-fswap"><h3 class="h3">החלפות טובות</h3><div class="stack" style="gap:6px">'+
+   [["לחם לבן, לחמניה","לחם מלא או קל, פרוסה אחת"],["אורז לבן, פתיתים","אורז מלא, קינואה או בורגול, כוס"],["שניצל מטוגן","חזה עוף או הודו בתנור"],["גבינה צהובה 28%","גבינה 9% או קוטג׳ 5%"],["מיץ פירות","פרי שלם"],["עוגיות, ופלים","פרי ו־10 שקדים"],["שמנת לרוטב","יוגורט 3%"],["ביסלי, במבה","פופקורן ביתי בלי חמאה, 2 כוסות"],["קפה עם סוכר","קפה עם חלב 1%, בלי סוכר"]].map(function(r){return'<div class="row small" style="gap:8px;flex-wrap:nowrap"><span style="flex:1;color:var(--muted)">'+r[0]+'</span><b aria-hidden="true">←</b><span style="flex:1"><b>'+r[1]+'</b></span></div>'}).join("")+'</div></div>'+
+  '<div class="note small">המידע כאן כללי ולא מחליף רופא או דיאטנית. אם יש לך סוכרת, בעיה בכליות, או שאתה לוקח תרופות ללחץ דם או לדילול דם, בדוק עם הרופא לפני שינוי בתזונה. הקלוריות בתפריטים הן הערכה.</div>'+
+  '</div>';
+}
 
 /* ---------- walking ---------- */
 function fmtPace(min,km){if(!min||!km)return"–";var p=min/km,m=Math.floor(p),sec=Math.round((p-m)*60);if(sec===60){m++;sec=0}return m+":"+pad(sec)}
@@ -1319,7 +1399,7 @@ var TOURS={
   {sel:"#t-weight",t:"המשקל שלך",d:"המשקל האחרון שנמדד, היעד שלך, ופס שמראה כמה מהדרך כבר עשית. מתעדכן מכל מדידה שבועית."},
   {sel:"#t-week",t:"השבוע במבט אחד",d:"שתי שורות נפרדות: משקולות והליכה. משבצת מלאה עם ✓ אומרת שבוצע. משבצת מקווקוות אומרת שמתוכנן."},
   {sel:"#edit-profile",t:"פרופיל והגדרות",d:"גובה, משקל התחלה, יעד, המשקולות שיש לך, 3 או 4 אימונים בשבוע, גיבוי נתונים ושינוי סיסמה."},
-  {sel:"#nav",t:"התפריט",d:"מעבר בין המסכים: היום, תוכנית, אימון, תרגילים, הליכה ומדידות. בטלפון הוא בתחתית המסך."},
+  {sel:"#nav",t:"התפריט",d:"מעבר בין המסכים: היום, תוכנית, אימון, תרגילים, הליכה, מדידות ותזונה. בטלפון הוא בתחתית המסך."},
   {sel:"#helpfab",t:"כפתור העזרה",d:"הכפתור הסגול מסביר שוב את המסך שאתה נמצא בו, פותח את המדריך המלא ומראה איך מתקינים את האפליקציה בטלפון."}],
  plan:[
   {sel:"#t-pdays",t:"3 או 4 אימונים",d:"כמה אימוני משקולות בשבוע. הסדר והלוח מתעדכנים מיד. מומלץ להתחיל ב־3."},
@@ -1351,7 +1431,13 @@ var TOURS={
   {sel:"#t-mkpi",t:"המספרים שלך",d:"הערך האחרון של כל מדידה, וכמה השתנה מההתחלה. ירוק זה ירידה."},
   {sel:"#t-mform",t:"מדידה חדשה",d:"פעם בשבוע, באותו יום ובאותה שעה. אפשר למלא רק חלק מהשדות."},
   {sel:"#t-mhow",t:"איך מודדים",d:"איפה בדיוק מניחים את סרט המדידה בכל היקף, כדי שהמספרים יהיו השוואתיים."},
-  {sel:"#t-mchart",t:"גרף מגמה",d:"בחירת מדד מציגה את השינוי לאורך זמן. במשקל מופיעים גם קו היעד וקצב של חצי ק״ג בשבוע."}]
+  {sel:"#t-mchart",t:"גרף מגמה",d:"בחירת מדד מציגה את השינוי לאורך זמן. במשקל מופיעים גם קו היעד וקצב של חצי ק״ג בשבוע."}],
+ food:[
+  {sel:"#t-ftarget",t:"היעדים שלך",d:"כמה קלוריות, חלבון ומים ביום. מחושב מהמשקל האחרון שמדדת, ומתעדכן לבד."},
+  {sel:"#t-fsched",t:"שעות קבועות",d:"מתי אוכלים וכמה קלוריות בכל ארוחה. למטה: מה לאכול לפני ואחרי אימון."},
+  {sel:"#t-fmenu",t:"תפריט ליום",d:"4 תפריטים כשרים לבחירה. כל ארוחה מסומנת חלבי, בשרי או פרווה, עם הכמויות."},
+  {sel:"#t-fkosher",t:"כשרות",d:"בחר את זמן ההמתנה בין בשר לחלב לפי המנהג שלך. התפריט יתריע אם הזמן קצר מדי."},
+  {sel:"#t-fswap",t:"החלפות",d:"מה לאכול במקום מאכלים משמינים."}]
 };
 var TOUR=null;
 function startTour(tab){
@@ -1426,7 +1512,7 @@ function openProfile(){
   (S.mode==="server"?'<details><summary>שינוי סיסמה</summary><div class="grid g4" style="margin-top:10px"><label class="f">סיסמה נוכחית<span class="pwbox"><input type="password" id="pw-cur" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-cur" aria-label="הצג סיסמה">'+EYE+'</button></span></label><label class="f">סיסמה חדשה<span class="pwbox"><input type="password" id="pw-new" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-new" aria-label="הצג סיסמה">'+EYE+'</button></span></label></div><div style="margin-top:8px"><button type="button" class="btn sm" id="pw-save">שנה סיסמה</button> <span class="small" id="pw-msg"></span></div></details><div><a class="btn ghost sm" href="logout">התנתק</a></div>':"")+
   '</div>';
   dl.showModal?dl.showModal():dl.setAttribute("open","");
-  dl.querySelector(".dlg").insertAdjacentHTML("beforeend",'<div class="small muted" style="text-align:center">יומן כושר ביתי · גרסה '+APP_VERSION+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div>');
+  dl.querySelector(".dlg").insertAdjacentHTML("beforeend",'<div class="small muted" style="text-align:center">יומן כושר ביתי · גרסה '+APP_VERSION+(FA&&FA.version?' · אפליקציית טלפון '+esc(FA.version()):'')+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div>');
   if(document.getElementById("p-server"))document.getElementById("p-server").onclick=function(){FA.serverSettings()};
   if(document.getElementById("ph-connect"))document.getElementById("ph-connect").onclick=function(){var pw=document.getElementById("ph-pw").value,m=document.getElementById("ph-msg");if(!pw){m.textContent="הקלד סיסמה";return}m.textContent="מתחבר…";
     var id=++FAN;FACB[id]=function(r){if(r.status===200&&r.data&&r.data.ok){m.textContent="מחובר. מסנכרן…";PH.known={};PH.pulled=false;phSync().then(function(){m.textContent="מחובר ומסונכרן"})}else m.textContent=r.status===401?"סיסמה שגויה":"אין חיבור לשרת"};
@@ -1525,6 +1611,8 @@ function bind(){
   if($("sch-reset"))$("sch-reset").onclick=function(){var np=Object.assign({},P());delete np.sched;put("profile","me",np);render();toast("חזרה ללוח המומלץ")};
   main.querySelectorAll("[data-pdays]").forEach(function(b){b.onclick=function(){var np=Object.assign({},P(),{planDays:+b.dataset.pdays});delete np.sched;put("profile","me",np);S.wsel=null;S.draft=null;render();toast("התוכנית עודכנה ל־"+b.dataset.pdays+" אימונים בשבוע")}});
   // library
+  main.querySelectorAll("[data-fmenu]").forEach(function(b){b.onclick=function(){S.fmenu=+b.dataset.fmenu;try{localStorage.setItem("kg-fmenu",S.fmenu)}catch(e){}render()}});
+  main.querySelectorAll("[data-wait]").forEach(function(b){b.onclick=function(){put("profile","me",Object.assign({},P(),{meatWait:+b.dataset.wait}));render()}});
   main.querySelectorAll("[data-lg]").forEach(function(b){b.onclick=function(){S.lg=b.dataset.lg;render()}});
   // walk
   if($("k-add")){
@@ -1556,7 +1644,7 @@ function bind(){
     if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="בטוח?";setTimeout(function(){if(b.isConnected){b.dataset.armed="";b.textContent="מחק"}},3000);return}
     del("measures",b.dataset.delm);render()}});
 }
-try{var t0=localStorage.getItem("kg-tab");if(t0)TAB=t0}catch(e){}
+try{var t0=localStorage.getItem("kg-tab");if(t0)TAB=t0;var fm=localStorage.getItem("kg-fmenu");if(fm)S.fmenu=+fm}catch(e){}
 render();init();
 </script>
 </body></html>

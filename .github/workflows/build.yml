@@ -27,12 +27,16 @@ jobs:
         run: gradle :app:assembleRelease --no-daemon --stacktrace
 
       - name: Rename
-        run: cp app/build/outputs/apk/release/app-release.apk fitness-sync.apk
+        run: |
+          V=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
+          echo "APPV=$V" >> $GITHUB_ENV
+          cp app/build/outputs/apk/release/app-release.apk fitness-sync.apk
+          cp app/build/outputs/apk/release/app-release.apk fitness-sync-v$V.apk
 
       - uses: actions/upload-artifact@v4
         with:
-          name: fitness-sync
-          path: fitness-sync.apk
+          name: fitness-sync-v${{ env.APPV }}
+          path: fitness-sync-v${{ env.APPV }}.apk
 
       - name: Publish to "latest" release
         if: github.ref == 'refs/heads/main'
@@ -40,6 +44,8 @@ jobs:
         with:
           tag_name: latest
           name: יומן כושר - אפליקציית טלפון
-          body: להתקנה בטלפון, הורד את הקובץ fitness-sync.apk
-          files: fitness-sync.apk
+          body: "גרסה ${{ env.APPV }}. להתקנה בטלפון, הורד את הקובץ fitness-sync-v${{ env.APPV }}.apk"
+          files: |
+            fitness-sync.apk
+            fitness-sync-v${{ env.APPV }}.apk
           make_latest: true
