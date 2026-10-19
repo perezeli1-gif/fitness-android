@@ -69,6 +69,7 @@ class MainActivity : ComponentActivity() {
     private var updating = false
     private var resumeUpdate = false
     private var lastPageCheck = 0L
+    private var askedPerms = false
 
     private val prefs by lazy { getSharedPreferences("fitness", Context.MODE_PRIVATE) }
     private val server: String get() = prefs.getString("server", DEFAULT_SERVER) ?: DEFAULT_SERVER
@@ -79,7 +80,7 @@ class MainActivity : ComponentActivity() {
     private val askPermissions = registerForActivityResult(
         PermissionController.createRequestPermissionResultContract()
     ) { granted ->
-        if (granted.isNotEmpty()) readHealth(manual = true)
+        if (granted.isNotEmpty() || askedPerms) readHealth(manual = true)
         else toPage("onFitHealth", HealthSync.Result(false, 0, 0, 0, "לא ניתנה הרשאה ל-Health Connect").toJson())
     }
 
@@ -346,9 +347,18 @@ class MainActivity : ComponentActivity() {
                 val f = AppUpdater.download(this@MainActivity, l) { p ->
                     toPage("onApkProgress", JSONObject().put("pct", p).put("version", l.version).toString())
                 }
-                if (f == null) { toPage("onApkProgress", JSONObject().put("error", "ההורדה נכשלה. נסה שוב").toString()); return@launch }
+                if (f == null) {
+                    toPage("onApkProgress", JSONObject().put("error", "ההורדה בתוך האפליקציה נכשלה. פותח את ההורדה בדפדפן.").toString())
+                    openExternal(Uri.parse(l.url)); return@launch
+                }
                 toPage("onApkProgress", JSONObject().put("installing", true).put("version", l.version).toString())
-                withContext(Dispatchers.IO) { AppUpdater.install(this@MainActivity, f) }
+                try {
+                    val uri = androidx.core.content.FileProvider.getUriForFile(this@MainActivity, "$packageName.files", f)
+                    startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri, "application/vnd.android.package-archive")
+                        .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK))
+                } catch (e: Exception) {
+                    openExternal(Uri.parse(l.url))
+                }
             } catch (e: Exception) {
                 toPage("onApkProgress", JSONObject().put("error", "העדכון נכשל: ${e.message ?: ""}").toString())
             } finally {
@@ -377,13 +387,16 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             try {
                 val have = HealthSync.granted(this@MainActivity)
-                if (!have.containsAll(HealthSync.PERMISSIONS)) {
-                    if (manual) {
-                        healthRunning = false
-                        askPermissions.launch(HealthSync.PERMISSIONS)
-                        return@launch
-                    }
-                    if (have.isEmpty()) return@launch
+                val exercise = have.contains(HealthSync.PERMISSIONS.first())
+                if (!have.containsAll(HealthSync.PERMISSIONS) && manual && !askedPerms) {
+                    askedPerms = true
+                    healthRunning = false
+                    askPermissions.launch(HealthSync.PERMISSIONS)
+                    return@launch
+                }
+                if (!exercise) {
+                    toPage("onFitHealth", HealthSync.Result(false, 0, 0, 0, "אין הרשאה לקרוא אימונים. לחץ שוב \"סנכרן מהשעון עכשיו\" ואשר את ההרשאות, או: הגדרות הטלפון ← Health Connect ← הרשאות אפליקציה ← כושר + שעון ← לאפשר הכול.").toJson().replace("\"ok\":false", "\"ok\":false,\"noperm\":true,\"quiet\":" + (!manual)))
+                    return@launch
                 }
                 val json = HealthSync.read(this@MainActivity)
                 toPage("onFitHealth", json)

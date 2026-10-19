@@ -71,12 +71,25 @@ object HealthSync {
             have.contains(HealthPermission.getReadPermission(cls))
 
         val since = Instant.now().minus(Duration.ofDays(days))
-        val sessions = client.readRecords(
+        val allSessions = client.readRecords(
             ReadRecordsRequest(
                 recordType = ExerciseSessionRecord::class,
                 timeRangeFilter = TimeRangeFilter.after(since),
             )
-        ).records.filter { it.exerciseType in WALK_TYPES }
+        ).records
+        val sessions = allSessions.filter { it.exerciseType in WALK_TYPES }
+        // אבחון: אילו אימונים אחרים נמצאו ב-3 הימים האחרונים (אולי ההליכה נשמרה כסוג אחר)
+        val recentCut = Instant.now().minus(Duration.ofDays(3))
+        val others = JSONArray()
+        allSessions.filter { it.exerciseType !in WALK_TYPES && it.startTime.isAfter(recentCut) }.forEach { o ->
+            val off = o.startZoneOffset
+            val st = if (off != null) o.startTime.atOffset(off).toLocalDateTime() else LocalDateTime.ofInstant(o.startTime, ZoneId.systemDefault())
+            others.put(JSONObject().put("type", o.exerciseType).put("when", st.format(DateTimeFormatter.ofPattern("dd.MM HH:mm")))
+                .put("min", Duration.between(o.startTime, o.endTime).toMinutes()).put("app", o.metadata.dataOrigin.packageName))
+        }
+        val perms = JSONObject()
+            .put("distance", can(DistanceRecord::class)).put("steps", can(StepsRecord::class))
+            .put("hr", can(HeartRateRecord::class)).put("kcal", can(ActiveCaloriesBurnedRecord::class) || can(TotalCaloriesBurnedRecord::class))
 
         val metrics = mutableSetOf<AggregateMetric<*>>(ExerciseSessionRecord.EXERCISE_DURATION_TOTAL)
         if (can(DistanceRecord::class)) metrics += DistanceRecord.DISTANCE_TOTAL
@@ -143,6 +156,7 @@ object HealthSync {
             } catch (_: Exception) { }
         }
 
-        return JSONObject().put("ok", true).put("walks", walks).put("steps", steps).put("found", sessions.size).toString()
+        return JSONObject().put("ok", true).put("walks", walks).put("steps", steps).put("found", sessions.size)
+            .put("all", allSessions.size).put("others", others).put("perms", perms).toString()
     }
 }

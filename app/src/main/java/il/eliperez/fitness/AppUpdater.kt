@@ -60,7 +60,7 @@ object AppUpdater {
     /** מוריד את הקובץ. progress מקבל אחוזים. */
     suspend fun download(ctx: Context, l: Latest, progress: (Int) -> Unit): File? = withContext(Dispatchers.IO) {
         try {
-            val f = File(ctx.cacheDir, "update.apk")
+            val f = File(File(ctx.cacheDir, "updates").apply { mkdirs() }, "update.apk")
             var url = URL(l.url)
             var c: HttpURLConnection
             var hops = 0
