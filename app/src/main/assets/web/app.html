@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="3.0",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="3.1",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1442,6 +1442,8 @@ function viewWalk(){
   var dcards=daily.slice(0,40).map(function(w){return card(w,false)}).join("");
   var now=new Date(),nowT=pad(now.getHours())+":"+pad(now.getMinutes());
   return '<div class="stack"><div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div></div><div class="tape walk"></div>'+
+  (FA?'<div class="card stack" id="t-watchsync" style="--dc:var(--c-walk)"><h3 class="h3">סנכרון מהשעון</h3><p class="small" style="margin:0">ההליכות מ־Samsung Health נמשכות לבד דרך Health Connect בכל פעם שפותחים את האפליקציה. אפשר גם ללחוץ עכשיו.</p><div class="row"><button type="button" class="btn walk" id="k-sync">סנכרן מהשעון עכשיו</button><span class="small" id="k-sync-msg"></span></div></div>':
+   (S.mode==="server"?'<div class="card stack small" id="t-watchsync"><h3 class="h3">סנכרון אוטומטי מהשעון</h3><p style="margin:0">באפליקציית הטלפון "יומן כושר" (קובץ APK) ההליכות נמשכות לבד מ־Samsung Health. ראה במדריך: "אפליקציית הטלפון".</p></div>':''))+
   '<div class="card stack" id="t-wsum" style="--dc:var(--c-walk)"><div class="head"><h3 class="h3">השבוע</h3><span class="small muted">'+fmtD(ws)+'–'+fmtD(addDays(ws,6))+'</span></div><div class="wstats">'+
     stat("מרחק",n1(wk.km),"ק״מ")+stat("זמן הליכה",fmtDur(wk.min))+stat("קצב ממוצע",wk.pace?fmtPace(wk.pace,1):"–","דק׳ לק״מ")+stat("הליכות",wk.n)+'</div>'+
     '<div class="prog walk"><i style="width:'+Math.min(100,wk.min/goal*100)+'%"></i></div><div class="small muted">'+Math.round(wk.min)+' מתוך '+goal+' דקות'+(wk.min>=goal?' · הגעת ליעד!':"")+'</div></div>'+
@@ -1451,8 +1453,6 @@ function viewWalk(){
    fld("k-km","מרחק (ק״מ)","","0.01")+fld("k-min","זמן (דקות)","","1")+fld("k-steps","צעדים","","1")+fld("k-hr","דופק ממוצע","","1")+fld("k-kcal","קלוריות","","1")+'</div>'+
    '<label class="f">הערה<input type="text" id="k-note" placeholder="למשל: מסלול הפארק, עלייה"></label>'+
    '<div class="row"><button class="btn walk" id="k-add">שמור הליכה</button><span class="small" id="k-pace"></span></div><div class="small muted">את המרחק, הזמן והקצב אפשר להעתיק מאפליקציית Samsung Health אחרי ההליכה.</div></div>'+
-  (FA?'<div class="card stack" id="t-watchsync" style="--dc:var(--c-walk)"><h3 class="h3">סנכרון מהשעון</h3><p class="small" style="margin:0">ההליכות מ־Samsung Health נמשכות לבד דרך Health Connect בכל פעם שפותחים את האפליקציה. אפשר גם ללחוץ עכשיו.</p><div class="row"><button type="button" class="btn walk" id="k-sync">סנכרן מהשעון עכשיו</button><span class="small" id="k-sync-msg"></span></div></div>':
-   (S.mode==="server"?'<div class="card stack small" id="t-watchsync"><h3 class="h3">סנכרון אוטומטי מהשעון</h3><p style="margin:0">באפליקציית הטלפון "יומן כושר" (קובץ APK) ההליכות נמשכות לבד מ־Samsung Health. ראה במדריך: "אפליקציית הטלפון".</p></div>':''))+
   '<div class="card stack" id="t-import"><h3 class="h3">ייבוא מ־Samsung Health</h3>'+
    '<ol class="steps small"><li>באפליקציית Samsung Health בטלפון: תפריט ← הגדרות ← <b>הורדת נתונים אישיים</b> (השם יכול להשתנות מעט בין גרסאות).</li><li>בתיקייה שנוצרה בטלפון, בחר את הקובץ שמתחיל ב־<span dir="ltr">com.samsung.shealth.exercise</span> (אימוני הליכה, כולל מרחק, זמן, דופק וקלוריות) או <span dir="ltr">step_daily_trend</span> (צעדים יומיים).</li><li>העלה אותו כאן (אפשר כמה קבצים יחד). מכל הליכה מיובאים לבד: תאריך, שעת התחלה, מרחק, זמן, קצב, צעדים, דופק ממוצע וקלוריות. הליכות שכבר יובאו לא ייכפלו.</li></ol>'+
    '<label class="btn" style="align-self:flex-start">בחר קובץ CSV<input type="file" id="k-file" accept=".csv,text/csv" multiple hidden></label><div class="small" id="k-imp"></div>'+
