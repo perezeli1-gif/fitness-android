@@ -5,6 +5,7 @@ import androidx.health.connect.client.HealthConnectClient
 import androidx.health.connect.client.permission.HealthPermission
 import androidx.health.connect.client.records.ActiveCaloriesBurnedRecord
 import androidx.health.connect.client.records.DistanceRecord
+import androidx.health.connect.client.records.ExerciseSegment
 import androidx.health.connect.client.records.ExerciseSessionRecord
 import androidx.health.connect.client.records.HeartRateRecord
 import androidx.health.connect.client.records.StepsRecord
@@ -114,6 +115,20 @@ object HealthSync {
                 .put("title", s.title ?: "")
                 .put("app", s.metadata.dataOrigin.packageName)
             var sec = totalSec
+            // הפסקות שהשעון רשם כמקטעי הפסקה/מנוחה
+            try {
+                val paused = s.segments.filter {
+                    it.segmentType == ExerciseSegment.EXERCISE_SEGMENT_TYPE_PAUSE ||
+                        it.segmentType == ExerciseSegment.EXERCISE_SEGMENT_TYPE_REST
+                }.sumOf { Duration.between(it.startTime, it.endTime).seconds }
+                if (paused in 1 until totalSec) sec = totalSec - paused
+            } catch (_: Exception) { }
+            // זמן תנועה בפועל: רק הדקות שבהן השעון רשם צעדים או מרחק (כמו "משך אימון הכושר" ב-Samsung Health)
+            try {
+                val moving = movingSeconds(client, s, can(StepsRecord::class), can(DistanceRecord::class))
+                if (moving >= totalSec * 0.4 && moving < sec) sec = moving
+            } catch (_: Exception) { }
+            w.put("total", totalSec)
             try {
                 // רק הנתונים שהאפליקציה שרשמה את האימון כתבה (Samsung Health), בלי צעדים מהטלפון או מאפליקציות אחרות
                 val range = TimeRangeFilter.between(s.startTime, s.endTime)
@@ -121,7 +136,7 @@ object HealthSync {
                 if (a[DistanceRecord.DISTANCE_TOTAL] == null && a[StepsRecord.COUNT_TOTAL] == null)
                     a = client.aggregate(AggregateRequest(metrics, range, emptySet<DataOrigin>()))
                 a[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]?.let { d ->
-                    if (d.seconds in 60..totalSec) sec = d.seconds   // זמן האימון בלי ההפסקות
+                    if (d.seconds in 60 until sec) sec = d.seconds   // זמן האימון בלי ההפסקות
                 }
                 a[DistanceRecord.DISTANCE_TOTAL]?.let { w.put("km", it.inKilometers) }
                 a[StepsRecord.COUNT_TOTAL]?.let { w.put("steps", it) }
@@ -158,5 +173,25 @@ object HealthSync {
 
         return JSONObject().put("ok", true).put("walks", walks).put("steps", steps).put("found", sessions.size)
             .put("all", allSessions.size).put("others", others).put("perms", perms).toString()
+    }
+
+    /** סכום הזמן שבו נרשמו צעדים או מרחק בתוך האימון (בלי חפיפות). הפסקות נשארות מחוץ לחשבון. */
+    private suspend fun movingSeconds(client: HealthConnectClient, s: ExerciseSessionRecord, steps: Boolean, dist: Boolean): Long {
+        val range = TimeRangeFilter.between(s.startTime, s.endTime)
+        val origin = setOf(s.metadata.dataOrigin)
+        val iv = mutableListOf<Pair<Instant, Instant>>()
+        if (steps) client.readRecords(ReadRecordsRequest(recordType = StepsRecord::class, timeRangeFilter = range, dataOriginFilter = origin)).records
+            .filter { it.count > 0 }.forEach { iv += it.startTime to it.endTime }
+        if (dist) client.readRecords(ReadRecordsRequest(recordType = DistanceRecord::class, timeRangeFilter = range, dataOriginFilter = origin)).records
+            .filter { it.distance.inMeters > 1 }.forEach { iv += it.startTime to it.endTime }
+        if (iv.size < 5) return 0   // רשומה אחת לכל האימון לא אומרת כלום על הפסקות
+        iv.sortBy { it.first }
+        var total = 0L
+        var cs = iv[0].first; var ce = iv[0].second
+        for ((a, b) in iv.drop(1)) {
+            if (a <= ce) { if (b > ce) ce = b } else { total += Duration.between(cs, ce).seconds; cs = a; ce = b }
+        }
+        total += Duration.between(cs, ce).seconds
+        return total
     }
 }

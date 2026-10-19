@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="3.5",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="3.6",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -837,7 +837,7 @@ window.onFitHealth=function(r){
   (r.walks||[]).forEach(function(w){if(!w.date||w.date.length!==10||!w.id)return;
     var wid="hc"+String(w.id).replace(/[^A-Za-z0-9]/g,"").slice(0,40),doc=mdoc(w.date.slice(0,7)),it=doc.items,t0=hm(w.time);
     var nz=function(v,d){return v==null||v===""||!+v?null:(d?Math.round(v*Math.pow(10,d))/Math.pow(10,d):Math.round(v))};
-    var data={min:w.sec?Math.round(w.sec)/60:nz(w.min,2),sec:w.sec?Math.round(w.sec):null,km:nz(w.km,2),steps:nz(w.steps),hr:nz(w.hr),kcal:nz(w.kcal),kcalT:nz(w.kcalT),kcalA:nz(w.kcalA),rec:w.rec==null?null:w.rec,app:w.app||null};
+    var data={min:w.sec?Math.round(w.sec)/60:nz(w.min,2),sec:w.sec?Math.round(w.sec):null,km:nz(w.km,2),steps:nz(w.steps),hr:nz(w.hr),kcal:nz(w.kcal),kcalT:nz(w.kcalT),kcalA:nz(w.kcalA),total:nz(w.total),rec:w.rec==null?null:w.rec,app:w.app||null};
     if(it[wid]){/* already here: refresh the numbers from the watch (keeps the note and the fitness/daily choice) */
       if(it[wid].src==="watch"&&w.sec){var before=JSON.stringify(it[wid]);Object.keys(data).forEach(function(f){if(data[f]!=null)it[wid][f]=data[f]});if(JSON.stringify(it[wid])!==before)updated++}
       else if(w.rec!=null&&it[wid].rec==null)it[wid].rec=w.rec;return}
@@ -927,7 +927,7 @@ function walkRule(){var p=P();return{min:+p.fitMin||20,pace:+p.fitPace||13}}
 function isFitWalk(w){if(w.kind==="fit")return true;if(w.kind==="daily")return false;
   if(w.src!=="watch"&&w.src!=="samsung")return true;
   if(w.rec===1)return true;if(w.rec===2)return false;
-  var r=walkRule();if(!(+w.min>=r.min))return false;if(w.km&&+w.min/ +w.km>r.pace)return false;return true}
+  var r=walkRule();if(!(+w.min>=r.min))return false;if(+w.km>=3)return true;if(w.km&&+w.min/ +w.km>r.pace)return false;return true}
 function fitWalks(){return walkList().filter(isFitWalk)}
 function walkedOn(k){return Math.round(fitWalks().filter(function(w){return w.date===k}).reduce(function(a,w){return a+(+w.min||0)},0))}
 function weekMinutes(ws){var we=addDays(ws,6);return Math.round(fitWalks().filter(function(w){return w.date>=ws&&w.date<=we}).reduce(function(s,w){return s+(+w.min||0)},0))}
