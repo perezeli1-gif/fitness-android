@@ -123,10 +123,13 @@ object HealthSync {
                 }.sumOf { Duration.between(it.startTime, it.endTime).seconds }
                 if (paused in 1 until totalSec) sec = totalSec - paused
             } catch (_: Exception) { }
-            // זמן תנועה בפועל: רק הדקות שבהן השעון רשם צעדים או מרחק (כמו "משך אימון הכושר" ב-Samsung Health)
+            // זמן תנועה בפועל: רק הזמן שבו נרשמו צעדים או מרחק (כמו "משך אימון הכושר" ב-Samsung Health)
+            var moving: List<Pair<Instant, Instant>> = emptyList()
             try {
-                val moving = movingSeconds(client, s, can(StepsRecord::class), can(DistanceRecord::class))
-                if (moving >= totalSec * 0.4 && moving < sec) sec = moving
+                moving = movingIntervals(client, s, can(StepsRecord::class), can(DistanceRecord::class))
+                val mv = moving.sumOf { Duration.between(it.first, it.second).seconds }
+                w.put("dbgMove", mv)
+                if (mv >= totalSec * 0.4 && mv < sec) sec = mv
             } catch (_: Exception) { }
             w.put("total", totalSec)
             try {
@@ -138,9 +141,28 @@ object HealthSync {
                 a[ExerciseSessionRecord.EXERCISE_DURATION_TOTAL]?.let { d ->
                     if (d.seconds in 60 until sec) sec = d.seconds   // זמן האימון בלי ההפסקות
                 }
-                a[DistanceRecord.DISTANCE_TOTAL]?.let { w.put("km", it.inKilometers) }
-                a[StepsRecord.COUNT_TOTAL]?.let { w.put("steps", it) }
-                a[HeartRateRecord.BPM_AVG]?.let { w.put("hr", it) }
+                var st = a[StepsRecord.COUNT_TOTAL] ?: 0L
+                var km = a[DistanceRecord.DISTANCE_TOTAL]?.inKilometers ?: 0.0
+                try {
+                    // צעדים ומרחק מכל המקורות (השעון לפעמים כותב את הצעדים בשם אחר): לוקחים את הגדול
+                    val all = client.aggregate(AggregateRequest(setOfNotNull(
+                        if (can(StepsRecord::class)) StepsRecord.COUNT_TOTAL else null,
+                        if (can(DistanceRecord::class)) DistanceRecord.DISTANCE_TOTAL else null), range, emptySet<DataOrigin>()))
+                    w.put("dbgSteps", "$st/${all[StepsRecord.COUNT_TOTAL] ?: 0}")
+                    all[StepsRecord.COUNT_TOTAL]?.let { if (it > st) st = it }
+                    all[DistanceRecord.DISTANCE_TOTAL]?.inKilometers?.let { if (km < 0.1 && it > km) km = it }
+                } catch (_: Exception) { }
+                if (st > 0) w.put("steps", st)
+                if (km > 0) w.put("km", km)
+                var hr: Double? = null
+                if (can(HeartRateRecord::class) && moving.isNotEmpty()) try {
+                    // דופק ממוצע רק בזמן התנועה (בלי ההפסקות)
+                    val bpm = client.readRecords(ReadRecordsRequest(recordType = HeartRateRecord::class, timeRangeFilter = range)).records
+                        .flatMap { it.samples }.filter { smp -> moving.any { smp.time >= it.first && smp.time <= it.second } }
+                        .map { it.beatsPerMinute }
+                    if (bpm.size >= 10) hr = bpm.average()
+                } catch (_: Exception) { }
+                (hr ?: a[HeartRateRecord.BPM_AVG]?.toDouble())?.let { w.put("hr", it) }
                 val total = a[TotalCaloriesBurnedRecord.ENERGY_TOTAL]?.inKilocalories
                 val active = a[ActiveCaloriesBurnedRecord.ACTIVE_CALORIES_TOTAL]?.inKilocalories
                 total?.let { w.put("kcalT", it) }
@@ -175,23 +197,24 @@ object HealthSync {
             .put("all", allSessions.size).put("others", others).put("perms", perms).toString()
     }
 
-    /** סכום הזמן שבו נרשמו צעדים או מרחק בתוך האימון (בלי חפיפות). הפסקות נשארות מחוץ לחשבון. */
-    private suspend fun movingSeconds(client: HealthConnectClient, s: ExerciseSessionRecord, steps: Boolean, dist: Boolean): Long {
+    /** הזמנים שבהם נרשמו צעדים או מרחק בתוך האימון (מאוחדים, בלי חפיפות). הפסקות נשארות בחוץ. */
+    private suspend fun movingIntervals(client: HealthConnectClient, s: ExerciseSessionRecord, steps: Boolean, dist: Boolean): List<Pair<Instant, Instant>> {
         val range = TimeRangeFilter.between(s.startTime, s.endTime)
-        val origin = setOf(s.metadata.dataOrigin)
         val iv = mutableListOf<Pair<Instant, Instant>>()
-        if (steps) client.readRecords(ReadRecordsRequest(recordType = StepsRecord::class, timeRangeFilter = range, dataOriginFilter = origin)).records
+        if (steps) client.readRecords(ReadRecordsRequest(recordType = StepsRecord::class, timeRangeFilter = range)).records
             .filter { it.count > 0 }.forEach { iv += it.startTime to it.endTime }
-        if (dist) client.readRecords(ReadRecordsRequest(recordType = DistanceRecord::class, timeRangeFilter = range, dataOriginFilter = origin)).records
+        if (dist) client.readRecords(ReadRecordsRequest(recordType = DistanceRecord::class, timeRangeFilter = range)).records
             .filter { it.distance.inMeters > 1 }.forEach { iv += it.startTime to it.endTime }
-        if (iv.size < 5) return 0   // רשומה אחת לכל האימון לא אומרת כלום על הפסקות
-        iv.sortBy { it.first }
-        var total = 0L
-        var cs = iv[0].first; var ce = iv[0].second
-        for ((a, b) in iv.drop(1)) {
-            if (a <= ce) { if (b > ce) ce = b } else { total += Duration.between(cs, ce).seconds; cs = a; ce = b }
+        // רשומה ארוכה אחת לכל האימון לא אומרת כלום על הפסקות
+        val usable = iv.filter { Duration.between(it.first, it.second).seconds <= 600 }
+        if (usable.size < 5) return emptyList()
+        val sorted = usable.sortedBy { it.first }
+        val out = mutableListOf<Pair<Instant, Instant>>()
+        var cs = sorted[0].first; var ce = sorted[0].second
+        for ((x, y) in sorted.drop(1)) {
+            if (x <= ce) { if (y > ce) ce = y } else { out += cs to ce; cs = x; ce = y }
         }
-        total += Duration.between(cs, ce).seconds
-        return total
+        out += cs to ce
+        return out
     }
 }

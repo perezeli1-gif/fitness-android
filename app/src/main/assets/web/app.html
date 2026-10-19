@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="3.6",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="3.7",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -823,6 +823,7 @@ function hcDiag(r){var lines=[],d=JSON.parse(JSON.stringify(r||{}));
   lines.push("נמצאו "+(d.found||0)+" הליכות ב־30 הימים האחרונים"+(d.all!=null?" (מתוך "+d.all+" אימונים)":"")+".");
   var ws=(d.walks||[]).slice().sort(function(a,b){return(a.date+a.time)<(b.date+b.time)?1:-1});
   if(ws.length){var w=ws[0];lines.push("האחרונה: "+fmtD(w.date)+" "+(w.time||"")+(w.km?" · "+(+w.km).toFixed(2)+" ק״מ":"")+(w.sec?" · "+fmtDur(w.sec/60):""));
+    if(w.total||w.dbgSteps)lines.push("פרטים: "+(w.total?"משך כולל "+fmtDur(w.total/60):"")+(w.dbgMove?" · זמן תנועה "+fmtDur(w.dbgMove/60):"")+(w.dbgSteps?" · צעדים "+w.dbgSteps:"")+(w.hr?" · דופק "+Math.round(w.hr):""));
     if(w.date!==today())lines.push("היום לא נמצאה הליכה ב־Health Connect.")}
   if(d.others&&d.others.length)lines.push("אימונים מסוג אחר בימים האחרונים: "+d.others.map(function(o){return(EXTYPE[o.type]||("סוג "+o.type))+" "+o.when+" ("+o.min+" דק׳)"}).join(", ")+".");
   var p=d.perms||{},miss=[];if(p.distance===false)miss.push("מרחק");if(p.steps===false)miss.push("צעדים");if(p.hr===false)miss.push("דופק");if(p.kcal===false)miss.push("קלוריות");
