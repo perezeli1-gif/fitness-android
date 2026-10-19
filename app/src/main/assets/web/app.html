@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="3.1",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="3.2",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1012,7 +1012,7 @@ function viewHome(){
    '<div class="stack" style="gap:6px"><div class="row" style="justify-content:space-between"><span class="small">השבוע</span><b class="num">'+wMin+' מתוך '+wGoal+' דקות</b></div><div class="prog walk"><i style="width:'+Math.min(100,wMin/wGoal*100)+'%"></i></div></div>'+
    '<div class="row"><button class="btn walk" data-go="walk" id="t-walkbtn">'+(wkT?'רשום עוד הליכה':'רשום הליכה')+'</button></div></div>';
   return '<div class="stack">'+
-  '<div class="head"><div><div class="eyebrow">'+fmtDL(tk)+'</div><h1 class="h1">'+greet()+'</h1></div><div class="row"><button class="btn sm" id="edit-profile">פרופיל והגדרות</button></div></div>'+
+  '<div class="head"><div><div class="eyebrow">'+fmtDL(tk)+'</div><h1 class="h1">'+greet()+'</h1></div><div class="stack" style="gap:6px;align-items:flex-end"><button class="btn pri" id="edit-profile" style="font-weight:800;box-shadow:0 3px 10px rgba(255,138,61,.35)">⚙ פרופיל והגדרות</button>'+(S.mode==="phone"?'<span class="small" style="font-weight:600;color:'+(phLinked()&&PH.online===true?'var(--c-legs)':'var(--warn)')+'">'+(phLinked()&&PH.online===true?'● מסונכרן':phLinked()?'● אין חיבור לשרת':'● לא מחובר לשרת')+'</span>':'')+'</div></div>'+
   (needMeasure?'<div class="note row" style="justify-content:space-between"><span><b>זמן למדידה השבועית.</b> '+(lastM?"המדידה האחרונה הייתה לפני "+daysBetween(lastM.id,tk)+" ימים.":"עוד לא נרשמה מדידה.")+'</span><button class="btn sm pri" data-go="measure">למדידה</button></div>':"")+
   '<div class="grid g2"><div class="stack" style="gap:6px"><h2 class="h3 sect" style="--dc:var(--c-push)">אימון משקולות</h2>'+todayCard+'</div><div class="stack" style="gap:6px"><h2 class="h3 sect" style="--dc:var(--c-walk)">הליכה</h2>'+walkCard+'</div></div>'+
   '<div class="grid">'+
