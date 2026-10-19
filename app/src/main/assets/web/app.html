@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="3.7",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="3.8",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -839,8 +839,10 @@ window.onFitHealth=function(r){
     var wid="hc"+String(w.id).replace(/[^A-Za-z0-9]/g,"").slice(0,40),doc=mdoc(w.date.slice(0,7)),it=doc.items,t0=hm(w.time);
     var nz=function(v,d){return v==null||v===""||!+v?null:(d?Math.round(v*Math.pow(10,d))/Math.pow(10,d):Math.round(v))};
     var data={min:w.sec?Math.round(w.sec)/60:nz(w.min,2),sec:w.sec?Math.round(w.sec):null,km:nz(w.km,2),steps:nz(w.steps),hr:nz(w.hr),kcal:nz(w.kcal),kcalT:nz(w.kcalT),kcalA:nz(w.kcalA),total:nz(w.total),rec:w.rec==null?null:w.rec,app:w.app||null};
+    /* Samsung לפעמים מעבירה רק חלק מהצעדים של האימון: אם יש פחות מ־500 צעדים לק״מ, מחשבים לפי המרחק ואורך הצעד */
+    if(data.km&&(!data.steps||data.steps<data.km*500)){var stride=+P().stride||0.78;data.steps=Math.round(data.km*1000/stride);data.stepsEst=true}
     if(it[wid]){/* already here: refresh the numbers from the watch (keeps the note and the fitness/daily choice) */
-      if(it[wid].src==="watch"&&w.sec){var before=JSON.stringify(it[wid]);Object.keys(data).forEach(function(f){if(data[f]!=null)it[wid][f]=data[f]});if(JSON.stringify(it[wid])!==before)updated++}
+      if(it[wid].src==="watch"&&w.sec){var before=JSON.stringify(it[wid]),lk=it[wid].locked||[];if(lk.indexOf("min")>=0)lk=lk.concat(["sec"]);if(lk.indexOf("steps")>=0)lk=lk.concat(["stepsEst"]);if(!data.stepsEst)delete it[wid].stepsEst;Object.keys(data).forEach(function(f){if(data[f]!=null&&lk.indexOf(f)<0)it[wid][f]=data[f]});if(JSON.stringify(it[wid])!==before)updated++}
       else if(w.rec!=null&&it[wid].rec==null)it[wid].rec=w.rec;return}
     for(var k in it){var x=it[k];if(x.date===w.date&&hm(x.time)!=null&&t0!=null&&Math.abs(hm(x.time)-t0)<=3)return}
     it[wid]=Object.assign({id:wid,date:w.date,time:String(w.time||"").slice(0,5),src:"watch"},data);added++});
@@ -1452,10 +1454,14 @@ function viewWalk(){
      '<div><div class="eyebrow">זמן</div><b class="num">'+fmtDur(w.min)+'</b></div>'+
      '<div><div class="eyebrow">קצב</div><b class="num">'+fmtPace(w.min,w.km)+'</b> <span class="small muted">לק״מ</span></div>'+
      '<div><div class="eyebrow">מהירות</div><b class="num">'+(sp||"–")+'</b> <span class="small muted">קמ״ש</span></div>'+
-     '<div><div class="eyebrow">צעדים</div><b class="num">'+(w.steps?(+w.steps).toLocaleString("he-IL"):"–")+'</b></div>'+
+     '<div><div class="eyebrow">צעדים</div><b class="num">'+(w.steps?(w.stepsEst?"≈":"")+(+w.steps).toLocaleString("he-IL"):"–")+'</b></div>'+
      '<div><div class="eyebrow">דופק ממוצע</div><b class="num">'+(w.hr||"–")+'</b></div>'+
      '<div><div class="eyebrow">קלוריות</div><b class="num">'+(w.kcal||"–")+'</b></div>'+
-    '</div>'+(w.note?'<div class="small muted">'+esc(w.note)+'</div>':"")+'</div>'};
+    '</div>'+(w.note?'<div class="small muted">'+esc(w.note)+'</div>':"")+
+    (w.stepsEst?'<div class="small muted">≈ הצעדים מחושבים לפי המרחק, כי השעון לא העביר את כולם.</div>':"")+
+    '<details class="small"><summary>ערוך את הנתונים</summary><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr));margin-top:8px">'+
+     [["min","זמן (דקות)",w.min?Math.round(w.min*100)/100:""],["km","מרחק (ק״מ)",w.km||""],["steps","צעדים",w.steps||""],["hr","דופק ממוצע",w.hr||""],["kcal","קלוריות",w.kcal||""]].map(function(f){return'<label class="f">'+f[1]+'<input type="number" inputmode="decimal" step="any" data-wf="'+f[0]+'" value="'+f[2]+'"></label>'}).join("")+
+    '</div><div class="row" style="margin-top:8px"><button class="btn walk sm" data-wsave="'+w.month+"|"+w.id+'">שמור תיקון</button><span class="muted">מה שתתקן לא יידרס בסנכרון הבא.</span></div></details></div>'};
   var cards=list.slice(0,40).map(function(w){return card(w,true)}).join("");
   var dcards=daily.slice(0,40).map(function(w){return card(w,false)}).join("");
   var now=new Date(),nowT=pad(now.getHours())+":"+pad(now.getMinutes());
@@ -1852,6 +1858,15 @@ function bind(){
   main.querySelectorAll("[data-wm]").forEach(function(b){b.onclick=function(){S.wm=b.dataset.wm;render()}});
   main.querySelectorAll("[data-wkind]").forEach(function(b){b.onclick=function(){var pr=b.dataset.wkind.split("|"),doc=JSON.parse(JSON.stringify(S.walks[pr[0]]));if(!doc.items[pr[1]])return;doc.items[pr[1]].kind=pr[2];put("walks",pr[0],doc);render();toast(pr[2]==="fit"?"נספרת כהליכת כושר":"הועברה להליכות יומיומיות")}});
   if($("r-save"))$("r-save").onclick=function(){var a=num("r-min"),b=num("r-pace");put("profile","me",Object.assign({},P(),{fitMin:a||20,fitPace:b||13}));render();toast("הכלל עודכן")};
+  main.querySelectorAll("[data-wsave]").forEach(function(b){b.onclick=function(){var pr=b.dataset.wsave.split("|"),doc=JSON.parse(JSON.stringify(S.walks[pr[0]])),it=doc.items[pr[1]];if(!it)return;
+    var box=b.closest("details"),lock=it.locked||[];
+    box.querySelectorAll("[data-wf]").forEach(function(inp){var f=inp.dataset.wf,v=inp.value.trim()===""?null:+inp.value;if(v!=null&&!(v>=0))return;
+      var cur=it[f]==null?null:+it[f];if(v===cur||(v!=null&&cur!=null&&Math.abs(v-cur)<0.005))return;
+      it[f]=v;if(f==="min")it.sec=v==null?null:Math.round(v*60);if(f==="steps")delete it.stepsEst;if(lock.indexOf(f)<0)lock.push(f)});
+    it.locked=lock;put("walks",pr[0],doc);
+    /* צעדים שתוקנו ידנית מלמדים את אורך הצעד, לחישוב מדויק יותר בהליכות הבאות */
+    if(lock.indexOf("steps")>=0&&it.steps&&it.km){var sl=it.km*1000/it.steps;if(sl>0.4&&sl<1.2)put("profile","me",Object.assign({},P(),{stride:Math.round(sl*1000)/1000}))}
+    render();toast("הנתונים עודכנו")}});
   main.querySelectorAll("[data-delwalk]").forEach(function(b){b.onclick=function(){
     if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="בטוח?";setTimeout(function(){if(b.isConnected){b.dataset.armed="";b.textContent="מחק"}},3000);return}
     var pr=b.dataset.delwalk.split("|"),doc=JSON.parse(JSON.stringify(S.walks[pr[0]]));delete doc.items[pr[1]];put("walks",pr[0],doc);render()}});
