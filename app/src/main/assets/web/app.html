@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="3.2",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="3.3",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -839,6 +839,7 @@ window.onApkUpdate=function(info){if(!info)return;
   if(info.newer){S.apkNew=info.latest;soft();if(S.apkManual)apkMsg("יש גרסה חדשה: "+info.latest)}
   else if(S.apkManual)apkMsg(info.ok?"מותקנת הגרסה האחרונה ("+info.current+")":"אין חיבור לאינטרנט");S.apkManual=false};
 window.onApkProgress=function(p){if(!p)return;var t=p.error?p.error:p.installing?"מתקין… אם מופיע חלון אישור, לחץ \"עדכן\". האפליקציה תיסגר ותיפתח מעודכנת.":"מוריד גרסה "+p.version+": "+p.pct+"%";apkMsg(t);if(p.error||p.installing)toast(t)};
+window.onPageCheck=function(r){if(!r)return;var t=r.ok?("המסכים מעודכנים: גרסה "+APP_VERSION+(r.server&&r.server!==APP_VERSION?" (בשרת "+r.server+")":"")):"אין חיבור לשרת";document.querySelectorAll("[data-pagemsg]").forEach(function(e){e.textContent=t})};
 function apkMsg(t){document.querySelectorAll("[data-apkmsg]").forEach(function(e){e.textContent=t})}
 function apkGo(){try{FA.updateApk();apkMsg("מתחיל…")}catch(e){toast("צריך להתקין פעם אחת את הגרסה החדשה ידנית")}}
 window.onFitUpdate=function(v){if(TAB==="workout"&&S.draft){toast("גרסה "+v+" ירדה. היא תיכנס בפתיחה הבאה.");return}location.reload()};
@@ -1698,10 +1699,10 @@ function openProfile(){
    '<label class="f">סיסמת יומן הכושר<span class="pwbox"><input type="password" id="ph-pw" dir="ltr" autocapitalize="none" autocomplete="current-password"><button type="button" class="eye" data-eye="ph-pw" aria-label="הצג סיסמה">'+EYE+'</button></span></label>'+
    '<div class="row"><button type="button" class="btn sm pri" id="ph-connect">'+(phLinked()?"התחבר מחדש":"התחבר")+'</button><button type="button" class="btn sm" id="ph-now">סנכרן עכשיו</button><button type="button" class="btn sm ghost" id="p-server">כתובת השרת</button></div>'+
    '<div class="small" id="ph-msg"></div></div></details>'+
-   '<details'+(S.apkNew?' open':'')+'><summary>עדכון אפליקציית הטלפון</summary><div class="stack" style="margin-top:10px">'+
+   '<details'+(S.apkNew?' open':'')+'><summary>עדכונים</summary><div class="stack" style="margin-top:10px">'+
    '<p class="small" style="margin:0">מותקנת גרסה <b>'+esc((function(){try{return FA.version()}catch(e){return"?"}})())+'</b>'+(S.apkNew?' · יש גרסה חדשה: <b>'+esc(S.apkNew)+'</b>':'')+'</p>'+
    '<p class="small muted" style="margin:0">האפליקציה בודקת לבד אם יש גרסה חדשה. העדכון מוריד ומתקין בלחיצה אחת.</p>'+
-   '<div class="row"><button type="button" class="btn sm pri" data-apkgo>עדכן עכשיו</button><button type="button" class="btn sm" id="apk-check">בדוק אם יש עדכון</button></div><div class="small" data-apkmsg></div></div></details>':
+   '<div class="row"><button type="button" class="btn sm pri" data-apkgo>עדכן עכשיו</button><button type="button" class="btn sm" id="apk-check">בדוק אם יש עדכון</button></div><div class="small" data-pagemsg></div><div class="small" data-apkmsg></div></div></details>':
    (FA?'<div><button type="button" class="btn sm" id="p-server">כתובת השרת באפליקציה</button></div>':''))+
   (S.mode==="server"?'<details><summary>שינוי סיסמה</summary><div class="grid g4" style="margin-top:10px"><label class="f">סיסמה נוכחית<span class="pwbox"><input type="password" id="pw-cur" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-cur" aria-label="הצג סיסמה">'+EYE+'</button></span></label><label class="f">סיסמה חדשה<span class="pwbox"><input type="password" id="pw-new" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-new" aria-label="הצג סיסמה">'+EYE+'</button></span></label></div><div style="margin-top:8px"><button type="button" class="btn sm" id="pw-save">שנה סיסמה</button> <span class="small" id="pw-msg"></span></div></details><div><a class="btn ghost sm" href="logout">התנתק</a></div>':"")+
   '</div>';
@@ -1712,7 +1713,7 @@ function openProfile(){
     var id=++FAN;FACB[id]=function(r){if(r.status===200&&r.data&&r.data.ok){m.textContent="מחובר. מסנכרן…";PH.known={};PH.pulled=false;phSync().then(function(){m.textContent="מחובר ומסונכרן"})}else m.textContent=r.status===401?"סיסמה שגויה":"אין חיבור לשרת"};
     try{FA.connect(pw,id)}catch(e){m.textContent="צריך לעדכן את אפליקציית הטלפון"}};
   dl.querySelectorAll("[data-apkgo]").forEach(function(b){b.onclick=apkGo});
-  if(document.getElementById("apk-check"))document.getElementById("apk-check").onclick=function(){S.apkManual=true;apkMsg("בודק…");try{FA.checkApk()}catch(e){apkMsg("צריך להתקין פעם אחת את הגרסה החדשה ידנית")}};
+  if(document.getElementById("apk-check"))document.getElementById("apk-check").onclick=function(){S.apkManual=true;apkMsg("בודק…");try{if(FA.checkPage){document.querySelectorAll("[data-pagemsg]").forEach(function(e){e.textContent="בודק עדכון מסכים…"});FA.checkPage()}}catch(e){}try{FA.checkApk()}catch(e){apkMsg("צריך להתקין פעם אחת את הגרסה החדשה ידנית")}};
   if(document.getElementById("ph-now"))document.getElementById("ph-now").onclick=function(){var m=document.getElementById("ph-msg");m.textContent="מסנכרן…";phSync().then(function(){m.textContent=phStatusText()})};
   bindBackup();
   document.getElementById("dlg-x").onclick=function(){dl.close()};

@@ -68,6 +68,7 @@ class MainActivity : ComponentActivity() {
     private var healthRunning = false
     private var updating = false
     private var resumeUpdate = false
+    private var lastPageCheck = 0L
 
     private val prefs by lazy { getSharedPreferences("fitness", Context.MODE_PRIVATE) }
     private val server: String get() = prefs.getString("server", DEFAULT_SERVER) ?: DEFAULT_SERVER
@@ -219,6 +220,8 @@ class MainActivity : ComponentActivity() {
             resumeUpdate = false
             updateApk()
         }
+        // בדיקת עדכון מסכים גם כשחוזרים לאפליקציה, לא רק בפתיחה מחדש
+        if (System.currentTimeMillis() - lastPageCheck > 60 * 1000L) checkPageUpdate()
         // קריאה שקטה מהשעון כשחוזרים לאפליקציה (למשל אחרי הליכה)
         if (System.currentTimeMillis() - lastAutoSync > AUTO_SYNC_EVERY_MS) {
             lastAutoSync = System.currentTimeMillis()
@@ -277,12 +280,16 @@ class MainActivity : ComponentActivity() {
     }
 
     /** מוריד גרסה חדשה של הדף מהשרת. אם השרת לא זמין, ממשיכים עם מה שיש. */
-    private fun checkPageUpdate() {
+    private fun checkPageUpdate(manual: Boolean = false) {
+        lastPageCheck = System.currentTimeMillis()
         lifecycleScope.launch {
             val v = request("GET", "api/version", null, auth = false)
-            if (v.code != 200) return@launch
+            if (v.code != 200) { if (manual) toPage("onPageCheck", JSONObject().put("ok", false).toString()); return@launch }
             val remote = try { JSONObject(v.body).optString("version") } catch (_: Exception) { "" }
-            if (remote.isEmpty() || !newer(remote, currentVersion()) || token == null) return@launch
+            if (remote.isEmpty() || !newer(remote, currentVersion()) || token == null) {
+                if (manual) toPage("onPageCheck", JSONObject().put("ok", true).put("server", remote).put("page", currentVersion()).toString())
+                return@launch
+            }
             val r = request("GET", "api/app", null)
             if (r.code != 200) return@launch
             try {
@@ -438,6 +445,9 @@ class MainActivity : ComponentActivity() {
                 createDoc.launch(name)
             }
         }
+
+        @JavascriptInterface
+        fun checkPage() { runOnUiThread { this@MainActivity.checkPageUpdate(manual = true) } }
 
         @JavascriptInterface
         fun checkApk() { runOnUiThread { this@MainActivity.checkApk(auto = false) } }
