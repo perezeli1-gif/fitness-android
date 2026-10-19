@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="3.3",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="3.4",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -816,8 +816,22 @@ function phStatusText(){if(!phLinked())return"עובד רק בטלפון. לא �
 function phBadge(){var e=document.getElementById("ph-status");if(e)e.textContent=phStatusText()}
 /* walks and steps from the watch (Health Connect), merged on the phone */
 function hm(t){var p=String(t||"").split(":");return p.length<2?null:(+p[0])*60+(+p[1])}
+var EXTYPE={0:"אימון אחר",8:"רכיבת אופניים",9:"אופני כושר",13:"קליסטניקס",25:"אליפטי",36:"אימון אינטרוולים",37:"טיול רגלי",48:"פילאטיס",56:"ריצה",57:"ריצה על הליכון",68:"עליית מדרגות",70:"אימון כוח",71:"מתיחות",79:"הליכה",81:"הרמת משקולות",83:"יוגה"};
+function hcDiag(r){var lines=[],d=JSON.parse(JSON.stringify(r||{}));
+  if(d.noperm)return"אין הרשאה לקרוא אימונים מ־Health Connect. לחץ \"סנכרן מהשעון עכשיו\" ואשר.";
+  if(!d.ok)return d.message||"הקריאה מהשעון נכשלה";
+  lines.push("נמצאו "+(d.found||0)+" הליכות ב־30 הימים האחרונים"+(d.all!=null?" (מתוך "+d.all+" אימונים)":"")+".");
+  var ws=(d.walks||[]).slice().sort(function(a,b){return(a.date+a.time)<(b.date+b.time)?1:-1});
+  if(ws.length){var w=ws[0];lines.push("האחרונה: "+fmtD(w.date)+" "+(w.time||"")+(w.km?" · "+(+w.km).toFixed(2)+" ק״מ":"")+(w.sec?" · "+fmtDur(w.sec/60):""));
+    if(w.date!==today())lines.push("היום לא נמצאה הליכה ב־Health Connect.")}
+  if(d.others&&d.others.length)lines.push("אימונים מסוג אחר בימים האחרונים: "+d.others.map(function(o){return(EXTYPE[o.type]||("סוג "+o.type))+" "+o.when+" ("+o.min+" דק׳)"}).join(", ")+".");
+  var p=d.perms||{},miss=[];if(p.distance===false)miss.push("מרחק");if(p.steps===false)miss.push("צעדים");if(p.hr===false)miss.push("דופק");if(p.kcal===false)miss.push("קלוריות");
+  if(miss.length)lines.push("חסרות הרשאות: "+miss.join(", ")+".");
+  return lines.join("\n")}
 window.onFitHealth=function(r){
-  if(!r||!r.ok){window.onFitSync(r||{ok:false});return}
+  if(r&&r.quiet){PH.hc=hcDiag(r);try{localStorage.setItem("kg-hcdiag",PH.hc)}catch(e){}var el=document.getElementById("k-sync-msg");if(el)el.textContent=PH.hc;return}
+  if(!r||!r.ok){PH.hc=hcDiag(r);try{localStorage.setItem("kg-hcdiag",PH.hc)}catch(e){}window.onFitSync(r||{ok:false});return}
+  PH.hc=hcDiag(r);try{localStorage.setItem("kg-hcdiag",PH.hc+"\n(בדיקה אחרונה: "+new Date().toLocaleString("he-IL",{day:"numeric",month:"numeric",hour:"2-digit",minute:"2-digit"})+")")}catch(e){}
   var added=0,updated=0,months={};
   function mdoc(m){if(!months[m])months[m]=S.walks[m]?JSON.parse(JSON.stringify(S.walks[m])):{items:{}};months[m].items=months[m].items||{};return months[m]}
   (r.walks||[]).forEach(function(w){if(!w.date||w.date.length!==10||!w.id)return;
@@ -833,6 +847,8 @@ window.onFitHealth=function(r){
   var st=r.steps||{},bym={};Object.keys(st).forEach(function(k){if(k.length===10)(bym[k.slice(0,7)]=bym[k.slice(0,7)]||{})[k]=Math.round(+st[k])});
   Object.keys(bym).forEach(function(m){var cur=S.steps[m]||{},days=Object.assign({},cur.days||{},bym[m]);if(JSON.stringify(days)!==JSON.stringify(cur.days||{}))put("steps",m,Object.assign({},cur,{days:days}))});
   window.onFitSync({ok:true,added:added,updated:updated,found:(r.walks||[]).length});soft();
+  setTimeout(function(){var el=document.getElementById("k-sync-msg");if(el){var t=PH.hc||"";var tw=walkList().filter(function(w){return w.date===today()&&w.src==="watch"});
+    if(tw.length&&tw.every(function(w){return!isFitWalk(w)}))t+="\nההליכה של היום נכנסה ל\"הליכות יומיומיות\" (קצרה או איטית). אפשר להעביר אותה בכפתור \"זו הליכת כושר\".";el.textContent=t}},300);
 };
 /* update of the Android app itself (APK) */
 window.onApkUpdate=function(info){if(!info)return;
@@ -1443,7 +1459,8 @@ function viewWalk(){
   var dcards=daily.slice(0,40).map(function(w){return card(w,false)}).join("");
   var now=new Date(),nowT=pad(now.getHours())+":"+pad(now.getMinutes());
   return '<div class="stack"><div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div></div><div class="tape walk"></div>'+
-  (FA?'<div class="card stack" id="t-watchsync" style="--dc:var(--c-walk)"><h3 class="h3">סנכרון מהשעון</h3><p class="small" style="margin:0">ההליכות מ־Samsung Health נמשכות לבד דרך Health Connect בכל פעם שפותחים את האפליקציה. אפשר גם ללחוץ עכשיו.</p><div class="row"><button type="button" class="btn walk" id="k-sync">סנכרן מהשעון עכשיו</button><span class="small" id="k-sync-msg"></span></div></div>':
+  (FA?'<div class="card stack" id="t-watchsync" style="--dc:var(--c-walk)"><h3 class="h3">סנכרון מהשעון</h3><p class="small" style="margin:0">ההליכות מ־Samsung Health נמשכות לבד דרך Health Connect בכל פעם שפותחים את האפליקציה. אפשר גם ללחוץ עכשיו.</p><div class="row"><button type="button" class="btn walk" id="k-sync">סנכרן מהשעון עכשיו</button></div><div class="small" id="k-sync-msg" style="white-space:pre-line">'+esc((function(){try{return localStorage.getItem("kg-hcdiag")||""}catch(e){return""}})())+'</div>'+
+   '<details class="small"><summary>הליכה לא נכנסה? בדיקות</summary><ol style="margin:6px 0 0;padding-inline-start:18px"><li>ב־Samsung Health: תפריט ← הגדרות ← Health Connect ← לוודא ש"אימונים" ו"צעדים" מסומנים לשיתוף.</li><li>סמסונג מעבירה ל־Health Connect באיחור של כמה דקות. מחכים מעט ולוחצים שוב.</li><li>בהגדרות הטלפון ← Health Connect ← הרשאות אפליקציה ← "כושר + שעון" ← לאפשר הכול.</li><li>הליכה קצרה או איטית נכנסת ל"הליכות יומיומיות" בתחתית המסך.</li><li>אם כתוב "אימונים מסוג אחר": ההליכה נשמרה בשעון כסוג אימון אחר.</li></ol></details></div>':
    (S.mode==="server"?'<div class="card stack small" id="t-watchsync"><h3 class="h3">סנכרון אוטומטי מהשעון</h3><p style="margin:0">באפליקציית הטלפון "יומן כושר" (קובץ APK) ההליכות נמשכות לבד מ־Samsung Health. ראה במדריך: "אפליקציית הטלפון".</p></div>':''))+
   '<div class="card stack" id="t-wsum" style="--dc:var(--c-walk)"><div class="head"><h3 class="h3">השבוע</h3><span class="small muted">'+fmtD(ws)+'–'+fmtD(addDays(ws,6))+'</span></div><div class="wstats">'+
     stat("מרחק",n1(wk.km),"ק״מ")+stat("זמן הליכה",fmtDur(wk.min))+stat("קצב ממוצע",wk.pace?fmtPace(wk.pace,1):"–","דק׳ לק״מ")+stat("הליכות",wk.n)+'</div>'+
