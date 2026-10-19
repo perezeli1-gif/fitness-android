@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # התקנה או עדכון של יומן הכושר בשרת הביתי. הנתונים נשמרים ב-~/apps/fitness/data ולא נדרסים.
 set -euo pipefail
+trap 'echo "FAILED (line $LINENO): $BASH_COMMAND" >&2' ERR
 base="$HOME/apps/fitness"
 zip="$HOME/fitness-update.zip"
 mkdir -p "$base/releases" "$base/data"
@@ -31,13 +32,13 @@ WORKDIR /app
 CMD ["waitress-serve","--host=0.0.0.0","--port=5050","--threads=8","web_app:app"]
 DOCKER
 # One time: let this user run docker and crontab without typing the password again.
-if [ "$(id -u)" != 0 ] && [ ! -f /etc/sudoers.d/fitness-home ]; then
+if [ "$(id -u)" != 0 ] && ! sudo -n "$(command -v docker)" version >/dev/null 2>&1; then
   echo 'One-time permission (server password):'
-  rule="$(id -un) ALL=(root) NOPASSWD: $(command -v docker), $(command -v crontab)"
-  if echo "$rule" | sudo tee /etc/sudoers.d/fitness-home >/dev/null; then
-    sudo chmod 440 /etc/sudoers.d/fitness-home
-    sudo visudo -cf /etc/sudoers.d/fitness-home >/dev/null || sudo rm -f /etc/sudoers.d/fitness-home
-  fi
+  cmds="$(command -v docker)"
+  if command -v crontab >/dev/null 2>&1; then cmds="$cmds, $(command -v crontab)"; fi
+  echo "$(id -un) ALL=(root) NOPASSWD: $cmds" | sudo tee /etc/sudoers.d/fitness-home >/dev/null
+  sudo chmod 440 /etc/sudoers.d/fitness-home
+  if ! sudo visudo -cf /etc/sudoers.d/fitness-home >/dev/null; then sudo rm -f /etc/sudoers.d/fitness-home; echo 'Permission rule skipped.'; fi
 fi
 if ! sudo docker image inspect fitness-app:1 >/dev/null 2>&1; then
   echo 'Building the app image (first time only, about a minute)...'
@@ -86,8 +87,11 @@ curl -fsSL --max-time 180 -o /home/eli/fitness-update.zip "$RAW/FitnessWeb.zip" 
 HOME=/home/eli bash "$base/install-fitness.sh"
 AUTO
 chmod +x "$base/auto-update.sh"
-if ! sudo crontab -l 2>/dev/null | grep -q fitness-auto; then
-  (sudo crontab -l 2>/dev/null; echo "17 * * * * bash /home/eli/apps/fitness/auto-update.sh >> /home/eli/apps/fitness/auto-update.log 2>&1 # fitness-auto") | sudo crontab -
-  echo 'Automatic updates: ON (every hour)'
+if command -v crontab >/dev/null 2>&1; then
+  if ! (sudo crontab -l 2>/dev/null || true) | grep -q fitness-auto; then
+    { sudo crontab -l 2>/dev/null || true; echo "17 * * * * bash /home/eli/apps/fitness/auto-update.sh >> /home/eli/apps/fitness/auto-update.log 2>&1 # fitness-auto"; } | sudo crontab - && echo 'Automatic updates: ON (every hour)' || echo 'Could not turn on automatic updates.'
+  fi
+else
+  echo 'cron is not installed, automatic updates are off. Fix: sudo apt install -y cron'
 fi
 echo "SUCCESS $(curl -fsS http://127.0.0.1:5050/api/version)"
