@@ -27,14 +27,17 @@ jobs:
         env:
           SDK_KEY: ${{ secrets.SDK_KEY }}
         run: |
-          if [ -z "$SDK_KEY" ]; then echo "::error::Missing secret SDK_KEY (Settings > Secrets and variables > Actions)"; exit 1; fi
+          if [ -z "$SDK_KEY" ]; then echo "::notice::No SDK_KEY secret: the APK is built on the home server instead."; exit 0; fi
+          echo "HAVE_SDK=1" >> $GITHUB_ENV
           mkdir -p app/libs
           openssl enc -d -aes-256-cbc -pbkdf2 -pass env:SDK_KEY -in sdk/shd-1.1.0.aar.enc -out app/libs/samsung-health-data-api-1.1.0.aar
 
       - name: Build
+        if: env.HAVE_SDK == '1'
         run: gradle :app:assembleRelease --no-daemon --stacktrace
 
       - name: Rename
+        if: env.HAVE_SDK == '1'
         run: |
           V=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
           echo "APPV=$V" >> $GITHUB_ENV
@@ -42,12 +45,13 @@ jobs:
           cp app/build/outputs/apk/release/app-release.apk fitness-sync-v$V.apk
 
       - uses: actions/upload-artifact@v4
+        if: env.HAVE_SDK == '1'
         with:
           name: fitness-sync-v${{ env.APPV }}
           path: fitness-sync-v${{ env.APPV }}.apk
 
       - name: Publish to "latest" release
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && env.HAVE_SDK == '1'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest

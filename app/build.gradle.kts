@@ -12,8 +12,8 @@ android {
         applicationId = "il.eliperez.fitness"
         minSdk = 29
         targetSdk = 35
-        versionCode = 13
-        versionName = "3.1"
+        versionCode = 14
+        versionName = "4.0"
     }
 
     // מפתח חתימה קבוע: בלעדיו כל בנייה נחתמת במפתח אחר ואנדרואיד חוסם את העדכון

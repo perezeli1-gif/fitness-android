@@ -319,7 +319,7 @@ class MainActivity : ComponentActivity() {
     private fun checkApk(auto: Boolean) {
         if (auto && System.currentTimeMillis() - prefs.getLong("apkCheck", 0) < 3600 * 1000L) return
         lifecycleScope.launch {
-            val l = AppUpdater.latest()
+            val l = AppUpdater.latest(server)
             if (l != null) prefs.edit().putLong("apkCheck", System.currentTimeMillis()).apply()
             if (!auto || (l != null && AppUpdater.newer(l.version, BuildConfig.VERSION_NAME)))
                 toPage("onApkUpdate", apkInfo(l))
@@ -339,7 +339,7 @@ class MainActivity : ComponentActivity() {
         updating = true
         lifecycleScope.launch {
             try {
-                val l = AppUpdater.latest()
+                val l = AppUpdater.latest(server)
                 if (l == null) { toPage("onApkProgress", JSONObject().put("error", "אין חיבור לאינטרנט").toString()); return@launch }
                 if (!AppUpdater.newer(l.version, BuildConfig.VERSION_NAME)) {
                     toPage("onApkProgress", JSONObject().put("error", "כבר מותקנת הגרסה האחרונה (${BuildConfig.VERSION_NAME})").toString()); return@launch

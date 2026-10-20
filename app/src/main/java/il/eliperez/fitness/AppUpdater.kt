@@ -34,7 +34,35 @@ object AppUpdater {
         return false
     }
 
-    suspend fun latest(): Latest? = withContext(Dispatchers.IO) {
+    /** הגרסה החדשה ביותר: מהשרת הביתי (שם נבנית האפליקציה) או מ-GitHub. */
+    suspend fun latest(server: String?): Latest? {
+        val home = if (server.isNullOrBlank()) null else fromServer(server)
+        val gh = fromGithub()
+        return when {
+            home == null -> gh
+            gh == null -> home
+            newer(gh.version, home.version) -> gh
+            else -> home
+        }
+    }
+
+    private suspend fun fromServer(server: String): Latest? = withContext(Dispatchers.IO) {
+        try {
+            val base = if (server.endsWith("/")) server else "$server/"
+            val c = (URL(base + "api/apk").openConnection() as HttpURLConnection).apply {
+                connectTimeout = 8000; readTimeout = 12000
+                setRequestProperty("User-Agent", "fitness-sync")
+            }
+            if (c.responseCode != 200) return@withContext null
+            val j = JSONObject(c.inputStream.bufferedReader().readText())
+            val v = j.optString("version").takeIf { it.isNotBlank() && it != "null" } ?: return@withContext null
+            Latest(v, base + j.getString("url"), j.optLong("size"))
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private suspend fun fromGithub(): Latest? = withContext(Dispatchers.IO) {
         try {
             val c = (URL(API).openConnection() as HttpURLConnection).apply {
                 connectTimeout = 12000; readTimeout = 20000

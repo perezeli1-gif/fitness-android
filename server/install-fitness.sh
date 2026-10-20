@@ -81,6 +81,10 @@ remote=$(curl -fsS --max-time 20 "$RAW/version.txt" | tr -d '\r\n ')
 current=$(curl -fsS --max-time 5 http://127.0.0.1:5050/api/version | python3 -c 'import json,sys;print(json.load(sys.stdin)["version"])' 2>/dev/null || echo 0)
 newer=$(python3 -c 'import sys;f=lambda v:[int(x) for x in v.split(".")];print(1 if f(sys.argv[1])>f(sys.argv[2]) else 0)' "$remote" "$current" 2>/dev/null || echo 0)
 date +%s > "$base/auto-update.last"
+# Phone app: built on this server when GitHub has a newer app version
+if [ -f /home/eli/apps/fitness-build/build-apk.sh ]; then
+  sudo -u eli bash /home/eli/apps/fitness-build/build-apk.sh >> /home/eli/apps/fitness-build/build.log 2>&1 || echo "$(date '+%F %T') app build failed" >> /home/eli/apps/fitness-build/build.log
+fi
 [ "$newer" = 1 ] || exit 0
 echo "$(date '+%F %T') update $current -> $remote"
 curl -fsSL --max-time 180 -o /home/eli/fitness-update.zip "$RAW/FitnessWeb.zip" || exit 1
