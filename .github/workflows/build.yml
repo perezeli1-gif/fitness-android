@@ -23,6 +23,14 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
+      - name: Samsung Health SDK (encrypted in the repo; the key is the SDK_KEY secret)
+        env:
+          SDK_KEY: ${{ secrets.SDK_KEY }}
+        run: |
+          if [ -z "$SDK_KEY" ]; then echo "::error::Missing secret SDK_KEY (Settings > Secrets and variables > Actions)"; exit 1; fi
+          mkdir -p app/libs
+          openssl enc -d -aes-256-cbc -pbkdf2 -pass env:SDK_KEY -in sdk/shd-1.1.0.aar.enc -out app/libs/samsung-health-data-api-1.1.0.aar
+
       - name: Build
         run: gradle :app:assembleRelease --no-daemon --stacktrace
 

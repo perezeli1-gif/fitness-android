@@ -398,7 +398,7 @@ class MainActivity : ComponentActivity() {
                     toPage("onFitHealth", HealthSync.Result(false, 0, 0, 0, "אין הרשאה לקרוא אימונים. לחץ שוב \"סנכרן מהשעון עכשיו\" ואשר את ההרשאות, או: הגדרות הטלפון ← Health Connect ← הרשאות אפליקציה ← כושר + שעון ← לאפשר הכול.").toJson().replace("\"ok\":false", "\"ok\":false,\"noperm\":true,\"quiet\":" + (!manual)))
                     return@launch
                 }
-                val json = HealthSync.read(this@MainActivity)
+                val json = SamsungSync.enrich(this@MainActivity, HealthSync.read(this@MainActivity), manual)
                 toPage("onFitHealth", json)
             } catch (e: Exception) {
                 if (manual) toPage("onFitHealth", HealthSync.Result(false, 0, 0, 0, "הקריאה מהשעון נכשלה: ${e.message ?: ""}").toJson())

@@ -255,7 +255,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="3.8",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="3.9",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -820,6 +820,7 @@ var EXTYPE={0:"אימון אחר",8:"רכיבת אופניים",9:"אופני כ
 function hcDiag(r){var lines=[],d=JSON.parse(JSON.stringify(r||{}));
   if(d.noperm)return"אין הרשאה לקרוא אימונים מ־Health Connect. לחץ \"סנכרן מהשעון עכשיו\" ואשר.";
   if(!d.ok)return d.message||"הקריאה מהשעון נכשלה";
+  if(d.shealth)lines.push(d.shealth==="ok"?"✔ קריאה ישירה מ־Samsung Health: הנתונים המלאים של האימון ("+(d.shealthWalks||0)+" הליכות).":"Samsung Health: "+d.shealth+" (במקום זה נקרא מ־Health Connect)");
   lines.push("נמצאו "+(d.found||0)+" הליכות ב־30 הימים האחרונים"+(d.all!=null?" (מתוך "+d.all+" אימונים)":"")+".");
   var ws=(d.walks||[]).slice().sort(function(a,b){return(a.date+a.time)<(b.date+b.time)?1:-1});
   if(ws.length){var w=ws[0];lines.push("האחרונה: "+fmtD(w.date)+" "+(w.time||"")+(w.km?" · "+(+w.km).toFixed(2)+" ק״מ":"")+(w.sec?" · "+fmtDur(w.sec/60):""));
