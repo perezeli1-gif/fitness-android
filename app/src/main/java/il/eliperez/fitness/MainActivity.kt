@@ -64,6 +64,8 @@ class MainActivity : ComponentActivity() {
     private var tts: TextToSpeech? = null
     private var fileCallback: ValueCallback<Array<Uri>>? = null
     private var pendingSave: String? = null
+    private var pendingBin: ByteArray? = null
+    private var printView: WebView? = null
     private var lastAutoSync = 0L
     private var healthRunning = false
     private var updating = false
@@ -99,6 +101,37 @@ class MainActivity : ComponentActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "השמירה נכשלה", Toast.LENGTH_LONG).show()
         }
+    }
+
+    // קובץ אקסל לשמירה
+    private val createXlsx = registerForActivityResult(
+        ActivityResultContracts.CreateDocument("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    ) { uri ->
+        val data = pendingBin
+        pendingBin = null
+        if (uri == null || data == null) return@registerForActivityResult
+        try {
+            contentResolver.openOutputStream(uri)?.use { it.write(data) }
+            Toast.makeText(this, "הקובץ נשמר", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "השמירה נכשלה", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /** הדפסה או שמירה כ-PDF: מסך ההדפסה של אנדרואיד, עם "שמירה כ-PDF". */
+    private fun printHtml(title: String, html: String) {
+        val pv = WebView(this)
+        pv.settings.javaScriptEnabled = false
+        pv.settings.allowFileAccess = false
+        pv.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView, url: String?) {
+                val pm = getSystemService(Context.PRINT_SERVICE) as android.print.PrintManager
+                pm.print(title, view.createPrintDocumentAdapter(title),
+                    android.print.PrintAttributes.Builder().setMediaSize(android.print.PrintAttributes.MediaSize.ISO_A4).build())
+            }
+        }
+        printView = pv   // נשמר עד שההדפסה מסתיימת
+        pv.loadDataWithBaseURL("https://$HOST/", html, "text/html", "utf-8", null)
     }
 
     // ---------- הדף מתוך האפליקציה ----------
@@ -174,7 +207,11 @@ class MainActivity : ComponentActivity() {
             textZoom = 100
             allowFileAccess = false
             allowContentAccess = false
+            setGeolocationEnabled(false)
+            javaScriptCanOpenWindowsAutomatically = false
+            if (android.os.Build.VERSION.SDK_INT >= 26) safeBrowsingEnabled = true
         }
+        WebView.setWebContentsDebuggingEnabled(false)
         web.addJavascriptInterface(Bridge(), "FitAndroid")
         web.webViewClient = object : WebViewClient() {
             override fun shouldInterceptRequest(view: WebView, req: WebResourceRequest): WebResourceResponse? =
@@ -241,7 +278,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun openExternal(u: Uri) {
-        try { startActivity(Intent(Intent.ACTION_VIEW, u)) } catch (_: ActivityNotFoundException) { }
+        // רק קישורי אינטרנט וחנות: לא פותחים intent:// או סוגים אחרים שדף יכול לנצל
+        if (u.scheme !in setOf("https", "http", "market")) return
+        try { startActivity(Intent(Intent.ACTION_VIEW, u).addCategory(Intent.CATEGORY_BROWSABLE)) } catch (_: ActivityNotFoundException) { }
     }
 
     private fun toPage(fn: String, json: String) {
@@ -450,6 +489,21 @@ class MainActivity : ComponentActivity() {
 
         @JavascriptInterface
         fun restore(): String = try { if (dataFile.exists()) dataFile.readText() else "" } catch (_: Exception) { "" }
+
+        @JavascriptInterface
+        fun saveXlsx(name: String, b64: String) {
+            runOnUiThread {
+                try {
+                    pendingBin = android.util.Base64.decode(b64, android.util.Base64.DEFAULT)
+                    createXlsx.launch(name)
+                } catch (e: Exception) {
+                    Toast.makeText(this@MainActivity, "השמירה נכשלה", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun printHtml(title: String, html: String) { runOnUiThread { this@MainActivity.printHtml(title, html) } }
 
         @JavascriptInterface
         fun saveFile(name: String, text: String) {

@@ -230,6 +230,14 @@ ol.steps{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;g
 .prog>i{display:block;height:100%;background:var(--tape)}
 .prog.walk>i{background:var(--walk)}
 details summary{cursor:pointer;font-weight:600}
+/* sub-tabs inside a section */
+.seg{position:sticky;top:0;z-index:15;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -16px 14px;padding:8px 16px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.seg::-webkit-scrollbar{display:none}
+.seg button{flex:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 16px;font-size:15px;font-weight:600;cursor:pointer;color:var(--muted);white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--sc,var(--ink));border-color:var(--sc,var(--ink));color:#fff}
+@media (min-width:900px){.seg{margin:0 0 16px;border-radius:14px;border:1px solid var(--line)}}
+.exlib{position:relative}
+.exlib .vid{align-self:flex-start;text-decoration:none;color:#fff;background:#E5322D;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
 .toast{position:fixed;z-index:70;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:14px;font-size:14px;width:max-content;max-width:calc(100vw - 32px);text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -255,7 +263,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="4.0",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="4.1",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -571,7 +579,7 @@ var REC={
  bird_dog:{t:"משקל גוף",kg:null,s:"בלי משקל.",n:"עצירה של 3 שניות בכל צד."},
  farmer_carry:{t:"זוג משקולות 6",kg:6,s:"משקולת 6 בכל יד, 30 שניות.",n:"להאריך עד 60 שניות. המוט לא מתאים לתרגיל הזה."}
 };
-var GROUPS=[["all","הכול"],["bench","עם ספסל"],["legs","רגליים"],["chest","חזה"],["back","גב"],["shoulders","כתפיים"],["arms","ידיים"],["core","בטן וליבה"]];
+var GROUPS=[["arms","ידיים"],["core","בטן"],["legs","רגליים"],["chest","חזה"],["back","גב"],["shoulders","כתפיים"],["bench","עם ספסל"],["all","הכול"]];
 /* ============ ENGINE END ============ */
 
 /* ---------- animation runtime ---------- */
@@ -650,19 +658,19 @@ function mountAnims(root){root.querySelectorAll("[data-anim]").forEach(function(
 
 /* ---------- plans ---------- */
 var PLANS={
- 3:{label:"3 אימונים בשבוע",days:{0:"LEGS",2:"PUSH",4:"PULL"},walk:[1,3,5],
-    w:{LEGS:{name:"רגליים, בטן וגב תחתון",short:"רגליים",col:"legs",focus:"ירכיים, ישבן, שוקיים, ובטן שמגינה על הגב",ex:["squat_chair","glute_bridge","calf_raise","dead_bug","mcgill_curlup","side_plank"]},
-       PUSH:{name:"חזה, כתפיים ויד אחורית",short:"חזה",col:"push",focus:"השרירים שדוחפים: חזה, כתף קדמית ויד אחורית",ex:["floor_press","pushup_incline","floor_fly","lateral_raise","triceps_kickback","lying_tri","plank"]},
-       PULL:{name:"גב, יד קדמית וליבה",short:"גב",col:"pull",focus:"השרירים שמושכים: גב, כתף אחורית ויד קדמית, ויציבה",ex:["row_one_arm","reverse_fly","bb_curl","hammer_curl","bird_dog","suitcase_carry","farmer_carry"]}}},
- 4:{label:"4 אימונים בשבוע",days:{0:"CH",1:"LG",3:"BK",4:"SH"},walk:[2,5,6],
-    w:{CH:{name:"חזה ויד אחורית",short:"חזה",col:"push",focus:"חזה, כתף קדמית ויד אחורית",ex:["floor_press","pushup_incline","floor_fly","triceps_kickback","lying_tri","plank"]},
-       LG:{name:"רגליים, בטן וגב תחתון",short:"רגליים",col:"legs",focus:"ירכיים, ישבן, שוקיים, ובטן שמגינה על הגב",ex:["squat_chair","glute_bridge","calf_raise","dead_bug","mcgill_curlup"]},
-       BK:{name:"גב ויד קדמית",short:"גב",col:"pull",focus:"גב, כתף אחורית ויד קדמית",ex:["row_one_arm","reverse_fly","bb_curl","hammer_curl","bird_dog","suitcase_carry"]},
-       SH:{name:"כתפיים וליבה",short:"כתפיים",col:"sh",focus:"כתפיים, בטן ויציבה",ex:["lateral_raise","front_raise","reverse_fly","farmer_carry","side_plank","cat_camel"]}}}
+ 3:{label:"3 אימונים בשבוע",days:{0:"LEGS",2:"ARMS",4:"CORE"},walk:[1,3,5],
+    w:{LEGS:{name:"אימון רגליים",short:"רגליים",col:"legs",focus:"ירכיים, ישבן ושוקיים. רגליים חזקות שומרות על שיווי משקל ועל הברכיים",ex:["squat_chair","glute_bridge","calf_raise","farmer_carry"]},
+       ARMS:{name:"אימון ידיים",short:"ידיים",col:"push",focus:"יד קדמית, יד אחורית, כתפיים וחזה",ex:["floor_press","pushup_incline","lateral_raise","bb_curl","hammer_curl","triceps_kickback","lying_tri"]},
+       CORE:{name:"אימון בטן",short:"בטן",col:"core",focus:"בטן, ליבה וגב: מגינים על הגב התחתון ומשפרים יציבה",ex:["dead_bug","mcgill_curlup","side_plank","plank","bird_dog","row_one_arm","reverse_fly","suitcase_carry"]}}},
+ 4:{label:"4 אימונים בשבוע",days:{0:"LEGS",1:"ARMS",3:"CORE",4:"CHEST"},walk:[2,5,6],
+    w:{LEGS:{name:"אימון רגליים",short:"רגליים",col:"legs",focus:"ירכיים, ישבן ושוקיים",ex:["squat_chair","glute_bridge","calf_raise","farmer_carry"]},
+       ARMS:{name:"אימון ידיים",short:"ידיים",col:"push",focus:"יד קדמית, יד אחורית וכתפיים",ex:["lateral_raise","front_raise","bb_curl","hammer_curl","triceps_kickback","lying_tri"]},
+       CORE:{name:"אימון בטן",short:"בטן",col:"core",focus:"בטן, ליבה וגב תחתון",ex:["dead_bug","mcgill_curlup","side_plank","plank","bird_dog","cat_camel"]},
+       CHEST:{name:"אימון חזה וגב",short:"חזה וגב",col:"pull",focus:"חזה, גב עליון ויציבה",ex:["floor_press","pushup_incline","floor_fly","row_one_arm","reverse_fly","suitcase_carry"]}}}
 };
-var OLDW={A:"אימון A",B:"אימון B",C:"אימון C",U1:"פלג עליון 1",L1:"פלג תחתון 1",U2:"פלג עליון 2",L2:"פלג תחתון 2"};
+var OLDW={PUSH:"חזה, כתפיים ויד אחורית",PULL:"גב, יד קדמית וליבה",CH:"חזה ויד אחורית",LG:"רגליים, בטן וגב תחתון",BK:"גב ויד קדמית",SH:"כתפיים וליבה",A:"אימון A",B:"אימון B",C:"אימון C",U1:"פלג עליון 1",L1:"פלג תחתון 1",U2:"פלג עליון 2",L2:"פלג תחתון 2"};
 var BENCH_SWAP={floor_press:"db_bench_press",bb_floor_press:"db_bench_press",bent_row:"chest_supported_row",bb_row:"chest_supported_row",bb_curl:"preacher_curl",glute_bridge:"hip_thrust"};
-var BENCH_ADD={LEGS:["leg_curl"],LG:["leg_curl"],PUSH:["db_incline_press"],CH:["db_incline_press"],PULL:["chest_supported_row"],BK:["chest_supported_row"]};
+var BENCH_ADD={LEGS:["leg_curl"],ARMS:["db_incline_press"],CHEST:["db_incline_press","chest_supported_row"],CORE:["chest_supported_row"]};
 function curPlan(n){var pr=(typeof P==="function")?P():{};n=n||pr.planDays||3;var base=PLANS[n]||PLANS[3];if(!pr.hasBench)return base;
   var o={label:base.label,days:base.days,walk:base.walk,w:{}};
   Object.keys(base.w).forEach(function(k){var w=Object.assign({},base.w[k]);var ex=w.ex.map(function(e){return BENCH_SWAP[e]||e});
@@ -770,6 +778,14 @@ async function linkPhone(){if(!FA||S.mode!=="server")return;try{var r=await srv(
 /* ---- phone mode: the app runs inside the Android app, data lives on the phone, server is optional ---- */
 var PH={dirty:{},known:{},pulled:false,last:0,online:null,busy:false,t:null},PHK="kg-phone-v1",FAN=0,FACB={};
 window.__fitHttp=function(id,status,text){var c=FACB[id];delete FACB[id];if(!c)return;var d=null;try{d=text?JSON.parse(text):null}catch(e){}c({status:status,data:d})};
+/* security status from the server: default password still in use? failed logins? */
+S.sec=null;
+function secCheck(){
+  var done=function(d){if(!d)return;var was=JSON.stringify(S.sec);S.sec=d;if(JSON.stringify(d)!==was&&TAB==="home"&&!document.getElementById("dlg").open)render()};
+  try{if(S.mode==="server")srv("GET","api/security").then(done).catch(function(){});
+  else if(S.mode==="phone"&&phLinked())faHttp("GET","api/security").then(function(r){if(r.status===200)done(r.data)})}catch(e){}}
+setTimeout(secCheck,4000);setInterval(secCheck,3600*1000);
+function srvAny(method,url,body){if(S.mode==="phone")return faHttp(method,url,body).then(function(r){if(r.status===0)throw{code:"net"};return r.data||{ok:false,error:"שגיאה "+r.status}});return srv(method,url,body)}
 function faHttp(method,path,body){return new Promise(function(res){var id=++FAN;FACB[id]=res;try{FA.http(method,path,body?JSON.stringify(body):"",id)}catch(e){delete FACB[id];res({status:0})}})}
 function phSave(){var all={profile:S.profile,sessions:S.sessions,measures:S.measures,walks:S.walks,steps:S.steps},txt=JSON.stringify({data:all,dirty:PH.dirty,known:PH.known,pulled:PH.pulled,last:PH.last,server:PH.server});
   try{localStorage.setItem(PHK,txt)}catch(e){}
@@ -948,13 +964,20 @@ var ICON={food:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strok
  measure:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="8" width="20" height="8" rx="1.5"/><path d="M6 8v3M10 8v4M14 8v3M18 8v4"/></svg>',
  check:'<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>'
 };
-var TABS=[["home","היום","--tape"],["plan","תוכנית","--c-sh"],["workout","אימון","--c-push"],["library","תרגילים","--c-core"],["walk","הליכה","--c-walk"],["measure","מדידות","--c-pull"],["food","תזונה","--c-legs"]];
+ICON.train=ICON.workout;
+var TABS=[["home","היום","--tape"],["train","אימון","--c-push"],["walk","הליכה","--c-walk"],["food","תזונה","--c-legs"],["measure","מדידות","--c-pull"]];
+/* sections: the bottom bar has 5 sections; "train" holds 3 screens shown as tabs at the top */
+var TRAIN=[["workout","האימון"],["plan","התוכנית"],["library","תרגילים"]];
+function sectOf(t){return(t==="workout"||t==="plan"||t==="library")?"train":t}
+S.sub=(function(){try{return JSON.parse(localStorage.getItem("kg-sub")||"{}")}catch(e){return{}}})();
+function subOf(key,def){return S.sub[key]||def}
+function segBar(key,opts,cur,color){return'<div class="seg" role="tablist" style="--sc:var('+(color||"--ink")+')">'+opts.map(function(o){return'<button type="button" role="tab" data-sub="'+key+'|'+o[0]+'" aria-pressed="'+(o[0]===cur)+'">'+o[1]+'</button>'}).join("")+'</div>'}
 function renderNav(){
   var nav=document.getElementById("nav");
   nav.querySelectorAll("button").forEach(function(b){b.remove()});
-  TABS.forEach(function(t){var b=document.createElement("button");b.type="button";b.innerHTML=ICON[t[0]]+"<span>"+t[1]+"</span>";b.style.setProperty("--tc","var("+t[2]+")");if(TAB===t[0])b.setAttribute("aria-current","page");b.onclick=function(){go(t[0])};nav.appendChild(b)});
+  TABS.forEach(function(t){var b=document.createElement("button");b.type="button";b.innerHTML=ICON[t[0]]+"<span>"+t[1]+"</span>";b.style.setProperty("--tc","var("+t[2]+")");if(sectOf(TAB)===t[0])b.setAttribute("aria-current","page");b.onclick=function(){go(t[0])};nav.appendChild(b)});
 }
-function go(t){if(!S.profile&&S.ready){toast("קודם שמור את הפרטים למטה"+(S.mode==="phone"&&!phLinked()?" או התחבר לשרת":""));return}if(t!=="workout"&&TAB==="workout"&&WAKE)unwake();TAB=t;try{localStorage.setItem("kg-tab",t)}catch(e){}render();window.scrollTo(0,0)}
+function go(t){if(!S.profile&&S.ready){toast("קודם שמור את הפרטים למטה"+(S.mode==="phone"&&!phLinked()?" או התחבר לשרת":""));return}if(t!=="workout"&&TAB==="workout"&&WAKE)unwake();if(t==="train")t=subOf("train","workout");if(sectOf(t)==="train"){S.sub.train=t;try{localStorage.setItem("kg-sub",JSON.stringify(S.sub))}catch(e){}}TAB=t;try{localStorage.setItem("kg-tab",t)}catch(e){}render();window.scrollTo(0,0)}
 function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.hidden=false;clearTimeout(toast._t);toast._t=setTimeout(function(){t.hidden=true},2400)}
 function render(){
   renderNav();
@@ -963,20 +986,21 @@ function render(){
   try{
   if(!S.profile)h=viewSetup();
   else if(TAB==="home")h=viewHome();
-  else if(TAB==="workout")h=viewWorkout();
-  else if(TAB==="plan")h=viewPlan();
-  else if(TAB==="library")h=viewLibrary();
+  else if(TAB==="workout")h=segBar("train",TRAIN,TAB,"--c-push")+viewWorkout();
+  else if(TAB==="plan")h=segBar("train",TRAIN,TAB,"--c-push")+viewPlan();
+  else if(TAB==="library")h=segBar("train",TRAIN,TAB,"--c-push")+viewLibrary();
   else if(TAB==="walk")h=viewWalk();
   else if(TAB==="measure")h=viewMeasure();
   else if(TAB==="food")h=viewFood();
   }catch(err){h='<div class="card stack"><h3 class="h3">המסך הזה לא נטען</h3><p class="small" style="margin:0">אפשר לעבור למסך אחר בתפריט. שלח צילום של ההודעה הזו כדי שנתקן:</p><pre class="small" style="white-space:pre-wrap;direction:ltr;text-align:left;margin:0">'+esc(TAB+": "+(err&&err.message||err))+'</pre></div>'}
   var fav="";try{fav=FA&&FA.version?FA.version():""}catch(e){}
-  main.innerHTML='<div class="mhead"><div><b>יומן כושר ביתי</b><br>הליכה · משקולות · מדידות</div><div style="text-align:left">גרסה '+APP_VERSION+(fav?' · טלפון '+esc(fav):'')+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div></div>'+(S.apkNew&&FA?'<div class="banner small" style="margin-bottom:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span><b>גרסה חדשה לאפליקציית הטלפון: '+esc(S.apkNew)+'</b><br><span data-apkmsg></span></span><button type="button" class="btn sm pri" data-apkgo>עדכן עכשיו</button></div>':"")+(S.mode==="phone"&&!phLinked()?'<div class="banner small" style="margin-bottom:14px">האפליקציה עובדת ושומרת הכול בטלפון. כדי לסנכרן גם עם המחשב: "פרופיל והגדרות" ← "חיבור לשרת".</div>':"")+(S.mode==="local"?'<div class="banner small" style="margin-bottom:14px">הנתונים נשמרים כרגע רק בדפדפן הזה. כדי לסנכרן בין המחשב לטלפון, פתח את הקישור כשאתה מחובר לחשבון Claude.</div>':"")+h;
+  main.innerHTML='<div class="mhead"><div><b>יומן כושר ביתי</b><br>הליכה · משקולות · מדידות</div><div style="text-align:left">גרסה '+APP_VERSION+(fav?' · טלפון '+esc(fav):'')+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div></div>'+(S.apkNew&&FA?'<div class="banner small" style="margin-bottom:14px;display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap"><span><b>גרסה חדשה לאפליקציית הטלפון: '+esc(S.apkNew)+'</b><br><span data-apkmsg></span></span><button type="button" class="btn sm pri" data-apkgo>עדכן עכשיו</button></div>':"")+(TAB==="home"&&S.sec&&S.sec.default_password?'<div class="banner small" style="margin-bottom:14px;background:color-mix(in srgb,var(--bad) 14%,var(--surface));border:2px solid var(--bad)"><b>⚠ אבטחה: הסיסמה של יומן הכושר היא עדיין סיסמת ההתחלה.</b> כל מי שמכיר אותה יכול להיכנס לנתונים שלך. <button type="button" class="btn sm" style="margin-top:6px" id="sec-fix">החלף סיסמה עכשיו</button></div>':"")+(TAB==="home"&&S.sec&&S.sec.fails_7d>=10?'<div class="banner small" style="margin-bottom:14px">השבוע היו '+S.sec.fails_7d+' ניסיונות כניסה עם סיסמה שגויה. אם זה לא אתה, כדאי להחליף סיסמה.</div>':"")+(S.mode==="phone"&&!phLinked()?'<div class="banner small" style="margin-bottom:14px">האפליקציה עובדת ושומרת הכול בטלפון. כדי לסנכרן גם עם המחשב: "פרופיל והגדרות" ← "חיבור לשרת".</div>':"")+(S.mode==="local"?'<div class="banner small" style="margin-bottom:14px">הנתונים נשמרים כרגע רק בדפדפן הזה. כדי לסנכרן בין המחשב לטלפון, פתח את הקישור כשאתה מחובר לחשבון Claude.</div>':"")+h;
   main.insertAdjacentHTML("beforeend",'<footer class="appfoot">יומן כושר ביתי · גרסה '+APP_VERSION+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</footer>');
   var bv=document.getElementById("brand-v");if(bv)bv.textContent=APP_VERSION;
   var bd=document.getElementById("brand-dev");if(bd)bd.textContent="מפתח האפליקציה · "+APP_AUTHOR;
   try{mountAnims(main);bind()}catch(err){toast("שגיאה: "+(err&&err.message||err))}
   document.querySelectorAll("[data-apkgo]").forEach(function(b){b.onclick=apkGo});
+  var sf=document.getElementById("sec-fix");if(sf)sf.onclick=function(){openProfile();setTimeout(function(){var d=document.getElementById("pw-box");if(d){d.open=true;d.scrollIntoView({block:"center"});var c=document.getElementById("pw-cur");if(c)c.focus()}},150)};
   document.getElementById("helpfab").hidden=!S.profile;
   var hg=document.getElementById("hm-guide");hg.hidden=S.mode!=="server"&&S.mode!=="phone";if(S.mode==="phone"){try{hg.href=FA.serverUrl()+"help"}catch(e){}}
   if(TOUR)endTour(true);
@@ -1030,6 +1054,7 @@ function viewHome(){
   var wl0=fitWalks().filter(function(x){return x.date===tk}),kmT=wl0.reduce(function(a,x){return a+(+x.km||0)},0);
   var walkCard='<div class="card stack daycard1" id="t-walktoday" style="--dc:var(--c-walk)"><div class="eyebrow">הליכה · היום'+(pl.walk?' · מתוכנן':'')+'</div>'+
    (wkT?'<div class="row" style="align-items:baseline;gap:8px"><span class="big">'+wkT+'</span><span class="muted">דקות'+(kmT?' · '+n1(kmT)+' ק״מ':'')+'</span><span class="pill good">✓ בוצע</span></div>':'<h2 class="h2">'+(pl.walk?'מתוכננת הליכה':'עוד לא הלכת היום')+'</h2><div class="small muted">'+(programWeek()<=2?"30":"40–45")+' דקות בקצב שמאפשר לדבר אבל לא לשיר.</div>')+
+   (stepsFor(tk)!=null?'<div class="small">צעדים היום: <b class="num">'+stepsFor(tk).toLocaleString("he-IL")+'</b></div>':'')+
    '<div class="stack" style="gap:6px"><div class="row" style="justify-content:space-between"><span class="small">השבוע</span><b class="num">'+wMin+' מתוך '+wGoal+' דקות</b></div><div class="prog walk"><i style="width:'+Math.min(100,wMin/wGoal*100)+'%"></i></div></div>'+
    '<div class="row"><button class="btn walk" data-go="walk" id="t-walkbtn">'+(wkT?'רשום עוד הליכה':'רשום הליכה')+'</button></div></div>';
   return '<div class="stack">'+
@@ -1038,20 +1063,11 @@ function viewHome(){
   '<div class="grid g2"><div class="stack" style="gap:6px"><h2 class="h3 sect" style="--dc:var(--c-push)">אימון משקולות</h2>'+todayCard+'</div><div class="stack" style="gap:6px"><h2 class="h3 sect" style="--dc:var(--c-walk)">הליכה</h2>'+walkCard+'</div></div>'+
   '<div class="grid">'+
   '<div class="card stack" id="t-weight"><div class="head"><div><div class="eyebrow">משקל</div><div class="row" style="align-items:baseline;gap:8px"><span class="big">'+n1(cw)+'</span><span class="muted">ק״ג · יעד '+p.goalWeight+'</span></div></div><span class="pill">BMI '+n1(bmi)+'</span></div>'+
-  '<div class="prog"><i style="width:'+pct.toFixed(0)+'%"></i></div><div class="small muted">'+(lostTotal>0?"ירדת "+n1(lostTotal)+" ק״ג מאז ההתחלה · ":"")+'נשארו '+n1(Math.max(0,toGo))+' ק״ג. בקצב בריא של חצי ק״ג בשבוע: כ־'+Math.ceil(Math.max(0,toGo)/0.5)+' שבועות.</div></div></div>'+
+  '<div class="prog"><i style="width:'+pct.toFixed(0)+'%"></i></div><div class="small muted">'+(lostTotal>0?"ירדת "+n1(lostTotal)+" ק״ג מאז ההתחלה · ":"")+'נשארו '+n1(Math.max(0,toGo))+' ק״ג.</div></div></div>'+
   '<div class="card stack" id="t-week"><div class="head"><h3 class="h3">השבוע</h3><span class="small muted">'+fmtD(ws)+'–'+fmtD(addDays(ws,6))+'</span></div><div class="tbl">'+weekGrid+'</div>'+
   '<div class="grid g2"><div class="stack" style="gap:6px"><div class="row" style="justify-content:space-between"><span class="small">אימוני משקולות</span><b class="num">'+liftsDone+" מתוך "+liftGoal+'</b></div><div class="prog"><i style="width:'+Math.min(100,liftsDone/liftGoal*100)+'%"></i></div></div>'+
   '<div class="stack" style="gap:6px"><div class="row" style="justify-content:space-between"><span class="small">דקות הליכה</span><b class="num">'+wMin+" מתוך "+wGoal+'</b></div><div class="prog walk"><i style="width:'+Math.min(100,wMin/wGoal*100)+'%"></i></div></div></div></div>'+
-  '<div class="grid g4">'+
-   kpi("היקף מותניים",lastWaist?n1(lastWaist.waist):"–","ס״מ",firstWaist&&lastWaist&&firstWaist!==lastWaist?delta(lastWaist.waist-firstWaist.waist,"ס״מ מההתחלה"):"")+
-   kpi("היקף בטן",(function(){var l=ms.slice().reverse().find(function(m){return m.belly});return l?n1(l.belly):"–"})(),"ס״מ","")+
-   kpi("צעדים היום",stepsFor(tk)!=null?stepsFor(tk).toLocaleString("he-IL"):"–","","יובא מ־Samsung Health")+
-   kpi("שבוע בתוכנית",programWeek(),"",programWeek()<=2?"שלב הסתגלות":programWeek()<=6?"שלב בנייה":"שלב התקדמות")+
-  '</div>'+
-  '<div class="card stack"><h3 class="h3">איך בונים את הבטן הזאת לטווח ארוך</h3><div class="grid g2 small">'+
-  '<div class="note walkn">שומן בבטן יורד מכל הגוף יחד, לא מתרגילי בטן. ההליכה והתזונה מורידים, המשקולות שומרות על השריר כדי שהמשקל לא יחזור.</div>'+
-  '<div class="note">אחרי שלושה חודשים בלי מתוקים, המפתח הוא כלל קבוע ולא חזרה הדרגתית: למשל מתוק אחד בשבוע, בשישי בערב. ה־10 ק״ג חזרו כשההרגל נעלם.</div>'+
-  '</div></div></div>';
+  '</div>';
 }
 function greet(){var h=new Date().getHours();return h<5?"לילה טוב":h<12?"בוקר טוב":h<17?"צהריים טובים":h<21?"ערב טוב":"לילה טוב"}
 function kpi(l,v,u,sub){return'<div class="card"><div class="eyebrow">'+l+'</div><div class="row" style="align-items:baseline;gap:6px;margin-top:4px"><span class="big" style="font-size:36px">'+v+'</span><span class="muted small">'+u+'</span></div><div class="small muted" style="min-height:20px">'+sub+'</div></div>'}
@@ -1180,12 +1196,12 @@ function unwake(){WAKE_WANT=false;if(FA){try{FA.keepScreenOn(false)}catch(e){}}t
 document.addEventListener("visibilitychange",function(){if(!document.hidden){if(WAKE_WANT&&TAB==="workout")wake();if(REST.end)restTick()}});
 
 /* ---------- library ---------- */
-S.lg="all";
+S.lg="arms";
 function viewLibrary(){
   var L=EX.filter(function(e){return S.lg==="all"||(S.lg==="bench"?e.bench:e.g===S.lg)});
   return '<div class="stack"><div><div class="eyebrow">'+EX.length+' תרגילים לבית · משקולות, מזרן, כיסא</div><h1 class="h1">ספריית תרגילים</h1></div>'+
-  '<div class="chips" id="t-groups">'+GROUPS.map(function(g){return'<button class="chip" data-lg="'+g[0]+'" aria-pressed="'+(S.lg===g[0])+'">'+g[1]+'</button>'}).join("")+'</div>'+
-  '<div class="grid g3">'+L.map(function(e){return'<button type="button" class="excard" data-open="'+e.id+'"><div data-anim="'+e.id+'"></div><div class="nm">'+esc(e.name)+'</div><div class="small muted">'+esc(e.mus)+'</div><div class="row" style="gap:6px">'+(e.bench?'<span class="pill" style="background:var(--c-sh);color:#fff">ספסל</span>':'')+(e.knee?'<span class="pill warn">ברכיים: שים לב</span>':"")+(e.shoulder?'<span class="pill warn">כתף: שים לב</span>':"")+(e.back?'<span class="pill warn">גב תחתון</span>':"")+(e.backsafe?'<span class="pill good">טוב לגב</span>':"")+'<span class="pill">'+setsFor(e)+"×"+e.reps+(e.unit==="sec"?" שנ׳":"")+'</span>'+(REC[e.id]?'<span class="pill tape">'+esc(REC[e.id].t)+'</span>':'')+'</div></button>'}).join("")+'</div></div>';
+  '<div class="chips" id="t-groups">'+GROUPS.map(function(g){return'<button class="chip daychip" style="--dc:var(--c-'+(g[0]==="arms"?"push":g[0]==="core"?"core":g[0]==="legs"?"legs":g[0]==="back"?"pull":g[0]==="shoulders"?"sh":"rest")+')" data-lg="'+g[0]+'" aria-pressed="'+(S.lg===g[0])+'">'+g[1]+' <span class="small">('+EX.filter(function(e){return g[0]==="all"||(g[0]==="bench"?e.bench:e.g===g[0])}).length+')</span></button>'}).join("")+'</div>'+
+  '<div class="grid g3">'+L.map(function(e){var v=(VID[e.id]||[])[0];return'<div role="button" tabindex="0" class="excard exlib" data-open="'+e.id+'"><div data-anim="'+e.id+'"></div><div class="nm">'+esc(e.name)+'</div>'+(v?'<a class="vid" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+v[0]+'">▶ סרטון ביוטיוב'+(v[1]==="he"?" (עברית)":v[1]==="en"?" (אנגלית)":"")+'</a>':'')+'<div class="small muted">'+esc(e.mus)+'</div><div class="row" style="gap:6px">'+(e.bench?'<span class="pill" style="background:var(--c-sh);color:#fff">ספסל</span>':'')+(e.knee?'<span class="pill warn">ברכיים: שים לב</span>':"")+(e.shoulder?'<span class="pill warn">כתף: שים לב</span>':"")+(e.back?'<span class="pill warn">גב תחתון</span>':"")+(e.backsafe?'<span class="pill good">טוב לגב</span>':"")+'<span class="pill">'+setsFor(e)+"×"+e.reps+(e.unit==="sec"?" שנ׳":"")+'</span>'+(REC[e.id]?'<span class="pill tape">'+esc(REC[e.id].t)+'</span>':'')+'</div></div>'}).join("")+'</div></div>';
 }
 function openEx(id){
   var e=EXI[id],dl=document.getElementById("dlg");
@@ -1220,6 +1236,8 @@ var FI={/* name, amount, kcal, protein(g), kind: d=dairy m=meat p=parve */
  turkeyp:["פסטרמה מחזה הודו","4 פרוסות (60 ג׳)",65,12,"m"],challah:["חלה","פרוסה (40 ג׳)",115,3.5,"p"],bulgarian:["גבינה בולגרית 5%","50 ג׳ (קובייה)",60,8,"d"],
  dates:["תמרים ממולאים","2 תמרי מג׳הול, בכל אחד חצי אגוז מלך או 2 שקדים",160,2.5,"p"],dates1:["תמר ממולא","תמר מג׳הול אחד עם חצי אגוז מלך או 2 שקדים",80,1.2,"p"],
  walnuts:["אגוזי מלך","3 חצאים גדולים (15 ג׳)",100,2,"p"],
+ kafri:["לחם כפרי","2 פרוסות דקות (60 ג׳)",160,6,"p"],kafri1:["לחם כפרי","פרוסה (30 ג׳)",80,3,"p"],rye:["לחם שיפון מלא","2 פרוסות (60 ג׳)",140,5,"p"],rye1:["לחם שיפון מלא","פרוסה (30 ג׳)",70,2.5,"p"],
+ olives:["זיתים","8 יחידות (30 ג׳)",45,0.3,"p"],avocado:["אבוקדו","רבע בינוני (50 ג׳)",80,1,"p"],
  rice:["אורז מלא מבושל","כוס (150 ג׳)",165,3.5,"p"],quinoa:["קינואה מבושלת","כוס (180 ג׳)",220,8,"p"],sweet:["בטטה אפויה","150 ג׳ (בינונית)",130,2.5,"p"],
  potato:["תפוח אדמה אפוי","200 ג׳ (גדול)",170,4,"p"],pasta:["פסטה מלאה מבושלת","כוס (140 ג׳)",175,7,"p"],sauce:["רוטב עגבניות ביתי","חצי כוס",40,1.5,"p"],
  oats:["שיבולת שועל","3 כפות (30 ג׳)",115,4,"p"],oats40:["שיבולת שועל","4 כפות (40 ג׳)",150,5,"p"],rice2:["פריכיות אורז מלא","2 יחידות",70,1.5,"p"],
@@ -1229,13 +1247,13 @@ var FI={/* name, amount, kcal, protein(g), kind: d=dairy m=meat p=parve */
  shak:["שקשוקה","2 ביצים ברוטב עגבניות",210,14,"p"],tofu:["טופו בתנור","150 ג׳",180,18,"p"]};
 var MEALS=[["07:30","ארוחת בוקר"],["10:30","ביניים"],["13:30","ארוחת צהריים"],["16:30","ביניים"],["19:30","ארוחת ערב"]];
 var MENUS=[
- {name:"עוף ויוגורט",m:[["egg2","tspoil","bread2","cottage","veg"],["dates"],["chicken","rice","salad","tbspoil"],["rice2","hummus","cuc"],["yog","oats","berries","walnuts"]]},
- {name:"דג ושקשוקה",m:[["bread2","white","yellow","veg"],["milk","banana"],["salmon","sweet","salad","tahini"],["apple","almonds"],["shak","pita","labane","salad"]]},
- {name:"בקר וטונה",m:[["oats40","milk","almonds","berries","cottage"],["yog"],["beef","quinoa","stir","tspoil"],["fruit","walnuts"],["soup","tuna","salad","bread1"]]},
- {name:"עוף ופסטה",m:[["egg2","bread2","hummus","veg"],["yog"],["soup","chicken","potato","salad","tbspoil"],["fruit","dates1"],["pasta","sauce","cottage","salad"]]},
+ {name:"עוף ויוגורט",m:[["egg2","rye","avocado","cottage","veg"],["dates"],["chicken","rice","salad","tbspoil"],["rice2","hummus","cuc"],["yog","oats","berries","walnuts"]]},
+ {name:"דג ושקשוקה",m:[["kafri","white","yellow","olives","veg"],["milk","banana"],["salmon","sweet","salad","tahini"],["apple","almonds"],["shak","pita","labane","salad"]]},
+ {name:"בקר וטונה",m:[["oats40","milk","almonds","berries","cottage"],["yog"],["beef","quinoa","stir","tspoil"],["fruit","walnuts"],["soup","tuna","salad","rye1"]]},
+ {name:"עוף ופסטה",m:[["egg2","bread2","hummus","veg"],["yog"],["soup","chicken","potato","salad","tbspoil"],["fruit","dates1"],["pasta","sauce","cottage","salad","olives"]]},
  {name:"בורגול ופסטרמה",m:[["egg2","tspoil","bread2","bulgarian","veg"],["fruit","walnuts"],["chicken","bulgur","salad","tahini"],["bread1","turkeyp","cuc"],["shak","pita","salad"]]},
- {name:"מג׳דרה (צמחוני)",m:[["oats40","milk","dates1","cottage"],["yog"],["lentils","rice","salad","tahini"],["apple","almonds"],["egg2","bread2","white","salad"]]},
- {name:"שבת",m:[["shak","bread1","bulgarian","salad"],["fruit","almonds"],["challah","chicken","sweet","salad","tspoil"],["dates1"],["tuna","egg2","bread1","salad"]]}
+ {name:"מג׳דרה (צמחוני)",m:[["oats40","milk","dates1","cottage"],["yog"],["lentils","rice","salad","tahini"],["apple","almonds"],["egg2","kafri","white","avocado","salad"]]},
+ {name:"שבת",m:[["shak","kafri1","bulgarian","olives","salad"],["fruit","almonds"],["challah","chicken","sweet","salad","tspoil"],["dates1"],["tuna","egg2","bread1","salad"]]}
 ];
 var RCP={
  rice:"כוס אורז מלא שטוף ל־2.5 כוסות מים רותחים, כפית מלח, קורט כורכום או כמון. מכסים, 40 דקות על אש קטנה, מכבים ומשאירים 10 דקות מכוסה. כוס יבש נותן כ־3 כוסות מבושל. תוספות: בצל מטוגן בכפית שמן, פטרוזיליה, שמיר.",
@@ -1260,7 +1278,11 @@ var RCP={
  tahini:"טחינה גולמית עם מים קרים, לימון, שום ומלח, מערבבים עד שמבהיר. כף גולמית היא כ־3 כפות מוכנה.",
  dates:"חוצים כל תמר לאורך, מוציאים את הגלעין, מכניסים חצי אגוז מלך או 2 שקדים וסוגרים.",dates1:"חוצים לאורך, מוציאים את הגלעין, מכניסים חצי אגוז מלך או 2 שקדים.",
  turkeyp:"בוחרים פסטרמה מחזה הודו עם פחות מ־500 מ״ג נתרן ל־100 ג׳. מתאים 2–3 פעמים בשבוע, לא כל יום.",
- challah:"פרוסה אחת. חלה מקמח מלא משביעה יותר."
+ challah:"פרוסה אחת. חלה מקמח מלא משביעה יותר.",
+ kafri:"לחם כפרי משביע ונעים, אבל בדרך כלל מקמח לבן בחלקו. בוחרים כפרי מחמצת עם קמח מלא, פורסים דק (30 ג׳ לפרוסה) ומשלבים בו ירק וחלבון.",kafri1:"פרוסה דקה אחת, 30 ג׳. עדיף כפרי מחמצת עם קמח מלא.",
+ rye:"לחם שיפון מלא (לפחות 50% שיפון) משביע יותר מלחם רגיל ומעלה פחות את הסוכר בדם. כהה וצפוף: 2 פרוסות דקות מספיקות.",rye1:"פרוסה אחת של שיפון מלא. מצוין עם קוטג׳ ומלפפון או עם ביצה.",
+ olives:"זיתים ירוקים או שחורים, 8 יחידות. יש בהם הרבה מלח: שוטפים במים לפני האכילה. שומן טוב, אבל נספר בקלוריות (כמו כפית שמן).",
+ avocado:"רבע אבוקדו בינוני, פרוס או מעוך עם לימון, מלח ופלפל. מורחים על הלחם במקום גבינה שמנה או במקום שמן בסלט. אבוקדו שלם הוא כ־320 קל׳, לכן רבע."
 };
 var ADDON=[["dates1",80],["fruit",80],["bread1",75],["almonds",70],["milk",100]];
 function foodTargets(){var p=P(),w=+currentWeight()||p.startWeight,bmr=10*w+6.25*(+p.height||180)-5*(+p.age||67)+5;
@@ -1274,13 +1296,11 @@ function viewFood(){
   var gap=T.kcal-tot,adds=[];ADDON.forEach(function(a){if(gap>=a[1]-15){adds.push(a[0]);gap-=a[1]}});
   var meatAt=null,clash=false;menu.m.forEach(function(ids,i){var k=mealKind(ids);if(k==="m")meatAt=i;if(k==="d"&&meatAt!=null){var h=(parseInt(MEALS[i][0])-parseInt(MEALS[meatAt][0]));if(h<wait)clash=true}});
   var kpi=function(l,v,u,sub){return'<div class="card"><div class="eyebrow">'+l+'</div><div class="row" style="align-items:baseline;gap:6px;margin-top:4px"><span class="big" style="font-size:34px">'+v+'</span><span class="muted small">'+u+'</span></div><div class="small muted">'+sub+'</div></div>'};
-  return '<div class="stack">'+
+  var sub=subOf("food","menu");
+  return '<div class="stack">'+segBar("food",[["menu","תפריט"],["recipes","מתכונים"],["shop","קניות"],["rules","יעדים וכללים"]],sub,"--c-legs")+
+  (sub==="menu"?(
   '<div class="hero" style="--dc:var(--c-legs)"><div class="eyebrow">תזונה לירידה במשקל</div><h1 class="h1">מה, מתי וכמה לאכול</h1><p class="muted" style="margin:0">הכול כשר. המספרים מחושבים לפי הגיל, הגובה והמשקל האחרון שלך ('+n1(T.w)+' ק״ג), ומתעדכנים לבד כשהמשקל יורד.</p></div>'+
-  '<div class="grid g4" id="t-ftarget">'+kpi("קלוריות ביום",T.kcal.toLocaleString("he-IL"),"קל׳","בערך 500 פחות ממה שאתה שורף ("+T.tdee.toLocaleString("he-IL")+")")+kpi("חלבון ביום",T.prot,"גרם","כ־30 גרם בכל ארוחה. שומר על השריר")+kpi("מים ביום",T.water,"ליטר","לפחות. מותר יותר, ועוד חצי ליטר על כל שעת הליכה")+kpi("קצב ירידה",0.5,"ק״ג לשבוע",T.toGo>0?"עוד "+n1(T.toGo)+" ק״ג: כ־"+T.weeks+" שבועות":"הגעת ליעד")+'</div>'+
-  '<div class="card stack" id="t-fsched" style="--dc:var(--c-legs)"><h3 class="h3">שעות קבועות</h3>'+
-   '<p class="small muted" style="margin:0">3 ארוחות ו־2 ביניים, כל 3 שעות. כך אין רעב גדול ואין נשנושים. לא אוכלים 3 שעות לפני השינה.</p>'+
-   '<div class="stack" style="gap:6px">'+[["07:00","כוס מים גדולה כשקמים"]].concat(MEALS.map(function(m,i){var k=0;menu.m[i].forEach(function(x){k+=FI[x][2]});return[m[0],m[1]+" · כ־"+Math.round(k/10)*10+" קל׳"]})).concat([["21:30","סוף האוכל להיום. מים, תה או קפה בלי סוכר"]]).map(function(r){return'<div class="row" style="gap:12px;flex-wrap:nowrap"><b style="min-width:52px;direction:ltr;text-align:right">'+r[0]+'</b><span>'+esc(r[1])+'</span></div>'}).join("")+'</div>'+
-   '<div class="note small"><b>ביום אימון משקולות:</b> שעה עד שעה וחצי לפני: פרי או פרוסה עם מעט חומוס. עד שעתיים אחרי: ארוחה עם חלבון. <b>הליכה בבוקר:</b> כוס מים לפני, ואפשר ללכת לפני ארוחת הבוקר אם אתה מרגיש טוב.</div></div>'+
+'<div class="row"><button type="button" class="btn sm pri" data-pdf="menus">🖨 הדפסה / PDF של כל התפריטים</button></div>'+
   '<div class="card stack" id="t-fmenu"><div class="row" style="justify-content:space-between"><h3 class="h3">תפריט ליום</h3><span class="small muted">'+tot.toLocaleString("he-IL")+' קל׳ · '+Math.round(pr)+' ג׳ חלבון</span></div>'+
    '<div class="chips">'+MENUS.map(function(m,i){return'<button type="button" class="chip" data-fmenu="'+i+'" aria-pressed="'+(i===mi)+'">'+(i+1)+'. '+esc(m.name)+'</button>'}).join("")+'</div>'+
    menu.m.map(function(ids,i){var k=mealKind(ids),kc=0,pp=0;ids.forEach(function(x){kc+=FI[x][2];pp+=FI[x][3]});
@@ -1289,7 +1309,14 @@ function viewFood(){
    (adds.length?'<div class="note small"><b>להשלמה עד '+T.kcal.toLocaleString("he-IL")+' קל׳:</b> '+adds.map(function(x){return FI[x][0]+" ("+FI[x][1]+")"}).join(", ")+'. מוסיפים לאחת הביניים.</div>':(T.kcal<tot-60?'<div class="note small"><b>היעד שלך '+T.kcal.toLocaleString("he-IL")+' קל׳:</b> מורידים פרוסת לחם או חצי מנת פחמימה בצהריים.</div>':""))+
    (clash?'<div class="note warnn small">בתפריט הזה יש פחות מ־'+wait+' שעות בין הבשר בצהריים לחלב בערב. אפשר להזיז את ארוחת הערב לשעה מאוחרת יותר, או לאכול ערב פרווה: טונה, ביצים או טופו.</div>':"")+
   '</div>'+
-  viewShop()+
+  '<div class="card stack" id="t-fsched" style="--dc:var(--c-legs)"><h3 class="h3">שעות קבועות</h3>'+
+   '<p class="small muted" style="margin:0">3 ארוחות ו־2 ביניים, כל 3 שעות. כך אין רעב גדול ואין נשנושים. לא אוכלים 3 שעות לפני השינה.</p>'+
+   '<div class="stack" style="gap:6px">'+[["07:00","כוס מים גדולה כשקמים"]].concat(MEALS.map(function(m,i){var k=0;menu.m[i].forEach(function(x){k+=FI[x][2]});return[m[0],m[1]+" · כ־"+Math.round(k/10)*10+" קל׳"]})).concat([["21:30","סוף האוכל להיום. מים, תה או קפה בלי סוכר"]]).map(function(r){return'<div class="row" style="gap:12px;flex-wrap:nowrap"><b style="min-width:52px;direction:ltr;text-align:right">'+r[0]+'</b><span>'+esc(r[1])+'</span></div>'}).join("")+'</div>'+
+   '<div class="note small"><b>ביום אימון משקולות:</b> שעה עד שעה וחצי לפני: פרי או פרוסה עם מעט חומוס. עד שעתיים אחרי: ארוחה עם חלבון. <b>הליכה בבוקר:</b> כוס מים לפני, ואפשר ללכת לפני ארוחת הבוקר אם אתה מרגיש טוב.</div></div>'):"")+
+  (sub==="recipes"?viewRecipes():"")+
+  (sub==="shop"?viewShop():"")+
+  (sub==="rules"?(
+  '<div class="grid g4" id="t-ftarget">'+kpi("קלוריות ביום",T.kcal.toLocaleString("he-IL"),"קל׳","בערך 500 פחות ממה שאתה שורף ("+T.tdee.toLocaleString("he-IL")+")")+kpi("חלבון ביום",T.prot,"גרם","כ־30 גרם בכל ארוחה. שומר על השריר")+kpi("מים ביום",T.water,"ליטר","לפחות. מותר יותר, ועוד חצי ליטר על כל שעת הליכה")+kpi("קצב ירידה",0.5,"ק״ג לשבוע",T.toGo>0?"עוד "+n1(T.toGo)+" ק״ג: כ־"+T.weeks+" שבועות":"הגעת ליעד")+'</div>'+
   '<div class="card stack" id="t-fkosher"><h3 class="h3">כשרות</h3><ul style="margin:0;padding-inline-start:18px" class="small">'+
    '<li>הבוקר והערב חלביים או פרווה, והצהריים בשרי. כך ההפרדה קלה.</li>'+
    '<li>המתנה בין בשר לחלב לפי המנהג שלך. בחר: <span class="chips" style="display:inline-flex" id="f-wait">'+[1,3,6].map(function(h){return'<button type="button" class="chip" data-wait="'+h+'" aria-pressed="'+(wait===h)+'">'+h+(h===1?" שעה":" שעות")+'</button>'}).join("")+'</span></li>'+
@@ -1298,10 +1325,84 @@ function viewFood(){
    ['<b>צלחת חכמה:</b> חצי ירקות, רבע חלבון, רבע פחמימה מלאה.','<b>חלבון בכל ארוחה:</b> בגיל 67 הוא שומר על השריר בזמן הירידה במשקל.','<b>שמן נמדד בכפית,</b> לא שופכים מהבקבוק. כף שמן היא 120 קלוריות.','<b>שותים מים:</b> מים, סודה, תה וקפה בלי סוכר. בלי מיצים ומשקאות מתוקים. היעד הוא מינימום, לא תקרה: מותר לשתות יותר, רק לא יותר מכליטר בשעה. מי שהרופא הגביל לו נוזלים (לב, כליות, משתנים) – לפי הרופא.','<b>אוכלים לאט:</b> 20 דקות לארוחה, ומפסיקים כשכמעט שבעים.','<b>מעט מאוד:</b> בורקס, מאפים, מטוגנים ושקדי מרק. הרבה קלוריות ומעט שובע.','<b>נקניק ונקניקיות – להמעיט, לא אסור:</b> בשר מעובד מסווג על ידי ארגון הבריאות העולמי כגורם לסרטן המעי הגס, יש בו הרבה מלח (מעלה לחץ דם) וחומרים משמרים (ניטריטים), ובנקניק רגיל גם הרבה שומן. <b>פסטרמה מחזה הודו</b> רזה ועשירה בחלבון: 2–3 פעמים בשבוע, 50–60 ג׳, ועדיף עם פחות נתרן.','<b>שבת וחג:</b> פרוסת חלה אחת, כוס קטנה של יין לקידוש, ארוחה חגיגית אחת והשנייה קלה.','<b>מסעדה ואירוע:</b> מתחילים בסלט, בוחרים מנה צלויה, ומוותרים על הלחם או על הקינוח.','<b>מתוק:</b> תמר ממולא באגוז מלך או בשקדים, פרי, או 2 קוביות שוקולד מריר. לא ממתקים בין הארוחות.','<b>שוקלים פעם בשבוע,</b> באותו יום ובאותה שעה. ירידה של חצי קילו בשבוע היא הצלחה.'].map(function(x){return"<li>"+x+"</li>"}).join("")+'</ol></div>'+
   '<div class="card stack" id="t-fswap"><h3 class="h3">החלפות טובות</h3><div class="stack" style="gap:6px">'+
    [["לחם לבן, לחמניה","לחם מלא או קל, פרוסה אחת"],["אורז לבן, פתיתים","אורז מלא, קינואה או בורגול, כוס"],["שניצל מטוגן","חזה עוף או הודו בתנור"],["גבינה צהובה 28%","גבינה 9% או קוטג׳ 5%"],["מיץ פירות","פרי שלם"],["עוגיות, ופלים","2 תמרים ממולאים באגוז מלך או בשקדים"],["שמנת לרוטב","יוגורט 3%"],["ביסלי, במבה","פופקורן ביתי בלי חמאה, 2 כוסות"],["קפה עם סוכר","קפה עם חלב 1%, בלי סוכר"]].map(function(r){return'<div class="row small" style="gap:8px;flex-wrap:nowrap"><span style="flex:1;color:var(--muted)">'+r[0]+'</span><b aria-hidden="true">←</b><span style="flex:1"><b>'+r[1]+'</b></span></div>'}).join("")+'</div></div>'+
-  '<div class="note small">המידע כאן כללי ולא מחליף רופא או דיאטנית. אם יש לך סוכרת, בעיה בכליות, או שאתה לוקח תרופות ללחץ דם או לדילול דם, בדוק עם הרופא לפני שינוי בתזונה. הקלוריות בתפריטים הן הערכה.</div>'+
+  '<div class="note small">המידע כאן כללי ולא מחליף רופא או דיאטנית. אם יש לך סוכרת, בעיה בכליות, או שאתה לוקח תרופות ללחץ דם או לדילול דם, בדוק עם הרופא לפני שינוי בתזונה. הקלוריות בתפריטים הן הערכה.</div>'):"")+
   '</div>';
 }
+/* all the recipes in one place, by kind */
+var RCPG=[["עיקריות",["chicken","beef","salmon","tuna","tofu","shak","egg2","turkeyp"]],["תוספות",["rice","bulgur","quinoa","lentils","pasta","sauce","sweet","potato"]],["ירקות ומרק",["salad","soup","stir"]],["בוקר, לחם וממרחים",["oats","oats40","tahini","kafri","rye","avocado","olives","challah"]],["מתוק",["dates","dates1"]]];
+function viewRecipes(){return'<div class="row"><button type="button" class="btn sm pri" data-pdf="recipes">🖨 הדפסה / PDF של כל המתכונים</button></div>'+
+  RCPG.map(function(g){var items=g[1].filter(function(k){return RCP[k]&&FI[k]});if(!items.length)return"";return'<div class="card stack"><h3 class="h3">'+g[0]+'</h3>'+items.map(function(k){return'<details class="rcp"><summary><b>'+esc(FI[k][0])+'</b> <span class="small muted">· '+esc(FI[k][1])+'</span></summary><div class="small" style="margin:6px 0 4px">'+esc(RCP[k])+'</div></details>'}).join("")+'</div>'}).join("")}
 
+/* ---------- export: Excel (.xlsx built here, no library) and print / PDF ---------- */
+var CRCT=(function(){var t=[];for(var n=0;n<256;n++){var c=n;for(var k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(b){var c=0xFFFFFFFF;for(var i=0;i<b.length;i++)c=CRCT[(c^b[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function zipStore(files){/* files: [[name, Uint8Array]] -> Uint8Array (zip, no compression) */
+  var enc=new TextEncoder(),parts=[],central=[],off=0;
+  function u16(v){return[v&255,(v>>>8)&255]}function u32(v){return[v&255,(v>>>8)&255,(v>>>16)&255,(v>>>24)&255]}
+  files.forEach(function(f){var nm=enc.encode(f[0]),d=f[1],crc=crc32(d);
+    var lh=[].concat(u32(0x04034b50),u16(20),u16(0x0800),u16(0),u16(0),u16(0),u32(crc),u32(d.length),u32(d.length),u16(nm.length),u16(0));
+    parts.push(new Uint8Array(lh),nm,d);
+    central.push(new Uint8Array([].concat(u32(0x02014b50),u16(20),u16(20),u16(0x0800),u16(0),u16(0),u16(0),u32(crc),u32(d.length),u32(d.length),u16(nm.length),u16(0),u16(0),u16(0),u16(0),u32(0),u32(off))),nm);
+    off+=lh.length+nm.length+d.length});
+  var csize=central.reduce(function(a,x){return a+x.length},0);
+  var end=new Uint8Array([].concat(u32(0x06054b50),u16(0),u16(0),u16(files.length),u16(files.length),u32(csize),u32(off),u16(0)));
+  var all=parts.concat(central,[end]),len=all.reduce(function(a,x){return a+x.length},0),out=new Uint8Array(len),p=0;
+  all.forEach(function(x){out.set(x,p);p+=x.length});return out}
+function xmlEsc(v){return String(v).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]}).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"")}
+function xlsxBuild(sheets){/* sheets: [{name, head:[], rows:[[]], widths:[]}] */
+  var enc=new TextEncoder(),f=[];
+  var col=function(i){var s="";i++;while(i){var m=(i-1)%26;s=String.fromCharCode(65+m)+s;i=Math.floor((i-1)/26)}return s};
+  f.push(["[Content_Types].xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+sheets.map(function(s,i){return'<Override PartName="/xl/worksheets/sheet'+(i+1)+'.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'}).join("")+'</Types>']);
+  f.push(["_rels/.rels",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>']);
+  f.push(["xl/workbook.xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+sheets.map(function(s,i){return'<sheet name="'+xmlEsc(s.name)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>'}).join("")+'</sheets></workbook>']);
+  f.push(["xl/_rels/workbook.xml.rels",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+sheets.map(function(s,i){return'<Relationship Id="rId'+(i+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>'}).join("")+'<Relationship Id="rId'+(sheets.length+1)+'" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>']);
+  f.push(["xl/styles.xml",'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Arial"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Arial"/></font></fonts><fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill><fill><patternFill patternType="solid"><fgColor rgb="FF0E9F9A"/></patternFill></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>']);
+  sheets.forEach(function(s,si){
+    var rows=[s.head].concat(s.rows),x='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetViews><sheetView rightToLeft="1" workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>';
+    x+='<cols>'+s.head.map(function(h,i){return'<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+((s.widths&&s.widths[i])||14)+'" customWidth="1"/>'}).join("")+'</cols><sheetData>';
+    rows.forEach(function(r,ri){x+='<row r="'+(ri+1)+'">';r.forEach(function(v,ci){if(v==null||v==="")return;var ref=col(ci)+(ri+1),st=ri===0?' s="1"':'';
+      if(typeof v==="number"&&isFinite(v))x+='<c r="'+ref+'"'+st+'><v>'+v+'</v></c>';else x+='<c r="'+ref+'" t="inlineStr"'+st+'><is><t>'+xmlEsc(v)+'</t></is></c>'});x+='</row>'});
+    x+='</sheetData></worksheet>';f.push(["xl/worksheets/sheet"+(si+1)+".xml",x])});
+  return zipStore(f.map(function(e){return[e[0],enc.encode(e[1])]}))}
+function r2(v){return v==null||v===""||isNaN(+v)?"":Math.round(+v*100)/100}
+function exportXlsx(){
+  var walks=walkList().slice().sort(function(a,b){return(a.date+(a.time||""))<(b.date+(b.time||""))?-1:1});
+  var wRows=walks.map(function(w){var sp=w.km&&w.min?r2(w.km/(w.min/60)):"";return[w.date,w.time||"",r2(w.km),r2(w.min),fmtPace(w.min,w.km)==="–"?"":fmtPace(w.min,w.km),sp,w.steps?Math.round(+w.steps):"",w.hr?Math.round(+w.hr):"",w.kcal?Math.round(+w.kcal):"",isFitWalk(w)?"כן":"לא",(w.src==="watch"||w.src==="samsung")?"שעון":"ידני",w.note||""]});
+  var sRows=[];sessList().slice().reverse().forEach(function(s){var its=s.items||{};var any=false;
+    Object.keys(its).forEach(function(id){(its[id]||[]).forEach(function(st,i){if(!st||(!st.done&&st.w==null&&st.r==null))return;any=true;
+      sRows.push([s.date,wName(s.plan),EXI[id]?EXI[id].name:id,i+1,st.w!=null&&st.w!==""?+st.w:"",st.r!=null&&st.r!==""?+st.r:"",st.done?"כן":"לא",s.feel||"",(+s.knee?"ברך ":"")+(+s.shoulder?"כתף":""),s.notes||""])})});
+    if(!any)sRows.push([s.date,wName(s.plan),"","","","","",s.feel||"","",s.notes||""])});
+  var mRows=measList().map(function(m){return[m.id].concat(MF.map(function(f){return m[f[0]]!=null&&m[f[0]]!==""?+m[f[0]]:""}))});
+  var data=xlsxBuild([
+    {name:"הליכות",head:["תאריך","שעה","מרחק (ק״מ)","זמן (דקות)","קצב (דק׳ לק״מ)","מהירות (קמ״ש)","צעדים","דופק ממוצע","קלוריות","הליכת כושר","מקור","הערה"],rows:wRows,widths:[12,8,11,11,13,13,10,11,10,11,8,24]},
+    {name:"אימוני משקולות",head:["תאריך","אימון","תרגיל","סט","משקל (ק״ג)","חזרות","בוצע","קושי (1-10)","כאב","הערות"],rows:sRows,widths:[12,18,26,6,11,8,7,11,10,24]},
+    {name:"מדידות",head:["תאריך"].concat(MF.map(function(f){return f[1]+" ("+f[2]+")"})),rows:mRows,widths:[12,11,15,13,13,15,17,13]}]);
+  var name="fitness-log-"+today()+".xlsx";
+  if(FA&&FA.saveXlsx){var b="",ch=0x8000;for(var i=0;i<data.length;i+=ch)b+=String.fromCharCode.apply(null,data.subarray(i,i+ch));FA.saveXlsx(name,btoa(b));return}
+  var url=URL.createObjectURL(new Blob([data],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})),a=document.createElement("a");
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(url);a.remove()},2000);toast("קובץ האקסל ירד למחשב")}
+var PRINT_CSS='@page{size:A4;margin:14mm}body{font-family:Arial,"Arial Hebrew",sans-serif;direction:rtl;color:#111;font-size:12.5px;line-height:1.45}h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:18px 0 6px;border-bottom:2px solid #0E9F9A;padding-bottom:3px}h3{font-size:14px;margin:10px 0 3px}.meta{color:#555;font-size:12px;margin-bottom:10px}ul{margin:2px 0 6px;padding-inline-start:18px}.meal{break-inside:avoid;margin-bottom:6px}.kind{font-size:11px;border:1px solid #999;border-radius:8px;padding:0 6px;margin-inline-start:6px}.menu{break-after:page}.menu:last-child{break-after:auto}.rcp{break-inside:avoid;margin-bottom:8px}.shop td{padding:3px 6px;border-bottom:1px solid #ddd}.foot{margin-top:16px;color:#666;font-size:11px}';
+function printDoc(title,body){
+  var html='<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>'+PRINT_CSS+'</style></head><body>'+body+'<div class="foot">יומן כושר ביתי · גרסה '+APP_VERSION+' · '+APP_AUTHOR+' · הודפס '+fmtD(today())+'</div></body></html>';
+  if(FA&&FA.printHtml){FA.printHtml(title,html);return}
+  var fr=document.createElement("iframe");fr.style.cssText="position:fixed;width:0;height:0;border:0;left:-9999px";document.body.appendChild(fr);
+  var d=fr.contentDocument;d.open();d.write(html);d.close();
+  setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){toast("ההדפסה לא נפתחה")}setTimeout(function(){fr.remove()},60000)},300)}
+function printMenus(){var T=foodTargets();
+  var b='<h1>7 תפריטים כשרים לירידה במשקל</h1><div class="meta">יעד: כ־'+T.kcal.toLocaleString("he-IL")+' קלוריות ו־'+T.prot+' גרם חלבון ביום · מים: לפחות '+T.water+' ליטר</div>';
+  MENUS.forEach(function(m,mi){var tot=0,pr=0;m.m.forEach(function(ids){ids.forEach(function(i){tot+=FI[i][2];pr+=FI[i][3]})});
+    b+='<div class="menu"><h2>תפריט '+(mi+1)+': '+esc(m.name)+'</h2><div class="meta">כ־'+Math.round(tot/10)*10+' קל׳ · '+Math.round(pr)+' ג׳ חלבון</div>';
+    m.m.forEach(function(ids,i){var k=mealKind(ids);b+='<div class="meal"><h3>'+MEALS[i][0]+' · '+MEALS[i][1]+'<span class="kind">'+KIND[k][0]+'</span></h3><ul>'+ids.map(function(x){return'<li><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+'</li>'}).join("")+'</ul></div>'});
+    var rc=[];m.m.forEach(function(ids){ids.forEach(function(x){if(RCP[x]&&rc.indexOf(x)<0)rc.push(x)})});
+    if(rc.length)b+='<h3>הוראות הכנה</h3>'+rc.map(function(x){return'<div class="rcp"><b>'+esc(FI[x][0])+':</b> '+esc(RCP[x])+'</div>'}).join("");
+    b+='</div>'});
+  printDoc("תפריטים - יומן כושר",b)}
+function printRecipes(){var b='<h1>מתכונים</h1><div class="meta">כל המתכונים מהתפריטים, לפי סוג</div>';
+  RCPG.forEach(function(g){var it=g[1].filter(function(k){return RCP[k]&&FI[k]});if(!it.length)return;b+='<h2>'+g[0]+'</h2>'+it.map(function(k){return'<div class="rcp"><h3>'+esc(FI[k][0])+' <span class="meta">('+esc(FI[k][1])+')</span></h3>'+esc(RCP[k])+'</div>'}).join("")});
+  printDoc("מתכונים - יומן כושר",b)}
+function printShop(){var t=shopList(),b='<h1>רשימת קניות</h1><div class="meta">'+(S.shopMode==="rest"?"מהיום עד שבת":"שבוע מלא")+' · '+((+S.shopPpl||1)===2?"2 אנשים":"אדם אחד")+'</div>';
+  SHOPG.forEach(function(g){var ks=Object.keys(t).filter(function(k){return PR[k][1]===g[0]});if(!ks.length)return;b+='<h2>'+g[1]+'</h2><table class="shop">'+ks.map(function(k){var q=shopQty(k,t[k]);return'<tr><td>☐</td><td>'+esc(PR[k][0])+'</td><td><b>'+esc(q.buy)+'</b></td></tr>'}).join("")+'</table>'});
+  b+='<p><b>לבדוק שיש בבית:</b> '+esc(SHOP_STAPLES)+'</p>';printDoc("רשימת קניות - יומן כושר",b)}
 /* ---------- detailed coaching + demo videos for every exercise ---------- */
 var VID={
  squat_chair:[["JuhCL47kWgQ",""]],rdl:[["Njt-jH4a75E","he"]],glute_bridge:[["vKMFABTGOy4",""]],
@@ -1376,15 +1477,15 @@ var PR={
  yellow:["גבינה צהובה 9% פרוסה","fridge","ג׳",200,"חבילה 200 ג׳"],labane:["לבנה 5%","fridge","ג׳",250,"גביע 250 ג׳"],bulg:["גבינה בולגרית 5%","fridge","ג׳",250,"גביע 250 ג׳"],
  milk:["חלב 1%","fridge","מ״ל",1000,"קרטון 1 ליטר"],yog:["יוגורט חלבון","fridge","גביעים",1,"גביע"],hummus:["חומוס (ממרח)","fridge","ג׳",400,"גביע 400 ג׳"],tofu:["טופו","fridge","ג׳",300,"חבילה 300 ג׳"],
  chicken:["חזה עוף","meat","ג׳",1000,"ק״ג"],beef:["בקר טחון רזה (עד 5% שומן)","meat","ג׳",500,"חבילה 500 ג׳"],turkeyp:["פסטרמה מחזה הודו (דלת נתרן)","meat","ג׳",200,"חבילה 200 ג׳"],salmon:["פילה סלמון","meat","ג׳",1000,"ק״ג"],
- bread:["לחם מלא פרוס","bread","פרוסות",25,"כיכר 750 ג׳"],pita:["פיתות מלאות","bread","יח׳",10,"שקית 10"],challah:["חלה","bread","יח׳",1,"חלה"],rice2:["פריכיות אורז מלא","bread","יח׳",20,"חבילה"],
+ bread:["לחם מלא פרוס","bread","פרוסות",25,"כיכר 750 ג׳"],kafri:["לחם כפרי מחמצת (עדיף מקמח מלא)","bread","פרוסות",20,"כיכר"],rye:["לחם שיפון מלא","bread","פרוסות",16,"כיכר 500 ג׳"],pita:["פיתות מלאות","bread","יח׳",10,"שקית 10"],challah:["חלה","bread","יח׳",1,"חלה"],rice2:["פריכיות אורז מלא","bread","יח׳",20,"חבילה"],
  rice:["אורז מלא","dry","ג׳",1000,"ק״ג"],quinoa:["קינואה","dry","ג׳",500,"500 ג׳"],bulgur:["בורגול גס","dry","ג׳",500,"500 ג׳"],lentils:["עדשים ירוקות או חומות","dry","ג׳",500,"500 ג׳"],
  pasta:["פסטה מחיטה מלאה","dry","ג׳",500,"500 ג׳"],oats:["שיבולת שועל","dry","ג׳",500,"500 ג׳"],tomcan:["עגבניות מרוסקות","dry","קופסאות",1,"קופסה"],tuna:["טונה במים","dry","קופסאות",1,"קופסה"],
- tahini:["טחינה גולמית","dry","ג׳",500,"צנצנת 500 ג׳"],
+ tahini:["טחינה גולמית","dry","ג׳",500,"צנצנת 500 ג׳"],olives:["זיתים","dry","ג׳",300,"צנצנת 300 ג׳"],avocado:["אבוקדו","fruit","יח׳"],
  almonds:["שקדים טבעיים","nuts","ג׳",200,"200 ג׳"],walnuts:["אגוזי מלך","nuts","ג׳",200,"200 ג׳"],dates:["תמרי מג׳הול","nuts","יח׳",20,"קופסה (כ־20)"]
 };
 /* menu item -> products per serving (raw amounts) */
 var SHOP={
- egg2:[["eggs",2]],tspoil:[],tbspoil:[],bread2:[["bread",2]],bread1:[["bread",1]],pita:[["pita",0.5]],challah:[["challah",1]],
+ egg2:[["eggs",2]],tspoil:[],tbspoil:[],kafri:[["kafri",2]],kafri1:[["kafri",1]],rye:[["rye",2]],rye1:[["rye",1]],olives:[["olives",30]],avocado:[["avocado",0.25]],bread2:[["bread",2]],bread1:[["bread",1]],pita:[["pita",0.5]],challah:[["challah",1]],
  cottage:[["cottage",100]],white:[["white",100]],yellow:[["yellow",40]],labane:[["labane",40]],bulgarian:[["bulg",50]],milk:[["milk",240]],yog:[["yog",1]],
  veg:[["cucumber",0.5],["tomato",0.5],["pepper",0.25]],salad:[["tomato",1],["cucumber",1],["pepper",0.5],["onion",0.25],["lettuce",0.15],["lemon",0.25]],
  soup:[["soupveg",350],["onion",0.5]],stir:[["stirveg",300],["garlic",0.1]],cuc:[["cucumber",1]],
@@ -1466,14 +1567,25 @@ function viewWalk(){
   var cards=list.slice(0,40).map(function(w){return card(w,true)}).join("");
   var dcards=daily.slice(0,40).map(function(w){return card(w,false)}).join("");
   var now=new Date(),nowT=pad(now.getHours())+":"+pad(now.getMinutes());
-  return '<div class="stack"><div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div></div><div class="tape walk"></div>'+
-  (FA?'<div class="card stack" id="t-watchsync" style="--dc:var(--c-walk)"><h3 class="h3">סנכרון מהשעון</h3><p class="small" style="margin:0">ההליכות מ־Samsung Health נמשכות לבד דרך Health Connect בכל פעם שפותחים את האפליקציה. אפשר גם ללחוץ עכשיו.</p><div class="row"><button type="button" class="btn walk" id="k-sync">סנכרן מהשעון עכשיו</button></div><div class="small" id="k-sync-msg" style="white-space:pre-line">'+esc((function(){try{return localStorage.getItem("kg-hcdiag")||""}catch(e){return""}})())+'</div>'+
-   '<details class="small"><summary>הליכה לא נכנסה? בדיקות</summary><ol style="margin:6px 0 0;padding-inline-start:18px"><li>ב־Samsung Health: תפריט ← הגדרות ← Health Connect ← לוודא ש"אימונים" ו"צעדים" מסומנים לשיתוף.</li><li>סמסונג מעבירה ל־Health Connect באיחור של כמה דקות. מחכים מעט ולוחצים שוב.</li><li>בהגדרות הטלפון ← Health Connect ← הרשאות אפליקציה ← "כושר + שעון" ← לאפשר הכול.</li><li>הליכה קצרה או איטית נכנסת ל"הליכות יומיומיות" בתחתית המסך.</li><li>אם כתוב "אימונים מסוג אחר": ההליכה נשמרה בשעון כסוג אימון אחר.</li></ol></details></div>':
-   (S.mode==="server"?'<div class="card stack small" id="t-watchsync"><h3 class="h3">סנכרון אוטומטי מהשעון</h3><p style="margin:0">באפליקציית הטלפון "יומן כושר" (קובץ APK) ההליכות נמשכות לבד מ־Samsung Health. ראה במדריך: "אפליקציית הטלפון".</p></div>':''))+
+  var sub=subOf("walk","sum");
+  return '<div class="stack">'+segBar("walk",[["sum","סיכום"],["list","ההליכות"],["add","סנכרון ורישום"]],sub,"--c-walk")+
+  '<div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div></div><div class="tape walk"></div>'+
+  (sub==="sum"?(
   '<div class="card stack" id="t-wsum" style="--dc:var(--c-walk)"><div class="head"><h3 class="h3">השבוע</h3><span class="small muted">'+fmtD(ws)+'–'+fmtD(addDays(ws,6))+'</span></div><div class="wstats">'+
     stat("מרחק",n1(wk.km),"ק״מ")+stat("זמן הליכה",fmtDur(wk.min))+stat("קצב ממוצע",wk.pace?fmtPace(wk.pace,1):"–","דק׳ לק״מ")+stat("הליכות",wk.n)+'</div>'+
     '<div class="prog walk"><i style="width:'+Math.min(100,wk.min/goal*100)+'%"></i></div><div class="small muted">'+Math.round(wk.min)+' מתוך '+goal+' דקות'+(wk.min>=goal?' · הגעת ליעד!':"")+'</div></div>'+
   '<div class="card stack"><h3 class="h3">החודש ושיאים</h3><div class="wstats">'+stat("מרחק החודש",n1(mo.km),"ק״מ")+stat("זמן החודש",fmtDur(mo.min))+stat("ההליכה הארוכה",longest&&longest.km?n1(longest.km):"–","ק״מ")+stat("הקצב הטוב",fastest?fmtPace(fastest.min,fastest.km):"–","דק׳ לק״מ")+'</div></div>'+
+  '<div class="card stack" id="t-wchart"><div class="head"><h3 class="h3">8 שבועות אחרונים</h3><div class="chips">'+[["min","דקות"],["km","ק״מ"]].map(function(o){return'<button class="chip" data-wm="'+o[0]+'" aria-pressed="'+(metric===o[0])+'">'+o[1]+'</button>'}).join("")+'</div></div>'+bars+'</div>'):"")+
+  (sub==="list"?('<div class="row"><button type="button" class="btn sm" data-xls="1">⬇ ייצוא כל ההליכות והאימונים לאקסל</button></div>'+
+  '<div class="stack" id="t-wlist"><h3 class="h3">הליכות כושר</h3>'+(list.length?cards:'<div class="card"><p class="muted" style="margin:0">עוד אין הליכות כושר. רשום את הראשונה למעלה או סנכרן מהשעון.</p></div>')+'</div>'+
+  '<details class="card" id="t-wdaily"><summary>הליכות יומיומיות שלא נספרות ('+daily.length+')</summary><div class="stack" style="margin-top:10px">'+
+   '<p class="small muted" style="margin:0">הליכות קצרות מהשעון, כמו קניות או מהחניה למשרד. הן לא נספרות ביעד ובסיכומים. נספרת הליכה שהפעלת בשעון כאימון, או הליכה של לפחות <b>'+rr.min+'</b> דקות בקצב של <b>'+rr.pace+'</b> דקות לק״מ או מהר יותר.</p>'+
+   '<div class="row small"><label class="f" style="flex-direction:row;align-items:center;gap:6px">מינימום דקות <input type="number" id="r-min" value="'+rr.min+'" style="width:70px"></label><label class="f" style="flex-direction:row;align-items:center;gap:6px">קצב איטי מקסימלי (דק׳ לק״מ) <input type="number" id="r-pace" value="'+rr.pace+'" style="width:70px"></label><button type="button" class="btn sm" id="r-save">עדכן כלל</button></div>'+
+   (dcards||'<p class="muted small" style="margin:0">אין.</p>')+'</div></details>'):"")+
+  (sub==="add"?(
+  (FA?'<div class="card stack" id="t-watchsync" style="--dc:var(--c-walk)"><h3 class="h3">סנכרון מהשעון</h3><p class="small" style="margin:0">ההליכות מ־Samsung Health נמשכות לבד דרך Health Connect בכל פעם שפותחים את האפליקציה. אפשר גם ללחוץ עכשיו.</p><div class="row"><button type="button" class="btn walk" id="k-sync">סנכרן מהשעון עכשיו</button></div><div class="small" id="k-sync-msg" style="white-space:pre-line">'+esc((function(){try{return localStorage.getItem("kg-hcdiag")||""}catch(e){return""}})())+'</div>'+
+   '<details class="small"><summary>הליכה לא נכנסה? בדיקות</summary><ol style="margin:6px 0 0;padding-inline-start:18px"><li>ב־Samsung Health: תפריט ← הגדרות ← Health Connect ← לוודא ש"אימונים" ו"צעדים" מסומנים לשיתוף.</li><li>סמסונג מעבירה ל־Health Connect באיחור של כמה דקות. מחכים מעט ולוחצים שוב.</li><li>בהגדרות הטלפון ← Health Connect ← הרשאות אפליקציה ← "כושר + שעון" ← לאפשר הכול.</li><li>הליכה קצרה או איטית נכנסת ל"הליכות יומיומיות" בתחתית המסך.</li><li>אם כתוב "אימונים מסוג אחר": ההליכה נשמרה בשעון כסוג אימון אחר.</li></ol></details></div>':
+   (S.mode==="server"?'<div class="card stack small" id="t-watchsync"><h3 class="h3">סנכרון אוטומטי מהשעון</h3><p style="margin:0">באפליקציית הטלפון "יומן כושר" (קובץ APK) ההליכות נמשכות לבד מ־Samsung Health. ראה במדריך: "אפליקציית הטלפון".</p></div>':''))+
   '<div class="grid g2"><div class="card stack" id="t-walkform"><h3 class="h3">רישום הליכה</h3><div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">'+
    '<label class="f">תאריך<input type="date" id="k-date" value="'+tk+'"></label><label class="f">שעת התחלה<input type="time" id="k-time" value="'+nowT+'"></label>'+
    fld("k-km","מרחק (ק״מ)","","0.01")+fld("k-min","זמן (דקות)","","1")+fld("k-steps","צעדים","","1")+fld("k-hr","דופק ממוצע","","1")+fld("k-kcal","קלוריות","","1")+'</div>'+
@@ -1482,13 +1594,8 @@ function viewWalk(){
   '<div class="card stack" id="t-import"><h3 class="h3">ייבוא מ־Samsung Health</h3>'+
    '<ol class="steps small"><li>באפליקציית Samsung Health בטלפון: תפריט ← הגדרות ← <b>הורדת נתונים אישיים</b> (השם יכול להשתנות מעט בין גרסאות).</li><li>בתיקייה שנוצרה בטלפון, בחר את הקובץ שמתחיל ב־<span dir="ltr">com.samsung.shealth.exercise</span> (אימוני הליכה, כולל מרחק, זמן, דופק וקלוריות) או <span dir="ltr">step_daily_trend</span> (צעדים יומיים).</li><li>העלה אותו כאן (אפשר כמה קבצים יחד). מכל הליכה מיובאים לבד: תאריך, שעת התחלה, מרחק, זמן, קצב, צעדים, דופק ממוצע וקלוריות. הליכות שכבר יובאו לא ייכפלו.</li></ol>'+
    '<label class="btn" style="align-self:flex-start">בחר קובץ CSV<input type="file" id="k-file" accept=".csv,text/csv" multiple hidden></label><div class="small" id="k-imp"></div>'+
-   '<div class="small muted">עם אפליקציית הטלפון אין צורך בקובץ: ההליכות נמשכות לבד.</div></div></div>'+
-  '<div class="card stack" id="t-wchart"><div class="head"><h3 class="h3">8 שבועות אחרונים</h3><div class="chips">'+[["min","דקות"],["km","ק״מ"]].map(function(o){return'<button class="chip" data-wm="'+o[0]+'" aria-pressed="'+(metric===o[0])+'">'+o[1]+'</button>'}).join("")+'</div></div>'+bars+'</div>'+
-  '<div class="stack" id="t-wlist"><h3 class="h3">הליכות כושר</h3>'+(list.length?cards:'<div class="card"><p class="muted" style="margin:0">עוד אין הליכות כושר. רשום את הראשונה למעלה או סנכרן מהשעון.</p></div>')+'</div>'+
-  '<details class="card" id="t-wdaily"><summary>הליכות יומיומיות שלא נספרות ('+daily.length+')</summary><div class="stack" style="margin-top:10px">'+
-   '<p class="small muted" style="margin:0">הליכות קצרות מהשעון, כמו קניות או מהחניה למשרד. הן לא נספרות ביעד ובסיכומים. נספרת הליכה שהפעלת בשעון כאימון, או הליכה של לפחות <b>'+rr.min+'</b> דקות בקצב של <b>'+rr.pace+'</b> דקות לק״מ או מהר יותר.</p>'+
-   '<div class="row small"><label class="f" style="flex-direction:row;align-items:center;gap:6px">מינימום דקות <input type="number" id="r-min" value="'+rr.min+'" style="width:70px"></label><label class="f" style="flex-direction:row;align-items:center;gap:6px">קצב איטי מקסימלי (דק׳ לק״מ) <input type="number" id="r-pace" value="'+rr.pace+'" style="width:70px"></label><button type="button" class="btn sm" id="r-save">עדכן כלל</button></div>'+
-   (dcards||'<p class="muted small" style="margin:0">אין.</p>')+'</div></details></div>';
+   '<div class="small muted">עם אפליקציית הטלפון אין צורך בקובץ: ההליכות נמשכות לבד.</div></div></div>'):"")+
+  '</div>';
 }
 function addWalk(w){var m=w.date.slice(0,7),doc=S.walks[m]?JSON.parse(JSON.stringify(S.walks[m])):{items:{}};doc.items=doc.items||{};doc.items[w.id]=w;return put("walks",m,doc)}
 function parseCSV(text){
@@ -1546,18 +1653,26 @@ function viewMeasure(){
   var first=function(f){var x=ms.find(function(m){return m[f]});return x?x[f]:null};
   var lastv=function(f){var x=ms.slice().reverse().find(function(m){return m[f]});return x?x[f]:null};
   var rows=ms.slice().reverse().map(function(m,i,arr){var prev=arr[i+1];return"<tr><td>"+fmtD(m.id)+"</td>"+MF.map(function(f){var v=m[f[0]],pv=prev&&prev[f[0]];return"<td>"+n1(v)+(v&&pv?' <span class="small '+(v-pv<0?"dn-good":v-pv>0?"dn-bad":"muted")+'">'+(v-pv>0?"+":"")+n1(v-pv)+"</span>":"")+"</td>"}).join("")+'<td><button class="btn ghost sm" data-delm="'+m.id+'">מחק</button></td></tr>'}).join("");
-  return '<div class="stack"><div><div class="eyebrow">מדידה אחת בשבוע · אותו יום, אותה שעה</div><h1 class="h1">מדידות</h1></div><div class="tape"></div>'+
-  '<div class="grid g4" id="t-mkpi">'+MF.map(function(f){var a=first(f[0]),b=lastv(f[0]);return'<div class="card"><div class="eyebrow">'+f[1]+'</div><div class="row" style="align-items:baseline;gap:6px;margin-top:4px"><span class="big" style="font-size:36px">'+n1(b)+'</span><span class="muted small">'+f[2]+'</span></div><div class="small" style="min-height:20px">'+(a!=null&&b!=null&&ms.length>1?delta(b-a,f[2]+" מההתחלה"):'<span class="muted">'+(f[0]==="weight"?"יעד "+p.goalWeight:"")+'</span>')+'</div></div>'}).join("")+'</div>'+
+  var sub=subOf("measure","new");
+  return '<div class="stack">'+segBar("measure",[["new","מדידה חדשה"],["prog","התקדמות"],["export","ייצוא והדפסה"]],sub,"--c-pull")+
+  '<div><div class="eyebrow">מדידה אחת בשבוע · אותו יום, אותה שעה</div><h1 class="h1">מדידות</h1></div><div class="tape"></div>'+
+  (sub==="new"?(
   '<div class="grid g2"><div class="card stack" id="t-mform"><h3 class="h3">מדידה חדשה</h3>'+
    '<label class="f">תאריך<input type="date" id="m-date" value="'+tk+'"></label>'+
    '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">'+MF.map(function(f){return fld("m-"+f[0],f[1]+" ("+f[2]+")",ex[f[0]])}).join("")+'</div>'+
    '<div class="row"><button class="btn pri" id="m-save">שמור מדידה</button></div></div>'+
   '<div class="card stack" id="t-mhow"><h3 class="h3">איך מודדים נכון</h3><div class="howgrid"><div class="howlist">'+HOWTO.map(function(h){return'<button type="button" class="howi" data-how="'+h[0]+'"><b>'+h[1]+':</b> '+esc(h[2])+'</button>'}).join("")+
    '<div class="small muted" style="padding:4px 10px">הסרט צמוד לעור אבל לא לוחץ. אותו סרט בכל פעם.</div></div>'+tapeFig()+'</div>'+
-   '<div class="note small">בשבועות הראשונים של אימוני משקולות המשקל יכול לעמוד במקום בזמן שהמותניים יורדים. לכן מודדים גם סרט ולא רק משקל.</div></div></div>'+
+   '<div class="note small">בשבועות הראשונים של אימוני משקולות המשקל יכול לעמוד במקום בזמן שהמותניים יורדים. לכן מודדים גם סרט ולא רק משקל.</div></div></div>'):"")+
+  (sub==="prog"?(
+  '<div class="grid g4" id="t-mkpi">'+MF.map(function(f){var a=first(f[0]),b=lastv(f[0]);return'<div class="card"><div class="eyebrow">'+f[1]+'</div><div class="row" style="align-items:baseline;gap:6px;margin-top:4px"><span class="big" style="font-size:36px">'+n1(b)+'</span><span class="muted small">'+f[2]+'</span></div><div class="small" style="min-height:20px">'+(a!=null&&b!=null&&ms.length>1?delta(b-a,f[2]+" מההתחלה"):'<span class="muted">'+(f[0]==="weight"?"יעד "+p.goalWeight:"")+'</span>')+'</div></div>'}).join("")+'</div>'+
   '<div class="card stack" id="t-mchart"><div class="head"><h3 class="h3">מגמה</h3><div class="chips">'+MF.map(function(f){return'<button class="chip" data-mm="'+f[0]+'" aria-pressed="'+(S.mm===f[0])+'">'+f[1].replace(" (רוחב)","")+'</button>'}).join("")+'</div></div>'+chartM(ms,S.mm)+'</div>'+
-  '<div class="card stack"><h3 class="h3">כל המדידות</h3>'+(ms.length?'<div class="tbl"><table><thead><tr><th>תאריך</th>'+MF.map(function(f){return"<th>"+f[1]+"</th>"}).join("")+'<th></th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">עוד אין מדידות. המדידה הראשונה היא נקודת ההתחלה שלך.</p>')+'</div></div>';
+  '<div class="card stack"><h3 class="h3">כל המדידות</h3>'+(ms.length?'<div class="tbl"><table><thead><tr><th>תאריך</th>'+MF.map(function(f){return"<th>"+f[1]+"</th>"}).join("")+'<th></th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">עוד אין מדידות. המדידה הראשונה היא נקודת ההתחלה שלך.</p>')+'</div>'):"")+
+  (sub==="export"?viewExport():"")+
+  '</div>';
 }
+function viewExport(){return'<div class="card stack"><h3 class="h3">אקסל: כל הנתונים</h3><p class="small muted" style="margin:0">קובץ אקסל עם 3 גיליונות: הליכות, אימוני משקולות (כל סט), ומדידות.</p><div><button type="button" class="btn pri" data-xls="1">⬇ ייצוא לאקסל</button></div></div>'+
+  '<div class="card stack"><h3 class="h3">הדפסה או PDF</h3><p class="small muted" style="margin:0">נפתח מסך הדפסה. כדי לקבל קובץ, בוחרים במדפסת: "שמירה כ־PDF".</p><div class="row"><button type="button" class="btn" data-pdf="menus">🖨 7 התפריטים</button><button type="button" class="btn" data-pdf="recipes">🖨 כל המתכונים</button><button type="button" class="btn" data-pdf="shop">🖨 רשימת הקניות</button></div></div>'}
 var HOWTO=[["weight","משקל","בבוקר, אחרי שירותים ולפני אוכל, באותו משקל ביתי."],["waist","מותניים","הנקודה הצרה ביותר, בערך באמצע בין הצלע התחתונה לעצם האגן."],["belly","בטן","בגובה הטבור, בסוף נשיפה רגילה, בלי להכניס בטן."],["chest","חזה","בגובה הפטמות, הסרט מקביל לרצפה."],["shoulders","כתפיים","סביב הנקודה הרחבה ביותר של הכתפיים, ידיים רפויות לצד הגוף."],["hips","ירכיים","ההיקף הרחב ביותר של הישבן."],["arm","זרוע","אמצע היד העליונה, יד רפויה. תמיד אותה יד."]];
 function tapeFig(){
   var n='fill="var(--bodyoff)"';
@@ -1614,7 +1729,7 @@ var TOURS={
   {sel:"#t-weight",t:"המשקל שלך",d:"המשקל האחרון שנמדד, היעד שלך, ופס שמראה כמה מהדרך כבר עשית. מתעדכן מכל מדידה שבועית."},
   {sel:"#t-week",t:"השבוע במבט אחד",d:"שתי שורות נפרדות: משקולות והליכה. משבצת מלאה עם ✓ אומרת שבוצע. משבצת מקווקוות אומרת שמתוכנן."},
   {sel:"#edit-profile",t:"פרופיל והגדרות",d:"גובה, משקל התחלה, יעד, המשקולות שיש לך, 3 או 4 אימונים בשבוע, גיבוי נתונים ושינוי סיסמה."},
-  {sel:"#nav",t:"התפריט",d:"מעבר בין המסכים: היום, תוכנית, אימון, תרגילים, הליכה, מדידות ותזונה. בטלפון הוא בתחתית המסך."},
+  {sel:"#nav",t:"התפריט",d:"חמישה מסכים: היום, אימון, הליכה, תזונה ומדידות. בכל מסך יש למעלה כרטיסיות, למשל באימון: האימון, התוכנית ותרגילים."},
   {sel:"#helpfab",t:"כפתור העזרה",d:"הכפתור הסגול מסביר שוב את המסך שאתה נמצא בו, פותח את המדריך המלא ומראה איך מתקינים את האפליקציה בטלפון."}],
  plan:[
   {sel:"#t-pdays",t:"3 או 4 אימונים",d:"כמה אימוני משקולות בשבוע. הסדר והלוח מתעדכנים מיד. מומלץ להתחיל ב־3."},
@@ -1633,7 +1748,7 @@ var TOURS={
   {sel:"#t-sets .chk",t:"סיימתי סט",d:"לחיצה מסמנת את הסט בירוק ומפעילה שעון מנוחה. כשהמנוחה נגמרת: שלושה צפצופים, רטט, ומסך גדול עם המילה 'המשך'."},
   {sel:"#t-finish",t:"סיום האימון",d:"בסוף: כמה קשה היה, האם הייתה כאב בברך או בכתף, ולחיצה על 'סיימתי את האימון'. הנתונים נשמרים בשרת."}],
  library:[
-  {sel:"#t-groups",t:"סינון לפי אזור",d:"בחירת אזור בגוף מציגה רק את התרגילים שלו."},
+  {sel:"#t-groups",t:"כרטיסיות לפי אזור",d:"ידיים, בטן, רגליים ועוד. בחירה מציגה רק את התרגילים של האזור. בכל תרגיל יש כפתור אדום לסרטון ביוטיוב."},
   {sel:".excard",t:"כרטיס תרגיל",d:"הדגמה מונפשת, שם, שרירים, וסימון כתום אם צריך זהירות עם ברכיים או כתף. לחיצה פותחת הסבר מלא."}],
  walk:[
   {sel:"#t-wsum",t:"סיכום השבוע",d:"כמה ק״מ הלכת השבוע, כמה זמן, הקצב הממוצע וכמה הליכות. הפס מראה כמה מהיעד השבועי השלמת."},
@@ -1729,7 +1844,7 @@ function openProfile(){
    '<p class="small muted" style="margin:0">האפליקציה בודקת לבד אם יש גרסה חדשה. העדכון מוריד ומתקין בלחיצה אחת.</p>'+
    '<div class="row"><button type="button" class="btn sm pri" data-apkgo>עדכן עכשיו</button><button type="button" class="btn sm" id="apk-check">בדוק אם יש עדכון</button></div><div class="small" data-pagemsg></div><div class="small" data-apkmsg></div></div></details>':
    (FA?'<div><button type="button" class="btn sm" id="p-server">כתובת השרת באפליקציה</button></div>':''))+
-  (S.mode==="server"?'<details><summary>שינוי סיסמה</summary><div class="grid g4" style="margin-top:10px"><label class="f">סיסמה נוכחית<span class="pwbox"><input type="password" id="pw-cur" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-cur" aria-label="הצג סיסמה">'+EYE+'</button></span></label><label class="f">סיסמה חדשה<span class="pwbox"><input type="password" id="pw-new" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-new" aria-label="הצג סיסמה">'+EYE+'</button></span></label></div><div style="margin-top:8px"><button type="button" class="btn sm" id="pw-save">שנה סיסמה</button> <span class="small" id="pw-msg"></span></div></details><div><a class="btn ghost sm" href="logout">התנתק</a></div>':"")+
+  ((S.mode==="server"||(S.mode==="phone"&&phLinked()))?'<details id="pw-box"><summary>שינוי סיסמה</summary><p class="small muted" style="margin:8px 0 0">לפחות 8 תווים. מומלץ: שלוש מילים באנגלית עם מספר, למשל <span dir="ltr">green-tree-walk7</span>. אחרי ההחלפה, בכניסה מהמחשב תצטרך את הסיסמה החדשה. הטלפון נשאר מחובר.</p><div class="grid g4" style="margin-top:10px"><label class="f">סיסמה נוכחית<span class="pwbox"><input type="password" id="pw-cur" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-cur" aria-label="הצג סיסמה">'+EYE+'</button></span></label><label class="f">סיסמה חדשה<span class="pwbox"><input type="password" id="pw-new" dir="ltr" autocapitalize="none"><button type="button" class="eye" data-eye="pw-new" aria-label="הצג סיסמה">'+EYE+'</button></span></label></div><div style="margin-top:8px"><button type="button" class="btn sm" id="pw-save">שנה סיסמה</button> <span class="small" id="pw-msg"></span></div></details>'+(S.mode==="server"?'<div><a class="btn ghost sm" href="logout">התנתק</a></div>':''):"")+
   '</div>';
   dl.showModal?dl.showModal():dl.setAttribute("open","");
   dl.querySelector(".dlg").insertAdjacentHTML("beforeend",'<div class="small muted" style="text-align:center">יומן כושר ביתי · גרסה '+APP_VERSION+(FA&&FA.version?' · אפליקציית טלפון '+esc(FA.version()):'')+'<br>מפתח האפליקציה · '+APP_AUTHOR+'</div>');
@@ -1771,16 +1886,23 @@ function bindBackup(){
   $("b-file").onchange=function(){var f=this.files[0];if(!f)return;f.text().then(function(x){try{importBackup(JSON.parse(x))}catch(e){$("b-msg").textContent="הקובץ לא תקין."}})};
   $("b-import").onclick=function(){try{importBackup(JSON.parse($("b-paste").value))}catch(e){$("b-msg").textContent="הטקסט לא תקין. ודא שהעתקת את כולו."}};
   document.querySelectorAll("[data-eye]").forEach(function(b){b.onclick=function(){var i=$(b.dataset.eye);i.type=i.type==="password"?"text":"password";b.style.color=i.type==="text"?"var(--ink)":""}});
-  if($("pw-save"))$("pw-save").onclick=function(){srv("POST","api/password",{current:$("pw-cur").value,new:$("pw-new").value}).then(function(r){$("pw-msg").textContent=r.ok?"הסיסמה שונתה":r.error}).catch(function(){$("pw-msg").textContent="השינוי נכשל"})};
+  if($("pw-save"))$("pw-save").onclick=function(){srvAny("POST","api/password",{current:$("pw-cur").value,new:$("pw-new").value}).then(function(r){$("pw-msg").textContent=r.ok?"✓ הסיסמה שונתה":r.error;if(r.ok){S.sec=Object.assign({},S.sec,{default_password:false});secCheck()}}).catch(function(){$("pw-msg").textContent="השינוי נכשל"})};
 }
 function chipGroup(id){var g=document.getElementById(id);g.querySelectorAll(".chip").forEach(function(b){b.onclick=function(){g.querySelectorAll(".chip").forEach(function(x){x.setAttribute("aria-pressed","false")});b.setAttribute("aria-pressed","true")}})}
 
 /* ---------- events ---------- */
 function bind(){
+  main.querySelectorAll("[data-xls]").forEach(function(x){x.onclick=function(){try{exportXlsx()}catch(e){toast("הייצוא נכשל: "+(e&&e.message||e))}}});
+  main.querySelectorAll("[data-pdf]").forEach(function(x){x.onclick=function(){var k=x.dataset.pdf;try{if(k==="menus")printMenus();else if(k==="recipes")printRecipes();else printShop()}catch(e){toast("ההדפסה נכשלה: "+(e&&e.message||e))}}});
+  main.querySelectorAll("[data-sub]").forEach(function(b){b.onclick=function(){var pr=b.dataset.sub.split("|");
+    if(pr[0]==="train"){go(pr[1]);return}
+    S.sub[pr[0]]=pr[1];try{localStorage.setItem("kg-sub",JSON.stringify(S.sub))}catch(e){}render();window.scrollTo(0,0)}});
   var $=function(id){return document.getElementById(id)};
   main.querySelectorAll("[data-go]").forEach(function(b){b.onclick=function(){go(b.dataset.go)}});
   main.querySelectorAll("[data-go-w]").forEach(function(b){b.onclick=function(){S.wsel=b.dataset.goW;go("workout")}});
   main.querySelectorAll("[data-open]").forEach(function(b){b.onclick=function(ev){ev.stopPropagation();openEx(b.dataset.open)}});
+  main.querySelectorAll(".exlib .vid").forEach(function(a){a.onclick=function(ev){ev.stopPropagation()}});
+  main.querySelectorAll(".exlib").forEach(function(c){c.onkeydown=function(ev){if(ev.key==="Enter"||ev.key===" "){ev.preventDefault();openEx(c.dataset.open)}}});
   if($("edit-profile"))$("edit-profile").onclick=openProfile;
   if($("su-connect")){
     main.querySelectorAll("[data-eye]").forEach(function(b){b.onclick=function(){var i=$(b.dataset.eye);i.type=i.type==="password"?"text":"password"}});
