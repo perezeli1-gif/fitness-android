@@ -263,7 +263,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="4.1",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="4.2",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -657,20 +657,20 @@ requestAnimationFrame(tick);
 function mountAnims(root){root.querySelectorAll("[data-anim]").forEach(function(h){var ex=EXI[h.getAttribute("data-anim")];if(ex)makeAnim(h,ex)})}
 
 /* ---------- plans ---------- */
+/* five workouts that together cover the whole body; they come in this order, 3 or 4 per week */
+var WORKOUTS={
+ CHEST:{name:"אימון חזה וגב",short:"חזה וגב",col:"pull",focus:"חזה, גב עליון ויציבה",ex:["floor_press","pushup_incline","floor_fly","row_one_arm","bent_row"]},
+ LEGS:{name:"אימון רגליים",short:"רגליים",col:"legs",focus:"ירכיים, ישבן ושוקיים. רגליים חזקות שומרות על שיווי משקל ועל הברכיים",ex:["squat_chair","glute_bridge","calf_raise","farmer_carry"]},
+ SHOULDERS:{name:"אימון כתפיים",short:"כתפיים",col:"sh",focus:"כתף קדמית, צדדית ואחורית, ויציבות הכתף. משקל קל ותנועה איטית",ex:["lateral_raise","front_raise","reverse_fly","plank"]},
+ CORE:{name:"אימון בטן",short:"בטן",col:"core",focus:"בטן, ליבה וגב תחתון: מגינים על הגב ומשפרים יציבה",ex:["dead_bug","mcgill_curlup","side_plank","bird_dog","cat_camel","suitcase_carry"]},
+ ARMS:{name:"אימון ידיים",short:"ידיים",col:"push",focus:"יד קדמית ויד אחורית",ex:["bb_curl","hammer_curl","biceps_curl","triceps_kickback","lying_tri"]}};
 var PLANS={
- 3:{label:"3 אימונים בשבוע",days:{0:"LEGS",2:"ARMS",4:"CORE"},walk:[1,3,5],
-    w:{LEGS:{name:"אימון רגליים",short:"רגליים",col:"legs",focus:"ירכיים, ישבן ושוקיים. רגליים חזקות שומרות על שיווי משקל ועל הברכיים",ex:["squat_chair","glute_bridge","calf_raise","farmer_carry"]},
-       ARMS:{name:"אימון ידיים",short:"ידיים",col:"push",focus:"יד קדמית, יד אחורית, כתפיים וחזה",ex:["floor_press","pushup_incline","lateral_raise","bb_curl","hammer_curl","triceps_kickback","lying_tri"]},
-       CORE:{name:"אימון בטן",short:"בטן",col:"core",focus:"בטן, ליבה וגב: מגינים על הגב התחתון ומשפרים יציבה",ex:["dead_bug","mcgill_curlup","side_plank","plank","bird_dog","row_one_arm","reverse_fly","suitcase_carry"]}}},
- 4:{label:"4 אימונים בשבוע",days:{0:"LEGS",1:"ARMS",3:"CORE",4:"CHEST"},walk:[2,5,6],
-    w:{LEGS:{name:"אימון רגליים",short:"רגליים",col:"legs",focus:"ירכיים, ישבן ושוקיים",ex:["squat_chair","glute_bridge","calf_raise","farmer_carry"]},
-       ARMS:{name:"אימון ידיים",short:"ידיים",col:"push",focus:"יד קדמית, יד אחורית וכתפיים",ex:["lateral_raise","front_raise","bb_curl","hammer_curl","triceps_kickback","lying_tri"]},
-       CORE:{name:"אימון בטן",short:"בטן",col:"core",focus:"בטן, ליבה וגב תחתון",ex:["dead_bug","mcgill_curlup","side_plank","plank","bird_dog","cat_camel"]},
-       CHEST:{name:"אימון חזה וגב",short:"חזה וגב",col:"pull",focus:"חזה, גב עליון ויציבה",ex:["floor_press","pushup_incline","floor_fly","row_one_arm","reverse_fly","suitcase_carry"]}}}
+ 3:{label:"3 אימונים בשבוע",days:{0:1,2:1,4:1},walk:[1,3,5],w:WORKOUTS},
+ 4:{label:"4 אימונים בשבוע",days:{0:1,1:1,3:1,4:1},walk:[2,5,6],w:WORKOUTS}
 };
 var OLDW={PUSH:"חזה, כתפיים ויד אחורית",PULL:"גב, יד קדמית וליבה",CH:"חזה ויד אחורית",LG:"רגליים, בטן וגב תחתון",BK:"גב ויד קדמית",SH:"כתפיים וליבה",A:"אימון A",B:"אימון B",C:"אימון C",U1:"פלג עליון 1",L1:"פלג תחתון 1",U2:"פלג עליון 2",L2:"פלג תחתון 2"};
 var BENCH_SWAP={floor_press:"db_bench_press",bb_floor_press:"db_bench_press",bent_row:"chest_supported_row",bb_row:"chest_supported_row",bb_curl:"preacher_curl",glute_bridge:"hip_thrust"};
-var BENCH_ADD={LEGS:["leg_curl"],ARMS:["db_incline_press"],CHEST:["db_incline_press","chest_supported_row"],CORE:["chest_supported_row"]};
+var BENCH_ADD={LEGS:["leg_curl","leg_extension"],CHEST:["db_incline_press","chest_supported_row"]};
 function curPlan(n){var pr=(typeof P==="function")?P():{};n=n||pr.planDays||3;var base=PLANS[n]||PLANS[3];if(!pr.hasBench)return base;
   var o={label:base.label,days:base.days,walk:base.walk,w:{}};
   Object.keys(base.w).forEach(function(k){var w=Object.assign({},base.w[k]);var ex=w.ex.map(function(e){return BENCH_SWAP[e]||e});
@@ -1087,7 +1087,7 @@ function viewPlan(){
     var info=[];if(wl&&wl.done)info.push('<span class="pill good">✓ '+wl.done.map(function(x){return esc(wName(x))}).join(", ")+'</span>');else if(wl&&wl.proj)info.push('<span class="pill dayp" style="--dc:var(--c-'+plan.w[wl.proj].col+')">'+esc(plan.w[wl.proj].name)+'</span>');
     if(wk)info.push('<span class="pill walk">✓ הליכה '+wk+' דק׳</span>');
     rows+='<div class="schrow'+(k===tk?" today":"")+'"><div><b>יום '+DAYS[i]+'</b> <span class="small muted">'+fmtD(k)+(k===tk?" · היום":"")+'</span></div><div class="row" style="gap:6px"><button type="button" class="chip daychip" style="--dc:var(--c-push)" data-schl="'+i+'" aria-pressed="'+(sch[i]==="lift"||sch[i]==="both")+'">משקולות</button><button type="button" class="chip daychip" style="--dc:var(--c-walk)" data-schw="'+i+'" aria-pressed="'+(sch[i]==="walk"||sch[i]==="both")+'">הליכה</button></div><div class="row" style="gap:6px">'+info.join("")+'</div></div>'}
-  return '<div class="stack"><div class="head"><div><div class="eyebrow">שבוע '+programWeek()+(programWeek()<=2?" · הסתגלות":"")+'</div><h1 class="h1">התוכנית השבועית</h1><div class="muted">כל אימון עובד על אזור אחר בגוף. האימונים באים לפי הסדר, באיזה יום שנוח לך.</div></div>'+
+  return '<div class="stack"><div class="head"><div><div class="eyebrow">שבוע '+programWeek()+(programWeek()<=2?" · הסתגלות":"")+'</div><h1 class="h1">התוכנית השבועית</h1><div class="muted">5 אימונים שיחד מכסים את כל הגוף: חזה וגב, רגליים, כתפיים, בטן וידיים. הם באים לפי הסדר, 3 או 4 בשבוע, באיזה יום שנוח לך. כך כל אזור מתאמן בערך פעם בשבוע וחצי.</div></div>'+
    '<div class="chips" id="t-pdays">'+[3,4].map(function(n){return'<button class="chip" data-pdays="'+n+'" aria-pressed="'+(p.planDays==n)+'">'+n+' אימונים בשבוע</button>'}).join("")+'</div></div>'+
    '<div class="note small" id="t-plegend"><b>התוכנית גמישה:</b> אפשר לעשות משקולות והליכה באותו יום, בכל סדר ובכל שעה. אם דילגת על יום, האימון הבא פשוט מחכה לך. לכל אזור צבע משלו, והשרירים הצבועים באיור הם אלה שעובדים.</div>'+
    '<h2 class="h2">סדר האימונים</h2><div class="grid g3p" id="t-rot">'+rc+'</div>'+
@@ -1284,6 +1284,28 @@ var RCP={
  olives:"זיתים ירוקים או שחורים, 8 יחידות. יש בהם הרבה מלח: שוטפים במים לפני האכילה. שומן טוב, אבל נספר בקלוריות (כמו כפית שמן).",
  avocado:"רבע אבוקדו בינוני, פרוס או מעוך עם לימון, מלח ופלפל. מורחים על הלחם במקום גבינה שמנה או במקום שמן בסלט. אבוקדו שלם הוא כ־320 קל׳, לכן רבע."
 };
+/* ---------- monthly menu: 4 weeks x 7 days, built from meal options so days don't repeat ---------- */
+var MP={
+ B:[["egg2","rye","avocado","cottage","veg"],["kafri","white","yellow","olives","veg"],["oats40","milk","almonds","berries","cottage"],["egg2","bread2","hummus","veg"],["egg2","tspoil","bread2","bulgarian","veg"],
+    ["oats40","milk","dates1","cottage"],["rye","cottage","egg2","veg"],["bread2","labane","olives","egg2","veg"],["yog","oats","berries","walnuts"],["kafri","cottage","avocado","veg"]],
+ S1:[["dates"],["milk","banana"],["yog"],["fruit","walnuts"],["apple","almonds"],["dates1","milk"],["yog","berries"]],
+ L:[{n:"עוף ואורז",i:["chicken","rice","salad","tbspoil"]},{n:"סלמון ובטטה",i:["salmon","sweet","salad","tahini"]},{n:"קציצות וקינואה",i:["beef","quinoa","stir","tspoil"]},
+    {n:"מרק ועוף",i:["soup","chicken","potato","salad","tbspoil"]},{n:"עוף ובורגול",i:["chicken","bulgur","salad","tahini"]},{n:"מג׳דרה (צמחוני)",i:["lentils","rice","salad","tahini"]},
+    {n:"הודו ופסטה",i:["turkey","pasta","sauce","salad"]},{n:"טופו מוקפץ (צמחוני)",i:["tofu","rice","stir","tspoil"]},{n:"סלמון וקינואה",i:["salmon","quinoa","salad"]},{n:"קציצות ותפוח אדמה",i:["beef","potato","salad","tspoil"]}],
+ S2:[["rice2","hummus","cuc"],["apple","almonds"],["fruit","walnuts"],["dates1","fruit"],["bread1","turkeyp","cuc"],["rice2","tahini","cuc"]],
+ D:[["yog","oats","berries","walnuts"],["shak","pita","labane","salad"],["soup","tuna","salad","rye1"],["pasta","sauce","cottage","salad","olives"],["egg2","kafri","white","avocado","salad"],
+    ["shak","pita","salad","bulgarian"],["tuna","egg2","bread1","salad"],["cottage","rye","egg2","salad"],["soup","egg2","bread1","white"]]
+};
+var LORDER=[0,1,2,5,4,8,9,7,3,1,6,5,2,8,0,7,9,1,4,5,6,8,3,7];  /* lunch of each weekday: the main protein changes every day */
+var SHABBAT={n:"שבת",b:["shak","kafri1","bulgarian","olives","salad"],s1:["fruit","almonds"],l:["challah","chicken","sweet","salad","tspoil"],s2:["dates1"],d:["tuna","egg2","bread1","salad"]};
+var WEEKN=["שבוע 1","שבוע 2","שבוע 3","שבוע 4"],DAYN=["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+function dayMenu(w,d){
+  if(d===6){var sh=SHABBAT,v=w%2;return{name:sh.n,m:[sh.b,v?["yog","berries"]:sh.s1,sh.l,sh.s2,v?["soup","egg2","bread1","white"]:sh.d]}}
+  var k=w*6+d,L=MP.L[LORDER[k%24]];
+  return{name:L.n,m:[MP.B[(k*7+1)%MP.B.length],MP.S1[(k*3+w)%MP.S1.length],L.i,MP.S2[(k*5+w)%MP.S2.length],MP.D[(k*4+w*2)%MP.D.length]]}}
+var MENU_START="2026-10-18";
+function menuWeek(k){var n=Math.floor(daysBetween(P().menuStart||MENU_START,weekStart(k||today()))/7);return((n%4)+4)%4}
+
 var ADDON=[["dates1",80],["fruit",80],["bread1",75],["almonds",70],["milk",100]];
 function foodTargets(){var p=P(),w=+currentWeight()||p.startWeight,bmr=10*w+6.25*(+p.height||180)-5*(+p.age||67)+5;
   var tdee=bmr*1.4,kcal=Math.max(1500,Math.round((tdee-500)/50)*50),prot=Math.min(140,Math.round(w*1.4/5)*5),water=Math.round(w*0.03*10)/10;
@@ -1291,7 +1313,7 @@ function foodTargets(){var p=P(),w=+currentWeight()||p.startWeight,bmr=10*w+6.25
 function mealKind(ids){var k="p";ids.forEach(function(i){var x=FI[i][4];if(x!=="p")k=x});return k}
 var KIND={d:["חלבי","var(--c-pull)"],m:["בשרי","var(--c-push)"],p:["פרווה","var(--c-legs)"]};
 function viewFood(){
-  var p=P(),T=foodTargets(),mi=Math.min(MENUS.length-1,S.fmenu!=null?+S.fmenu:new Date().getDay()),menu=MENUS[mi],wait=+p.meatWait||6;
+  var p=P(),T=foodTargets(),cw=menuWeek(),fw=S.fw!=null?S.fw:cw,fd=S.fd!=null?S.fd:new Date().getDay(),menu=dayMenu(fw,fd),wait=+p.meatWait||6;
   var tot=0,pr=0;menu.m.forEach(function(ids){ids.forEach(function(i){tot+=FI[i][2];pr+=FI[i][3]})});
   var gap=T.kcal-tot,adds=[];ADDON.forEach(function(a){if(gap>=a[1]-15){adds.push(a[0]);gap-=a[1]}});
   var meatAt=null,clash=false;menu.m.forEach(function(ids,i){var k=mealKind(ids);if(k==="m")meatAt=i;if(k==="d"&&meatAt!=null){var h=(parseInt(MEALS[i][0])-parseInt(MEALS[meatAt][0]));if(h<wait)clash=true}});
@@ -1300,9 +1322,11 @@ function viewFood(){
   return '<div class="stack">'+segBar("food",[["menu","תפריט"],["recipes","מתכונים"],["shop","קניות"],["rules","יעדים וכללים"]],sub,"--c-legs")+
   (sub==="menu"?(
   '<div class="hero" style="--dc:var(--c-legs)"><div class="eyebrow">תזונה לירידה במשקל</div><h1 class="h1">מה, מתי וכמה לאכול</h1><p class="muted" style="margin:0">הכול כשר. המספרים מחושבים לפי הגיל, הגובה והמשקל האחרון שלך ('+n1(T.w)+' ק״ג), ומתעדכנים לבד כשהמשקל יורד.</p></div>'+
-'<div class="row"><button type="button" class="btn sm pri" data-pdf="menus">🖨 הדפסה / PDF של כל התפריטים</button></div>'+
-  '<div class="card stack" id="t-fmenu"><div class="row" style="justify-content:space-between"><h3 class="h3">תפריט ליום</h3><span class="small muted">'+tot.toLocaleString("he-IL")+' קל׳ · '+Math.round(pr)+' ג׳ חלבון</span></div>'+
-   '<div class="chips">'+MENUS.map(function(m,i){return'<button type="button" class="chip" data-fmenu="'+i+'" aria-pressed="'+(i===mi)+'">'+(i+1)+'. '+esc(m.name)+'</button>'}).join("")+'</div>'+
+'<div class="row"><button type="button" class="btn sm pri" data-pdf="menus">🖨 הדפסה / PDF של התפריט החודשי</button></div>'+
+  '<div class="card stack" id="t-fmenu"><div class="row" style="justify-content:space-between"><h3 class="h3">תפריט לחודש: 4 שבועות</h3><span class="small muted">'+tot.toLocaleString("he-IL")+' קל׳ · '+Math.round(pr)+' ג׳ חלבון</span></div>'+
+   '<div class="chips">'+WEEKN.map(function(n,i){return'<button type="button" class="chip daychip" style="--dc:var(--c-legs)" data-fw="'+i+'" aria-pressed="'+(i===fw)+'">'+n+(i===cw?' · השבוע':'')+'</button>'}).join("")+'</div>'+
+   '<div class="chips">'+DAYN.map(function(n,i){return'<button type="button" class="chip" data-fd="'+i+'" aria-pressed="'+(i===fd)+'">'+n+'</button>'}).join("")+'</div>'+
+   '<div class="small"><b>'+WEEKN[fw]+' · יום '+DAYN[fd]+':</b> '+esc(menu.name)+(fw===cw&&fd===new Date().getDay()?' <span class="pill good">היום</span>':'')+'</div>'+
    menu.m.map(function(ids,i){var k=mealKind(ids),kc=0,pp=0;ids.forEach(function(x){kc+=FI[x][2];pp+=FI[x][3]});
      return'<div class="card" style="padding:12px;border-inline-start:5px solid '+KIND[k][1]+'"><div class="row" style="justify-content:space-between;gap:6px"><b>'+MEALS[i][0]+' · '+MEALS[i][1]+'</b><span class="pill" style="background:color-mix(in srgb,'+KIND[k][1]+' 16%,transparent)">'+KIND[k][0]+'</span></div>'+
       '<ul style="margin:8px 0 4px;padding-inline-start:18px">'+ids.map(function(x){return RCP[x]?'<li><details class="rcp"><summary><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+' <span class="small" style="color:var(--c-legs);white-space:nowrap">· איך מכינים?</span></summary><div class="small" style="margin:4px 0 6px;color:var(--ink)">'+esc(RCP[x])+'</div></details></li>':'<li><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+'</li>'}).join("")+'</ul><div class="small muted">כ־'+Math.round(kc/10)*10+' קל׳ · '+Math.round(pp)+' ג׳ חלבון</div></div>'}).join("")+
@@ -1388,15 +1412,17 @@ function printDoc(title,body){
   var fr=document.createElement("iframe");fr.style.cssText="position:fixed;width:0;height:0;border:0;left:-9999px";document.body.appendChild(fr);
   var d=fr.contentDocument;d.open();d.write(html);d.close();
   setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print()}catch(e){toast("ההדפסה לא נפתחה")}setTimeout(function(){fr.remove()},60000)},300)}
-function printMenus(){var T=foodTargets();
-  var b='<h1>7 תפריטים כשרים לירידה במשקל</h1><div class="meta">יעד: כ־'+T.kcal.toLocaleString("he-IL")+' קלוריות ו־'+T.prot+' גרם חלבון ביום · מים: לפחות '+T.water+' ליטר</div>';
-  MENUS.forEach(function(m,mi){var tot=0,pr=0;m.m.forEach(function(ids){ids.forEach(function(i){tot+=FI[i][2];pr+=FI[i][3]})});
-    b+='<div class="menu"><h2>תפריט '+(mi+1)+': '+esc(m.name)+'</h2><div class="meta">כ־'+Math.round(tot/10)*10+' קל׳ · '+Math.round(pr)+' ג׳ חלבון</div>';
-    m.m.forEach(function(ids,i){var k=mealKind(ids);b+='<div class="meal"><h3>'+MEALS[i][0]+' · '+MEALS[i][1]+'<span class="kind">'+KIND[k][0]+'</span></h3><ul>'+ids.map(function(x){return'<li><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+'</li>'}).join("")+'</ul></div>'});
-    var rc=[];m.m.forEach(function(ids){ids.forEach(function(x){if(RCP[x]&&rc.indexOf(x)<0)rc.push(x)})});
-    if(rc.length)b+='<h3>הוראות הכנה</h3>'+rc.map(function(x){return'<div class="rcp"><b>'+esc(FI[x][0])+':</b> '+esc(RCP[x])+'</div>'}).join("");
-    b+='</div>'});
-  printDoc("תפריטים - יומן כושר",b)}
+function printMenus(){var T=foodTargets(),cw=menuWeek(),ws=weekStart(today());
+  var short=function(ids){return ids.map(function(x){return esc(FI[x][0])+' <span class="am">'+esc(FI[x][1])+'</span>'}).join("<br>")};
+  var b='<style>@page{size:A4 landscape;margin:10mm}table.mm{border-collapse:collapse;width:100%;font-size:9.5px;line-height:1.3;table-layout:fixed}table.mm th,table.mm td{border:1px solid #bbb;padding:3px;vertical-align:top}table.mm th{background:#E6F4F3}.am{color:#666;font-size:9.5px}.wk{break-after:page}td.dn{width:62px;font-weight:700}</style>'+
+   '<h1>תפריט חודשי: 4 שבועות</h1><div class="meta">כשר · יעד כ־'+T.kcal.toLocaleString("he-IL")+' קלוריות ו־'+T.prot+' ג׳ חלבון ביום · מים: לפחות '+T.water+' ליטר · 07:00 כוס מים כשקמים · 21:30 סוף האוכל להיום</div>';
+  for(var w=0;w<4;w++){var wi=(cw+w)%4,from=addDays(ws,7*w);
+    b+='<div class="wk"><h2>'+WEEKN[wi]+' · '+fmtD(from)+'–'+fmtD(addDays(from,6))+'</h2><table class="mm"><tr><th>יום</th>'+MEALS.map(function(m){return'<th>'+m[0]+' · '+m[1]+'</th>'}).join("")+'<th style="width:58px">קלוריות</th></tr>';
+    for(var d=0;d<7;d++){var dm=dayMenu(wi,d),k=0;dm.m.forEach(function(ids){ids.forEach(function(i){k+=FI[i][2]})});
+      b+='<tr><td class="dn">'+DAYN[d]+'<br><span class="am">'+fmtD(addDays(from,d))+'</span></td>'+dm.m.map(function(ids){return'<td>'+short(ids)+'</td>'}).join("")+'<td>כ־'+Math.round(k/10)*10+'</td></tr>'}
+    b+='</table></div>'}
+  b+='<h2>הוראות הכנה</h2>'+RCPG.map(function(g){var it=g[1].filter(function(k){return RCP[k]&&FI[k]});return it.map(function(k){return'<div class="rcp"><b>'+esc(FI[k][0])+':</b> '+esc(RCP[k])+'</div>'}).join("")}).join("");
+  printDoc("תפריט חודשי - יומן כושר",b)}
 function printRecipes(){var b='<h1>מתכונים</h1><div class="meta">כל המתכונים מהתפריטים, לפי סוג</div>';
   RCPG.forEach(function(g){var it=g[1].filter(function(k){return RCP[k]&&FI[k]});if(!it.length)return;b+='<h2>'+g[0]+'</h2>'+it.map(function(k){return'<div class="rcp"><h3>'+esc(FI[k][0])+' <span class="meta">('+esc(FI[k][1])+')</span></h3>'+esc(RCP[k])+'</div>'}).join("")});
   printDoc("מתכונים - יומן כושר",b)}
@@ -1499,7 +1525,7 @@ var SHOP={
 var SHOP_STAPLES="שמן זית · מלח · פלפל שחור · כמון · פפריקה מתוקה · כורכום · זעתר · סומאק · קינמון · רוטב סויה מופחת נתרן";
 function shopDays(){var mode=S.shopMode||"week",d0=new Date().getDay(),out=[];for(var d=(mode==="rest"?d0:0);d<7;d++)out.push(d);return out}
 function shopList(){var tot={},ppl=+S.shopPpl||1;
-  shopDays().forEach(function(d){MENUS[d].m.forEach(function(ids){ids.forEach(function(x){(SHOP[x]||[]).forEach(function(r){tot[r[0]]=(tot[r[0]]||0)+r[1]*ppl})})})});
+  var sw=S.fw!=null?S.fw:menuWeek();shopDays().forEach(function(d){dayMenu(sw,d).m.forEach(function(ids){ids.forEach(function(x){(SHOP[x]||[]).forEach(function(r){tot[r[0]]=(tot[r[0]]||0)+r[1]*ppl})})})});
   return tot}
 function shopQty(k,q){var p=PR[k],u=p[2],n;
   if(u==="ג׳"&&p[3]>=1000&&(p[1]==="veg"||p[1]==="meat")){var g=Math.ceil(q/50)*50;return{buy:g>=1000?n1(Math.round(g/100)/10)+" ק״ג":"כ־"+g+" ג׳",need:""}}
@@ -1517,7 +1543,7 @@ function viewShop(){var t=shopList(),ck=shopChecked(),n=0,done=0;
     return'<div class="stack" style="gap:4px"><b class="small" style="color:var(--muted)">'+g[1]+'</b>'+ks.map(function(k){var q=shopQty(k,t[k]);n++;if(ck[k])done++;
       return'<label class="row shopi" style="gap:10px;flex-wrap:nowrap;align-items:center;padding:6px 2px;border-bottom:1px solid var(--line);'+(ck[k]?'opacity:.5;text-decoration:line-through':'')+'"><input type="checkbox" data-shop="'+k+'"'+(ck[k]?" checked":"")+' style="width:22px;height:22px;flex:none"><span style="flex:1">'+esc(PR[k][0])+(q.need?' <span class="small muted">(צריך '+q.need+')</span>':'')+'</span><b class="small" style="white-space:nowrap">'+esc(q.buy)+'</b></label>'}).join("")+'</div>'}).join("");
   return'<div class="card stack" id="t-fshop"><div class="row" style="justify-content:space-between"><h3 class="h3">רשימת קניות לשבוע</h3><span class="small muted">'+done+' מתוך '+n+'</span></div>'+
-   '<p class="small muted" style="margin:0">מחושבת מהתפריטים של השבוע (תפריט לכל יום). הכמויות מעוגלות לאריזות בסופר.</p>'+
+   '<p class="small muted" style="margin:0">מחושבת מהתפריט של '+WEEKN[S.fw!=null?S.fw:menuWeek()]+' (אפשר לבחור שבוע אחר בכרטיסיית "תפריט"). הכמויות מעוגלות לאריזות בסופר.</p>'+
    '<div class="chips"><button type="button" class="chip" data-shopmode="week" aria-pressed="'+(S.shopMode!=="rest")+'">שבוע מלא</button><button type="button" class="chip" data-shopmode="rest" aria-pressed="'+(S.shopMode==="rest")+'">מהיום עד שבת</button>'+
    '<button type="button" class="chip" data-shopppl="1" aria-pressed="'+((+S.shopPpl||1)===1)+'">אדם אחד</button><button type="button" class="chip" data-shopppl="2" aria-pressed="'+(+S.shopPpl===2)+'">2 אנשים</button></div>'+
    groups+
@@ -1672,7 +1698,7 @@ function viewMeasure(){
   '</div>';
 }
 function viewExport(){return'<div class="card stack"><h3 class="h3">אקסל: כל הנתונים</h3><p class="small muted" style="margin:0">קובץ אקסל עם 3 גיליונות: הליכות, אימוני משקולות (כל סט), ומדידות.</p><div><button type="button" class="btn pri" data-xls="1">⬇ ייצוא לאקסל</button></div></div>'+
-  '<div class="card stack"><h3 class="h3">הדפסה או PDF</h3><p class="small muted" style="margin:0">נפתח מסך הדפסה. כדי לקבל קובץ, בוחרים במדפסת: "שמירה כ־PDF".</p><div class="row"><button type="button" class="btn" data-pdf="menus">🖨 7 התפריטים</button><button type="button" class="btn" data-pdf="recipes">🖨 כל המתכונים</button><button type="button" class="btn" data-pdf="shop">🖨 רשימת הקניות</button></div></div>'}
+  '<div class="card stack"><h3 class="h3">הדפסה או PDF</h3><p class="small muted" style="margin:0">נפתח מסך הדפסה. כדי לקבל קובץ, בוחרים במדפסת: "שמירה כ־PDF".</p><div class="row"><button type="button" class="btn" data-pdf="menus">🖨 התפריט החודשי</button><button type="button" class="btn" data-pdf="recipes">🖨 כל המתכונים</button><button type="button" class="btn" data-pdf="shop">🖨 רשימת הקניות</button></div></div>'}
 var HOWTO=[["weight","משקל","בבוקר, אחרי שירותים ולפני אוכל, באותו משקל ביתי."],["waist","מותניים","הנקודה הצרה ביותר, בערך באמצע בין הצלע התחתונה לעצם האגן."],["belly","בטן","בגובה הטבור, בסוף נשיפה רגילה, בלי להכניס בטן."],["chest","חזה","בגובה הפטמות, הסרט מקביל לרצפה."],["shoulders","כתפיים","סביב הנקודה הרחבה ביותר של הכתפיים, ידיים רפויות לצד הגוף."],["hips","ירכיים","ההיקף הרחב ביותר של הישבן."],["arm","זרוע","אמצע היד העליונה, יד רפויה. תמיד אותה יד."]];
 function tapeFig(){
   var n='fill="var(--bodyoff)"';
@@ -1765,7 +1791,7 @@ var TOURS={
  food:[
   {sel:"#t-ftarget",t:"היעדים שלך",d:"כמה קלוריות, חלבון ומים ביום. מחושב מהמשקל האחרון שמדדת, ומתעדכן לבד."},
   {sel:"#t-fsched",t:"שעות קבועות",d:"מתי אוכלים וכמה קלוריות בכל ארוחה. למטה: מה לאכול לפני ואחרי אימון."},
-  {sel:"#t-fmenu",t:"תפריט ליום",d:"7 תפריטים כשרים, אחד לכל יום בשבוע (כולל שבת). כל ארוחה מסומנת חלבי, בשרי או פרווה, עם כמויות. לחיצה על מאכל מציגה איך מכינים ובאילו תבלינים."},
+  {sel:"#t-fmenu",t:"תפריט חודשי",d:"4 שבועות, תפריט לכל יום. בוחרים שבוע ויום. השבוע הנוכחי מסומן. כל ארוחה מסומנת חלבי, בשרי או פרווה, עם כמויות ושעות. לחיצה על מאכל מציגה איך מכינים."},
   {sel:"#t-fkosher",t:"כשרות",d:"בחר את זמן ההמתנה בין בשר לחלב לפי המנהג שלך. התפריט יתריע אם הזמן קצר מדי."},
   {sel:"#t-fshop",t:"רשימת קניות",d:"כל מה שצריך לקנות לתפריטים של השבוע, לפי מחלקות בסופר. מסמנים מה כבר בעגלה, ושולחים בוואטסאפ."},
   {sel:"#t-fswap",t:"החלפות",d:"מה לאכול במקום מאכלים משמינים."}]
@@ -1960,7 +1986,8 @@ function bind(){
   if($("sch-reset"))$("sch-reset").onclick=function(){var np=Object.assign({},P());delete np.sched;put("profile","me",np);render();toast("חזרה ללוח המומלץ")};
   main.querySelectorAll("[data-pdays]").forEach(function(b){b.onclick=function(){var np=Object.assign({},P(),{planDays:+b.dataset.pdays});delete np.sched;put("profile","me",np);S.wsel=null;S.draft=null;render();toast("התוכנית עודכנה ל־"+b.dataset.pdays+" אימונים בשבוע")}});
   // library
-  main.querySelectorAll("[data-fmenu]").forEach(function(b){b.onclick=function(){S.fmenu=+b.dataset.fmenu;try{localStorage.setItem("kg-fmenu",S.fmenu)}catch(e){}render()}});
+  main.querySelectorAll("[data-fw]").forEach(function(b){b.onclick=function(){S.fw=+b.dataset.fw;render()}});
+  main.querySelectorAll("[data-fd]").forEach(function(b){b.onclick=function(){S.fd=+b.dataset.fd;render()}});
   main.querySelectorAll("[data-shop]").forEach(function(c){c.onchange=function(){var ck=shopChecked();if(c.checked)ck[c.dataset.shop]=1;else delete ck[c.dataset.shop];try{localStorage.setItem(shopKey(),JSON.stringify(ck))}catch(e){}render()}});
   main.querySelectorAll("[data-shopmode]").forEach(function(b){b.onclick=function(){S.shopMode=b.dataset.shopmode;render()}});
   main.querySelectorAll("[data-shopppl]").forEach(function(b){b.onclick=function(){S.shopPpl=+b.dataset.shopppl;render()}});
