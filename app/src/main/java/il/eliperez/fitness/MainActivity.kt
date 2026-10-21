@@ -503,6 +503,23 @@ class MainActivity : ComponentActivity() {
         }
 
         @JavascriptInterface
+        fun openSettings(kind: String) {
+            runOnUiThread {
+                val tries = when (kind) {
+                    "unknown" -> listOf(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:$packageName")))
+                    else -> listOf(
+                        // סמסונג: מסך "חוסם אוטומטי" (אם קיים בגרסה הזו), אחרת הגדרות אבטחה
+                        Intent().setClassName("com.android.settings", "com.samsung.android.settings.privacy.AutoBlockerSettingsActivity"),
+                        Intent(Settings.ACTION_SECURITY_SETTINGS),
+                        Intent(Settings.ACTION_SETTINGS))
+                }
+                for (i in tries) {
+                    try { startActivity(i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)); return@runOnUiThread } catch (_: Exception) { }
+                }
+            }
+        }
+
+        @JavascriptInterface
         fun printHtml(title: String, html: String) { runOnUiThread { this@MainActivity.printHtml(title, html) } }
 
         @JavascriptInterface
