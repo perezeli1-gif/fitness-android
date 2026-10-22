@@ -239,6 +239,15 @@ details summary{cursor:pointer;font-weight:600}
 .exlib{position:relative}
 .exlib .vid{align-self:flex-start;text-decoration:none;color:#fff;background:#E5322D;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
 .chart.bigt text{font-size:19px}
+.mrow{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:2px 0}
+.mrow.on{background:var(--walk-soft);border-radius:8px}
+.mdirb,.mfile{flex:1;text-align:start;background:none;border:0;padding:10px 4px;font-size:15px;color:var(--ink);cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mdirb{font-weight:600}
+.mbar{position:fixed;z-index:63;left:8px;right:8px;bottom:calc(70px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);border-radius:16px;padding:8px 10px;display:flex;gap:8px;align-items:center;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.mbar .mi{flex:1;min-width:0}.mbar .mt{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mbar .ma{opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbar .mb{display:flex;gap:4px}.mbar button{background:transparent;border:1px solid currentColor;color:inherit;border-radius:999px;width:40px;height:40px;font-size:16px;cursor:pointer}
+@media (min-width:900px){.mbar{bottom:16px;left:auto;right:24px;width:420px}}
+body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 .toast{position:fixed;z-index:70;top:calc(14px + env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:14px;font-size:14px;width:max-content;max-width:calc(100vw - 32px);text-align:center;box-shadow:0 6px 20px rgba(0,0,0,.2)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -252,6 +261,7 @@ details summary{cursor:pointer;font-weight:600}
 <div id="timer" class="timer" hidden></div>
 <div id="goon" class="goon" hidden></div>
 <div id="toast" class="toast" hidden></div>
+<div id="mbar" class="mbar" hidden><div class="mi"><div class="mt"></div><div class="ma small"></div></div><div class="mb"><button type="button" data-m="prev" aria-label="שיר קודם">⏮</button><button type="button" data-m="toggle" aria-label="נגן או עצור">▶</button><button type="button" data-m="next" aria-label="שיר הבא">⏭</button><button type="button" data-m="stop" aria-label="סגור את הנגן">✕</button></div></div>
 <button type="button" class="helpfab" id="helpfab" aria-label="עזרה" hidden>?</button>
 <div class="helpmenu" id="helpmenu" hidden>
   <button type="button" id="hm-tour">הסבר על המסך הזה</button>
@@ -264,7 +274,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="4.6",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="4.7",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1225,6 +1235,8 @@ function openEx(id){
   document.getElementById("dlg-x").onclick=function(){dl.close()};
 }
 document.getElementById("dlg").addEventListener("click",function(ev){if(ev.target===this)this.close()});
+document.querySelectorAll("#mbar [data-m]").forEach(function(b){b.onclick=function(){var m=b.dataset.m;if(m==="toggle")m=S.mstate&&S.mstate.playing?"pause":"play";mCmd(m)}});
+setTimeout(function(){if(FA&&FA.musicState)try{FA.musicState()}catch(e){}},2500);
 
 /* ---------- nutrition ---------- */
 var FI={/* name, amount, kcal, protein(g), kind: d=dairy m=meat p=parve */
@@ -1596,7 +1608,7 @@ function viewWalk(){
   var dcards=daily.slice(0,40).map(function(w){return card(w,false)}).join("");
   var now=new Date(),nowT=pad(now.getHours())+":"+pad(now.getMinutes());
   var sub=subOf("walk","sum");
-  return '<div class="stack">'+segBar("walk",[["sum","סיכום"],["ins","ניתוח והמלצות"],["list","ההליכות"],["guide","מדריך הליכה"],["add","סנכרון ורישום"]],sub,"--c-walk")+
+  return '<div class="stack">'+segBar("walk",[["sum","סיכום"],["ins","ניתוח והמלצות"],["list","ההליכות"],["music","🎵 מוזיקה"],["guide","מדריך הליכה"],["add","סנכרון ורישום"]],sub,"--c-walk")+
   '<div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div></div><div class="tape walk"></div>'+
   (sub==="sum"?((function(){try{var A=walkInsights();if(A.empty)return"";return'<div class="note walkn row" style="justify-content:space-between"><span><b>המלצה לשבוע הבא:</b> '+A.plan.tgt+' דקות הליכה. '+esc(A.plan.items[1])+'</span><button type="button" class="btn sm walk" data-sub="walk|ins">לניתוח המלא</button></div>'}catch(e){return""}})()+
   '<div class="card stack" id="t-wsum" style="--dc:var(--c-walk)"><div class="head"><h3 class="h3">השבוע</h3><span class="small muted">'+fmtD(ws)+'–'+fmtD(addDays(ws,6))+'</span></div><div class="wstats">'+
@@ -1607,6 +1619,7 @@ function viewWalk(){
   '<div class="card stack" id="t-wchart"><div class="head"><h3 class="h3">8 שבועות אחרונים</h3><span class="small muted">הבחירה בין דקות לק״מ משנה את כל הגרפים</span><div class="chips">'+[["min","דקות"],["km","ק״מ"]].map(function(o){return'<button class="chip" data-wm="'+o[0]+'" aria-pressed="'+(metric===o[0])+'">'+o[1]+'</button>'}).join("")+'</div></div>'+bars+'</div>'):"")+
   (sub==="ins"?viewInsights():"")+
   (sub==="guide"?viewWalkGuide():"")+
+  (sub==="music"?viewMusic():"")+
   (sub==="list"?('<div class="row"><button type="button" class="btn sm" data-xls="1">⬇ ייצוא כל ההליכות והאימונים לאקסל</button></div>'+
   '<div class="stack" id="t-wlist"><h3 class="h3">הליכות כושר</h3>'+(list.length?cards:'<div class="card"><p class="muted" style="margin:0">עוד אין הליכות כושר. רשום את הראשונה למעלה או סנכרן מהשעון.</p></div>')+'</div>'+
   '<details class="card" id="t-wdaily"><summary>הליכות יומיומיות שלא נספרות ('+daily.length+')</summary><div class="stack" style="margin-top:10px">'+
@@ -1758,6 +1771,58 @@ function viewWalkGuide(){var z=walkZones(),age=+P().age||67;
   sec("הליכה ומשקולות יחד",ul(["אפשר ללכת ולעשות משקולות באותו יום. עדיף קודם משקולות ואחר כך הליכה, או הליכה קלה כחימום.","יום אחרי אימון רגליים: הליכה רגילה או קלה, לא קטעים מהירים.","ההליכה שורפת קלוריות, והמשקולות שומרות על השריר בזמן הירידה במשקל. שתיהן חשובות."],"--c-push"))+
   sec("מה בודק \"ניתוח והמלצות\"",ul(["<b>כמות:</b> דקות הליכה ב־7 הימים האחרונים, לעומת 150 דקות.","<b>תדירות:</b> בכמה ימים הלכת, והפסקות של 4 ימים ומעלה.","<b>דופק וצעדים לדקה:</b> האם ההליכה בקצב בינוני.","<b>התקדמות:</b> הקצב החודש לעומת החודש הקודם.","<b>תוכנית לשבוע הבא:</b> כמה דקות, ואיזה סוג הליכות. מחושבת מחדש כל יום."]))+
   '<p class="small muted">המידע כללי ולא מחליף רופא. מבוסס על ההמלצות לפעילות גופנית לגיל 65 ומעלה.</p>'}
+/* ---------- music for walks: library on the home server, played in the app (screen off too) ---------- */
+S.mdir="";S.mcache={};S.mstate=null;S.mlocal=null;S.mdl=null;
+var MAUDIO=null,MQ={items:[],i:0,shuffle:false};
+function mFetch(dir){if(S.mcache[dir])return Promise.resolve(S.mcache[dir]);
+  return srvAny("GET","api/music/list?dir="+encodeURIComponent(dir)).then(function(d){if(d&&d.files){S.mcache[dir]=d;return d}throw d})}
+function mAll(dir){return srvAny("GET","api/music/all?dir="+encodeURIComponent(dir)).then(function(d){return(d&&d.files||[]).map(function(f){return f.p})})}
+function mLocal(){if(!FA||!FA.musicLocal)return null;try{S.mlocal=JSON.parse(FA.musicLocal())}catch(e){S.mlocal=null}return S.mlocal}
+function mIsLocal(p){var L=S.mlocal;return!!(L&&L.files&&L.files.indexOf(p)>=0)}
+function mPlay(items,i,shuffle){if(!items.length){toast("אין שירים בתיקייה הזו");return}
+  if(FA&&FA.musicPlay){FA.musicPlay(JSON.stringify({items:items.slice(0,3000),index:i||0,shuffle:!!shuffle}));mPoll(true);return}
+  MQ={items:items,i:i||0,shuffle:!!shuffle};if(shuffle)MQ.items=items.slice().sort(function(){return Math.random()-0.5});mWebPlay()}
+function mWebPlay(){var p=MQ.items[MQ.i];if(!p)return;if(!MAUDIO){MAUDIO=new Audio();MAUDIO.addEventListener("ended",function(){mCmd("next")});["play","pause","timeupdate"].forEach(function(e){MAUDIO.addEventListener(e,mWebState)})}
+  MAUDIO.src="music/"+p.split("/").map(encodeURIComponent).join("/");MAUDIO.play().catch(function(){})}
+function mWebState(){if(!MAUDIO)return;var p=MQ.items[MQ.i]||"";window.onMusic({playing:!MAUDIO.paused,title:p.split("/").pop().replace(/\.[^.]+$/,""),artist:(p.split("/").slice(-2,-1)[0]||""),id:p,index:MQ.i,count:MQ.items.length,pos:MAUDIO.currentTime*1000,dur:(MAUDIO.duration||0)*1000})}
+function mCmd(c){if(FA&&FA.musicCmd){FA.musicCmd(c);return}if(!MAUDIO)return;
+  if(c==="play")MAUDIO.play();else if(c==="pause")MAUDIO.pause();else if(c==="next"){MQ.i=(MQ.i+1)%MQ.items.length;mWebPlay()}else if(c==="prev"){MQ.i=(MQ.i-1+MQ.items.length)%MQ.items.length;mWebPlay()}
+  else if(c==="stop"){MAUDIO.pause();MQ.items=[];window.onMusic({idle:true})}}
+var MPOLL=null;function mPoll(on){clearInterval(MPOLL);MPOLL=null;if(on&&FA&&FA.musicState){FA.musicState();MPOLL=setInterval(function(){try{FA.musicState()}catch(e){}},1500)}}
+function mTime(ms){var s=Math.max(0,Math.round((ms||0)/1000));return Math.floor(s/60)+":"+pad(s%60)}
+window.onMusic=function(st){S.mstate=st;var b=document.getElementById("mbar");if(!b)return;
+  if(!st||st.idle){b.hidden=true;if(FA)mPoll(false);return}
+  if(FA&&!MPOLL)mPoll(true);
+  b.hidden=false;b.querySelector(".mt").textContent=st.title||"";b.querySelector(".ma").textContent=(st.artist||"")+(st.count>1?" · "+(st.index+1)+"/"+st.count:"")+(st.dur?" · "+mTime(st.pos)+" / "+mTime(st.dur):"")+(st.error?" · שגיאה: "+st.error:"");
+  b.querySelector("[data-m=toggle]").textContent=st.playing?"⏸":"▶";
+  document.querySelectorAll("[data-mrow]").forEach(function(r){r.classList.toggle("on",r.dataset.mrow===st.id)})};
+window.onMusicDl=function(d){S.mdl=d.end?null:d;var t=d.end?(d.error?d.error+" · ":"")+"נשמרו "+d.done+" מתוך "+d.total:"שומר בטלפון: "+d.done+" מתוך "+d.total;
+  document.querySelectorAll("[data-mdlmsg]").forEach(function(e){e.textContent=t});if(d.end){mLocal();if(TAB==="walk"&&S.sub.walk==="music")render();toast(t)}};
+function viewMusic(){
+  var dir=S.mdir,c=S.mcache[dir],L=S.mlocal||mLocal();
+  if(!c&&!S.mloading){S.mloading=true;mFetch(dir).then(function(){S.mloading=false;S.merr=null;if(S.sub.walk==="music"&&TAB==="walk")render()}).catch(function(e){S.mloading=false;S.merr=1;if(S.sub.walk==="music"&&TAB==="walk")render()})}
+  var crumbs=['<button type="button" class="linkb" data-mdir="">מוזיקה</button>'],acc="";dir.split("/").filter(Boolean).forEach(function(p){acc=acc?acc+"/"+p:p;crumbs.push('<button type="button" class="linkb" data-mdir="'+esc(acc)+'">'+esc(p)+'</button>')});
+  var saved=L&&L.files&&L.files.length?'<div class="card stack" style="border:2px solid var(--c-walk)"><div class="row" style="justify-content:space-between"><h3 class="h3">שמורים בטלפון ('+L.files.length+')</h3><span class="small muted">'+n1(L.bytes/1048576/1024)+' ג״ב · פנוי '+n1(L.free/1048576/1024)+' ג״ב</span></div><div class="small muted">עובד גם בלי אינטרנט. מתאים להליכה.</div><div class="row"><button type="button" class="btn walk" data-mplay-local="0">▶ נגן</button><button type="button" class="btn" data-mplay-local="1">🔀 ערבב</button><button type="button" class="btn ghost sm" id="m-delall">מחק את כל השמורים</button></div></div>':"";
+  var dl=FA&&FA.musicDownload?'<div class="small" data-mdlmsg>'+(S.mdl?"שומר בטלפון: "+S.mdl.done+" מתוך "+S.mdl.total:"")+'</div>':"";
+  var body;
+  if(!c&&S.merr)body='<div class="card"><p style="margin:0">אין חיבור לשרת הביתי, אז אי אפשר לראות את כל הספרייה עכשיו.'+(L&&L.files&&L.files.length?' השירים השמורים בטלפון עובדים.':'')+'</p></div>';
+  else if(!c)body='<div class="card"><p class="muted" style="margin:0">טוען את הספרייה…</p></div>';
+  else if(!c.total)body='<div class="card stack"><h3 class="h3">הספרייה עוד ריקה</h3><p class="small" style="margin:0">המוזיקה מועתקת מהמחשב לשרת הביתי. בסיום ההעתקה היא תופיע כאן.</p></div>';
+  else{var allBtns='<div class="row"><button type="button" class="btn walk sm" data-mplaydir="'+esc(dir)+'|0">▶ נגן הכול'+(dir?' כאן':'')+'</button><button type="button" class="btn sm" data-mplaydir="'+esc(dir)+'|1">🔀 ערבב</button>'+(FA&&FA.musicDownload&&dir?'<button type="button" class="btn sm" data-msave="'+esc(dir)+'">⬇ שמור בטלפון</button>':'')+'</div>';
+    body='<div class="card stack"><div class="small">'+crumbs.join(" ‹ ")+'</div>'+(dir?allBtns:'<div class="small muted">'+c.total.toLocaleString("he-IL")+' שירים בשרת הביתי</div>')+
+     c.dirs.map(function(d){var p=dir?dir+"/"+d.n:d.n;return'<div class="mrow"><button type="button" class="mdirb" data-mdir="'+esc(p)+'">📁 '+esc(d.n)+' <span class="small muted">('+d.c+')</span></button><button type="button" class="btn sm ghost" data-mplaydir="'+esc(p)+'|0" aria-label="נגן">▶</button></div>'}).join("")+
+     c.files.map(function(f,i){var p=dir?dir+"/"+f.n:f.n;return'<div class="mrow" data-mrow="'+esc(p)+'"><button type="button" class="mfile" data-mplayi="'+i+'">♪ '+esc(f.n.replace(/\.[^.]+$/,""))+'</button>'+(mIsLocal(p)?'<span class="pill walk">✓ בטלפון</span>':'')+'</div>'}).join("")+'</div>'}
+  return'<div class="note walkn small">המוזיקה מהמחשב שלך, דרך השרת הביתי. בטלפון היא ממשיכה לנגן גם כשהמסך כבוי, והכפתורים מופיעים בהתראה ובמסך הנעילה. לפני הליכה: שמור בטלפון את מה שתרצה לשמוע, וזה יעבוד גם בלי אינטרנט.</div>'+saved+dl+body}
+function bindMusic(root){
+  root.querySelectorAll("[data-mdir]").forEach(function(b){b.onclick=function(){S.mdir=b.dataset.mdir;render();window.scrollTo(0,0)}});
+  root.querySelectorAll("[data-mplayi]").forEach(function(b){b.onclick=function(){var c=S.mcache[S.mdir];if(!c)return;var pre=S.mdir?S.mdir+"/":"";mPlay(c.files.map(function(f){return pre+f.n}),+b.dataset.mplayi,false)}});
+  root.querySelectorAll("[data-mplaydir]").forEach(function(b){b.onclick=function(){var pr=b.dataset.mplaydir.split("|");toast("טוען את השירים…");mAll(pr[0]).then(function(l){mPlay(l,pr[1]==="1"?Math.floor(Math.random()*l.length):0,pr[1]==="1")}).catch(function(){toast("אין חיבור לשרת הביתי")})}});
+  root.querySelectorAll("[data-mplay-local]").forEach(function(b){b.onclick=function(){var L=mLocal();if(L&&L.files.length){var sh=b.dataset.mplayLocal==="1";mPlay(L.files.slice().sort(),sh?Math.floor(Math.random()*L.files.length):0,sh)}}});
+  root.querySelectorAll("[data-msave]").forEach(function(b){b.onclick=function(){mAll(b.dataset.msave).then(function(l){var L=mLocal()||{files:[]},need=l.filter(function(p){return L.files.indexOf(p)<0});
+    if(!need.length){toast("כל השירים כבר שמורים בטלפון");return}
+    S.mdl={done:0,total:need.length};FA.musicDownload(JSON.stringify(need));document.querySelectorAll("[data-mdlmsg]").forEach(function(e){e.textContent="מתחיל לשמור "+need.length+" שירים…"})}).catch(function(){toast("אין חיבור לשרת הביתי")})}});
+  var da=root.querySelector("#m-delall");if(da)da.onclick=function(){var L=mLocal();if(!L)return;if(!da.dataset.sure){da.dataset.sure=1;da.textContent="בטוח? לחץ שוב כדי למחוק "+L.files.length+" שירים מהטלפון (בשרת הם נשארים)";return}FA.musicDelete(JSON.stringify(L.files));mLocal();render()};
+}
 function addWalk(w){var m=w.date.slice(0,7),doc=S.walks[m]?JSON.parse(JSON.stringify(S.walks[m])):{items:{}};doc.items=doc.items||{};doc.items[w.id]=w;return put("walks",m,doc)}
 function parseCSV(text){
   var lines=text.replace(/\r/g,"").split("\n").filter(function(l){return l.trim()});
@@ -2054,6 +2119,7 @@ function chipGroup(id){var g=document.getElementById(id);g.querySelectorAll(".ch
 /* ---------- events ---------- */
 function bind(){
   try{bindCharts(main)}catch(e){}
+  try{bindMusic(main)}catch(e){}
   main.querySelectorAll("[data-xls]").forEach(function(x){x.onclick=function(){try{exportXlsx()}catch(e){toast("הייצוא נכשל: "+(e&&e.message||e))}}});
   main.querySelectorAll("[data-pdf]").forEach(function(x){x.onclick=function(){var k=x.dataset.pdf;try{if(k==="menus")printMenus();else if(k==="recipes")printRecipes();else printShop()}catch(e){toast("ההדפסה נכשלה: "+(e&&e.message||e))}}});
   main.querySelectorAll("[data-sub]").forEach(function(b){b.onclick=function(){var pr=b.dataset.sub.split("|");

@@ -33,6 +33,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.io.File
@@ -84,6 +85,34 @@ class MainActivity : ComponentActivity() {
     ) { granted ->
         if (granted.isNotEmpty() || askedPerms) readHealth(manual = true)
         else toPage("onFitHealth", HealthSync.Result(false, 0, 0, 0, "לא ניתנה הרשאה ל-Health Connect").toJson())
+    }
+
+    private val askNotify = registerForActivityResult(ActivityResultContracts.RequestPermission()) { }
+
+    // ---------- מוזיקה ----------
+    private var controller: androidx.media3.session.MediaController? = null
+    private var controllerFuture: com.google.common.util.concurrent.ListenableFuture<androidx.media3.session.MediaController>? = null
+
+    private fun withController(block: (androidx.media3.session.MediaController) -> Unit) {
+        controller?.let { block(it); return }
+        val f = controllerFuture ?: androidx.media3.session.MediaController.Builder(
+            this, androidx.media3.session.SessionToken(this, android.content.ComponentName(this, MusicService::class.java))
+        ).buildAsync().also { controllerFuture = it }
+        f.addListener({
+            try { controller = f.get(); controller?.let(block) } catch (_: Exception) { controllerFuture = null }
+        }, androidx.core.content.ContextCompat.getMainExecutor(this))
+    }
+
+    private fun musicStateJson(c: androidx.media3.session.MediaController?): String {
+        val o = JSONObject()
+        if (c == null || c.mediaItemCount == 0) return o.put("idle", true).toString()
+        val m = c.mediaMetadata
+        o.put("playing", c.isPlaying).put("buffering", c.playbackState == androidx.media3.common.Player.STATE_BUFFERING)
+            .put("title", m.title?.toString() ?: "").put("artist", m.artist?.toString() ?: "")
+            .put("id", c.currentMediaItem?.mediaId ?: "").put("index", c.currentMediaItemIndex).put("count", c.mediaItemCount)
+            .put("pos", c.currentPosition).put("dur", c.duration.takeIf { it > 0 } ?: 0).put("shuffle", c.shuffleModeEnabled)
+        c.playerError?.let { o.put("error", it.errorCodeName) }
+        return o.toString()
     }
 
     private val pickFiles = registerForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
@@ -273,6 +302,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        controller?.release(); controller = null
         tts?.shutdown()
         super.onDestroy()
     }
@@ -500,6 +530,71 @@ class MainActivity : ComponentActivity() {
                     Toast.makeText(this@MainActivity, "השמירה נכשלה", Toast.LENGTH_LONG).show()
                 }
             }
+        }
+
+        @JavascriptInterface
+        fun musicPlay(json: String) {
+            runOnUiThread {
+                try {
+                    val o = JSONObject(json)
+                    val a = o.getJSONArray("items")
+                    val items = (0 until a.length()).map { MusicStore.item(this@MainActivity, server, a.getString(it)) }
+                    if (items.isEmpty()) return@runOnUiThread
+                    if (android.os.Build.VERSION.SDK_INT >= 33 &&
+                        checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != android.content.pm.PackageManager.PERMISSION_GRANTED)
+                        askNotify.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                    withController { c ->
+                        c.setMediaItems(items, o.optInt("index", 0).coerceIn(0, items.size - 1), 0L)
+                        c.shuffleModeEnabled = o.optBoolean("shuffle", false)
+                        c.repeatMode = androidx.media3.common.Player.REPEAT_MODE_ALL
+                        c.prepare(); c.play()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this@MainActivity, "הניגון נכשל", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun musicCmd(cmd: String) {
+            runOnUiThread {
+                withController { c ->
+                    when {
+                        cmd == "play" -> c.play()
+                        cmd == "pause" -> c.pause()
+                        cmd == "next" -> c.seekToNextMediaItem()
+                        cmd == "prev" -> if (c.currentPosition > 5000) c.seekTo(0) else c.seekToPreviousMediaItem()
+                        cmd == "stop" -> { c.stop(); c.clearMediaItems() }
+                        cmd == "shuffle" -> c.shuffleModeEnabled = !c.shuffleModeEnabled
+                        cmd.startsWith("seek:") -> cmd.substringAfter(':').toLongOrNull()?.let { c.seekTo(it) }
+                    }
+                    toPage("onMusic", musicStateJson(c))
+                }
+            }
+        }
+
+        @JavascriptInterface
+        fun musicState() { runOnUiThread { val c = controller; if (c != null) toPage("onMusic", musicStateJson(c)) else withController { toPage("onMusic", musicStateJson(it)) } } }
+
+        @JavascriptInterface
+        fun musicLocal(): String = MusicStore.list(this@MainActivity).toString()
+
+        @JavascriptInterface
+        fun musicDownload(json: String) {
+            val a = JSONArray(json)
+            val rels = (0 until a.length()).map { a.getString(it) }
+            MusicStore.download(this@MainActivity, server, token, rels) { done, total, err ->
+                toPage("onMusicDl", JSONObject().put("done", done).put("total", total).put("end", err != null).put("error", err ?: "").toString())
+            }
+        }
+
+        @JavascriptInterface
+        fun musicStopDl() { MusicStore.stopFlag = true }
+
+        @JavascriptInterface
+        fun musicDelete(json: String) {
+            val a = JSONArray(json)
+            MusicStore.delete(this@MainActivity, (0 until a.length()).map { a.getString(it) })
         }
 
         @JavascriptInterface

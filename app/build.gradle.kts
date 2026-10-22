@@ -12,8 +12,8 @@ android {
         applicationId = "il.eliperez.fitness"
         minSdk = 29
         targetSdk = 35
-        versionCode = 17
-        versionName = "4.6"
+        versionCode = 18
+        versionName = "4.7"
     }
 
     // מפתח חתימה קבוע: בלעדיו כל בנייה נחתמת במפתח אחר ואנדרואיד חוסם את העדכון
@@ -51,4 +51,7 @@ dependencies {
     // Samsung Health Data SDK: קריאה ישירה של האימונים מ-Samsung Health
     implementation(files("libs/samsung-health-data-api-1.1.0.aar"))
     implementation("com.google.code.gson:gson:2.11.0")
+    // נגן מוזיקה ברקע (מסך כבוי, כפתורים במסך הנעילה)
+    implementation("androidx.media3:media3-exoplayer:1.4.1")
+    implementation("androidx.media3:media3-session:1.4.1")
 }

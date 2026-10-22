@@ -27,7 +27,7 @@ PY
 mkdir -p "$rel/FitnessWeb/data"
 cat > "$base/Dockerfile" <<'DOCKER'
 FROM python:3.12-alpine
-RUN pip install --no-cache-dir flask==3.0.3 waitress==3.0.0
+RUN pip install --no-cache-dir flask==3.0.3 waitress==3.0.0 pysmb==1.2.13
 WORKDIR /app
 CMD ["waitress-serve","--host=0.0.0.0","--port=5050","--threads=8","web_app:app"]
 DOCKER
@@ -40,16 +40,18 @@ if [ "$(id -u)" != 0 ] && ! sudo -n "$(command -v docker)" version >/dev/null 2>
   sudo chmod 440 /etc/sudoers.d/fitness-home
   if ! sudo visudo -cf /etc/sudoers.d/fitness-home >/dev/null; then sudo rm -f /etc/sudoers.d/fitness-home; echo 'Permission rule skipped.'; fi
 fi
-if ! sudo docker image inspect fitness-app:1 >/dev/null 2>&1; then
+IMG=fitness-app:2
+if ! sudo docker image inspect $IMG >/dev/null 2>&1; then
   echo 'Building the app image (first time only, about a minute)...'
-  sudo docker build -q -t fitness-app:1 "$base" >/dev/null
+  sudo docker build -q -t $IMG "$base" >/dev/null
 fi
 old=$(readlink -f "$base/current" 2>/dev/null || true)
 start() {
   sudo docker rm -f fitness-app >/dev/null 2>&1 || true
+  mkdir -p "$HOME/music"
   sudo docker run -d --name fitness-app --restart=unless-stopped \
     -p 127.0.0.1:5050:5050 -p 192.168.50.83:5050:5050 \
-    -v "$1:/app:ro" -v "$base/data:/app/data" fitness-app:1 >/dev/null
+    -v "$1:/app:ro" -v "$base/data:/app/data" -v "$HOME/music:/app/music:ro" $IMG >/dev/null
 }
 start "$rel/FitnessWeb"
 ok=false
