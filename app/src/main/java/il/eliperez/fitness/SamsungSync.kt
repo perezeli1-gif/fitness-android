@@ -78,6 +78,7 @@ object SamsungSync {
                     s.calories.takeIf { it > 0 }?.let { w.put("kcal", it.toDouble()) }
                     s.meanSpeed?.takeIf { it > 0 }?.let { w.put("speed", it * 3.6) }
                     w.remove("dbgMove"); w.remove("dbgSteps")
+                    if (sec >= 15 * 60) try { track(s, zone)?.let { w.put("trk", it) } } catch (_: Throwable) { }
                     merged.put(w)
                 }
             }
@@ -92,5 +93,36 @@ object SamsungSync {
             out.put("shealth", "הקריאה מ-Samsung Health נכשלה: ${e.message ?: e.javaClass.simpleName}")
         }
         return out.toString()
+    }
+
+    /** המסלול (GPS) ונתוני הדופק והמהירות לאורך ההליכה, מדוללים לכ-120 נקודות כדי לשמור מקום. */
+    private fun <T> thin(l: List<T>, n: Int = 120): List<T> =
+        if (l.size <= n) l else (0 until n).map { l[(it.toLong() * (l.size - 1) / (n - 1)).toInt()] }
+
+    private fun r5(v: Double) = Math.round(v * 100000) / 100000.0
+    private fun r1(v: Double) = Math.round(v * 10) / 10.0
+
+    private fun track(s: com.samsung.android.sdk.health.data.data.entries.ExerciseSession, zone: ZoneId): JSONObject? {
+        val out = JSONObject()
+        val route = s.route ?: emptyList()
+        if (route.size >= 5) {
+            val r = JSONArray()
+            for (p in thin(route.sortedBy { it.timestamp })) r.put(JSONArray().put(r5(p.latitude.toDouble())).put(r5(p.longitude.toDouble())))
+            out.put("r", r)
+        }
+        val log = (s.log ?: emptyList()).filter { it.timestamp != null }.sortedBy { it.timestamp }
+        if (log.size >= 5) {
+            val t0 = s.startTime
+            val l = JSONArray()
+            for (e in thin(log)) {
+                val row = JSONArray().put(Duration.between(t0, e.timestamp).seconds)
+                row.put(e.heartRate?.takeIf { it > 30 }?.let { Math.round(it).toInt() } ?: JSONObject.NULL)
+                row.put(e.speed?.takeIf { it >= 0 }?.let { r1(it * 3.6) } ?: JSONObject.NULL)
+                row.put(e.cadence?.takeIf { it > 0 }?.let { Math.round(it).toInt() } ?: JSONObject.NULL)
+                l.put(row)
+            }
+            out.put("l", l)
+        }
+        return if (out.length() == 0) null else out
     }
 }
