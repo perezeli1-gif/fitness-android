@@ -49,9 +49,16 @@ old=$(readlink -f "$base/current" 2>/dev/null || true)
 start() {
   sudo docker rm -f fitness-app >/dev/null 2>&1 || true
   mkdir -p "$HOME/music"
-  sudo docker run -d --name fitness-app --restart=unless-stopped \
+  if ! sudo docker run -d --name fitness-app --restart=unless-stopped \
     -p 127.0.0.1:5050:5050 -p 192.168.50.83:5050:5050 \
-    -v "$1:/app:ro" -v "$base/data:/app/data" -v "$HOME/music:/app/music:ro" $IMG >/dev/null
+    -v "$1:/app:ro" -v "$base/data:/app/data" -v "$HOME/music:/music:ro" -e FIT_MUSIC=/music $IMG >/dev/null; then
+    # אם משהו בהגדרות החדשות נכשל: מפעילים בלי התוספות, כדי שהאפליקציה לא תיפול
+    echo 'Start with extras failed, starting the basic way.' >&2
+    sudo docker rm -f fitness-app >/dev/null 2>&1 || true
+    sudo docker run -d --name fitness-app --restart=unless-stopped \
+      -p 127.0.0.1:5050:5050 -p 192.168.50.83:5050:5050 \
+      -v "$1:/app:ro" -v "$base/data:/app/data" $IMG >/dev/null || true
+  fi
 }
 start "$rel/FitnessWeb"
 ok=false
