@@ -263,7 +263,7 @@ details summary{cursor:pointer;font-weight:600}
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="4.4",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="4.5",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1595,14 +1595,15 @@ function viewWalk(){
   var dcards=daily.slice(0,40).map(function(w){return card(w,false)}).join("");
   var now=new Date(),nowT=pad(now.getHours())+":"+pad(now.getMinutes());
   var sub=subOf("walk","sum");
-  return '<div class="stack">'+segBar("walk",[["sum","סיכום"],["list","ההליכות"],["add","סנכרון ורישום"]],sub,"--c-walk")+
+  return '<div class="stack">'+segBar("walk",[["sum","סיכום"],["ins","ניתוח והמלצות"],["list","ההליכות"],["add","סנכרון ורישום"]],sub,"--c-walk")+
   '<div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div></div><div class="tape walk"></div>'+
-  (sub==="sum"?(
+  (sub==="sum"?((function(){try{var A=walkInsights();if(A.empty)return"";return'<div class="note walkn row" style="justify-content:space-between"><span><b>המלצה לשבוע הבא:</b> '+A.plan.tgt+' דקות הליכה. '+esc(A.plan.items[1])+'</span><button type="button" class="btn sm walk" data-sub="walk|ins">לניתוח המלא</button></div>'}catch(e){return""}})()+
   '<div class="card stack" id="t-wsum" style="--dc:var(--c-walk)"><div class="head"><h3 class="h3">השבוע</h3><span class="small muted">'+fmtD(ws)+'–'+fmtD(addDays(ws,6))+'</span></div><div class="wstats">'+
     stat("מרחק",n1(wk.km),"ק״מ")+stat("זמן הליכה",fmtDur(wk.min))+stat("קצב ממוצע",wk.pace?fmtPace(wk.pace,1):"–","דק׳ לק״מ")+stat("הליכות",wk.n)+'</div>'+
     '<div class="prog walk"><i style="width:'+Math.min(100,wk.min/goal*100)+'%"></i></div><div class="small muted">'+Math.round(wk.min)+' מתוך '+goal+' דקות'+(wk.min>=goal?' · הגעת ליעד!':"")+'</div></div>'+
   '<div class="card stack"><h3 class="h3">החודש ושיאים</h3><div class="wstats">'+stat("מרחק החודש",n1(mo.km),"ק״מ")+stat("זמן החודש",fmtDur(mo.min))+stat("ההליכה הארוכה",longest&&longest.km?n1(longest.km):"–","ק״מ")+stat("הקצב הטוב",fastest?fmtPace(fastest.min,fastest.km):"–","דק׳ לק״מ")+'</div></div>'+
   '<div class="card stack" id="t-wchart"><div class="head"><h3 class="h3">8 שבועות אחרונים</h3><div class="chips">'+[["min","דקות"],["km","ק״מ"]].map(function(o){return'<button class="chip" data-wm="'+o[0]+'" aria-pressed="'+(metric===o[0])+'">'+o[1]+'</button>'}).join("")+'</div></div>'+bars+'</div>'):"")+
+  (sub==="ins"?viewInsights():"")+
   (sub==="list"?('<div class="row"><button type="button" class="btn sm" data-xls="1">⬇ ייצוא כל ההליכות והאימונים לאקסל</button></div>'+
   '<div class="stack" id="t-wlist"><h3 class="h3">הליכות כושר</h3>'+(list.length?cards:'<div class="card"><p class="muted" style="margin:0">עוד אין הליכות כושר. רשום את הראשונה למעלה או סנכרן מהשעון.</p></div>')+'</div>'+
   '<details class="card" id="t-wdaily"><summary>הליכות יומיומיות שלא נספרות ('+daily.length+')</summary><div class="stack" style="margin-top:10px">'+
@@ -1624,6 +1625,67 @@ function viewWalk(){
    '<div class="small muted">עם אפליקציית הטלפון אין צורך בקובץ: ההליכות נמשכות לבד.</div></div></div>'):"")+
   '</div>';
 }
+/* ---------- walk analysis and recommendations (all calculated here, offline) ---------- */
+function walkInsights(){
+  var p=P(),age=+p.age||67,hrMax=Math.round(208-0.7*age),z1=Math.round(hrMax*0.64),z2=Math.round(hrMax*0.76);
+  var tk=today(),ws=weekStart(tk),list=fitWalks(),goal=walkGoalWeek();
+  var rng=function(s,e){var L=list.filter(function(w){return w.date>=s&&w.date<=e}),o={s:s,n:L.length,min:0,km:0,kmMin:0,kmKm:0,hrMin:0,hrSum:0,kcal:0,stp:0,stpMin:0,days:{}};
+    L.forEach(function(w){var m=+w.min||0;o.min+=m;o.km+=+w.km||0;o.kcal+=Math.max(0,(+w.kcal||0)-m*1.2);o.days[w.date]=1;if(w.km&&m){o.kmKm+=+w.km;o.kmMin+=m}if(w.hr&&m){o.hrSum+=w.hr*m;o.hrMin+=m}if(w.steps&&!w.stepsEst&&m){o.stp+=+w.steps;o.stpMin+=m}});
+    o.pace=o.kmKm?o.kmMin/o.kmKm:null;o.hr=o.hrMin?o.hrSum/o.hrMin:null;o.cad=o.stpMin?o.stp/o.stpMin:null;o.nd=Object.keys(o.days).length;return o};
+  var W=[];for(var i=0;i<5;i++)W.push(rng(addDays(ws,-7*i),addDays(ws,-7*i+6)));   /* calendar weeks for the table */
+  var last=rng(addDays(tk,-6),tk),r4=rng(addDays(tk,-27),tk),p4=rng(addDays(tk,-55),addDays(tk,-28)),F=[],plan={};
+  r4.kcal=r4.kcal||0;
+  if(!list.length)return{empty:true,hrMax:hrMax,z1:z1,z2:z2};
+  /* 1. amount */
+  var ref=last.min,refTxt="ב־7 הימים האחרונים";
+  if(ref>=150)F.push({l:"good",t:"כמות ההליכה",d:refTxt+" הלכת "+Math.round(ref)+" דקות. זה עומד בהמלצה לגיל שלך (150 דקות בשבוע בקצב בינוני). מעל 150 יש תועלת נוספת לירידה במשקל, עד כ־300 דקות."});
+  else F.push({l:ref>=goal*0.8?"info":"warn",t:"כמות ההליכה",d:refTxt+" הלכת "+Math.round(ref)+" דקות. ההמלצה לגיל שלך היא 150 דקות בשבוע. מוסיפים בהדרגה, עד 10% בשבוע, כדי לא להעמיס על הברכיים."});
+  /* 2. frequency and breaks */
+  var d28=list.filter(function(w){return w.date>addDays(tk,-28)}).map(function(w){return w.date}).filter(function(v,i,a){return a.indexOf(v)===i}).sort(),gap=0;
+  for(var j=1;j<d28.length;j++)gap=Math.max(gap,daysBetween(d28[j-1],d28[j])-1);
+  var since=list.length?daysBetween(list[0].date,tk):null;
+  if(last.nd>=4)F.push({l:"good",t:"תדירות",d:"הלכת ב־"+last.nd+" ימים שונים ב־7 הימים האחרונים. פיזור על פני השבוע טוב יותר לסוכר בדם וללחץ הדם מהליכה ארוכה אחת."});
+  else F.push({l:"info",t:"תדירות",d:(last.nd?"ב־7 הימים האחרונים הלכת ב־"+last.nd+" ימים.":"ב־7 הימים האחרונים לא נרשמו הליכות כושר.")+" עדיף 4–5 הליכות קצרות יותר מאשר 2 ארוכות. גם 20 דקות נחשבות."});
+  if(gap>=4)F.push({l:"warn",t:"הפסקות ארוכות",d:"בחודש האחרון הייתה הפסקה של "+gap+" ימים בלי הליכה. אחרי יותר מ־3 ימים חלק מהכושר מתחיל לרדת. ביום עמוס עדיף הליכה של 15 דקות מכלום."});
+  if(since!=null&&since>=3)F.push({l:"warn",t:"ההליכה האחרונה",d:"ההליכה האחרונה הייתה לפני "+since+" ימים."});
+  /* 3. intensity: heart rate and steps per minute */
+  if(r4.hr){var h=Math.round(r4.hr);
+    if(h>z2)F.push({l:"info",t:"דופק",d:"הדופק הממוצע בהליכות ("+h+") מעל הטווח הבינוני שלך ("+z1+"–"+z2+"). זה מאמץ טוב לכושר, אבל ודא שאתה עדיין יכול לדבר במשפטים. אם יש סחרחורת, לחץ בחזה או קוצר נשימה חריג: עוצרים ופונים לרופא. אם אתה לוקח תרופות ללב או ללחץ דם, שאל את הרופא מה הדופק המתאים לך."});
+    else if(h>=z1)F.push({l:"good",t:"דופק",d:"הדופק הממוצע ("+h+") בדיוק בטווח הבינוני שלך ("+z1+"–"+z2+"). זה הטווח הכי יעיל לשריפת שומן ולבריאות הלב בגיל שלך."});
+    else F.push({l:"info",t:"דופק",d:"הדופק הממוצע ("+h+") מתחת לטווח הבינוני שלך ("+z1+"–"+z2+"). אפשר להגביר מעט את הקצב, או להוסיף קטעים מהירים קצרים."})}
+  else F.push({l:"info",t:"דופק",d:"אין עדיין נתוני דופק מההליכות. הליכה שמופעלת בשעון כאימון מודדת דופק."});
+  if(r4.cad){var c=Math.round(r4.cad);F.push({l:c>=100?"good":"info",t:"צעדים לדקה",d:"בממוצע "+c+" צעדים לדקה. "+(c>=120?"זו הליכה נמרצת.":c>=100?"זו הליכה בקצב בינוני, כמו שצריך.":"מתחת ל־100 צעדים לדקה ההליכה קלה. כדאי להגביר מעט.")})}
+  /* 4. progress in pace */
+  if(r4.pace&&p4.pace){var dsec=Math.round((p4.pace-r4.pace)*60);
+    F.push({l:dsec>5?"good":dsec<-10?"warn":"info",t:"התקדמות בקצב",d:"ב־4 השבועות האחרונים הקצב הממוצע הוא "+fmtPace(r4.pace,1)+" דק׳ לק״מ, לעומת "+fmtPace(p4.pace,1)+" בחודש שלפני. "+(dsec>5?"השתפרת ב־"+dsec+" שניות לכל ק״מ.":dsec<-10?"הקצב איטי יותר ב־"+(-dsec)+" שניות לק״מ. יכול להיות בגלל עייפות, חום או מסלול עם עליות.":"הקצב יציב.")})}
+  else if(r4.pace)F.push({l:"info",t:"הקצב שלך",d:"הקצב הממוצע הוא "+fmtPace(r4.pace,1)+" דקות לק״מ. אחרי עוד כמה שבועות של הליכות תופיע כאן השוואה לחודש הקודם."});
+  /* 5. daily steps */
+  var st=[];for(var k=1;k<=7;k++){var v=stepsFor(addDays(tk,-k));if(v!=null)st.push(v)}
+  if(st.length>=3){var avg=Math.round(st.reduce(function(a,b){return a+b},0)/st.length);
+    F.push({l:avg>=7000?"good":"info",t:"צעדים ביום",d:"בממוצע "+avg.toLocaleString("he-IL")+" צעדים ביום בשבוע האחרון. בגיל שלך רוב התועלת לבריאות מגיעה בטווח של 6,000–8,000 צעדים ביום"+(avg<6000?". הליכה קצרה אחרי ארוחת הצהריים מוסיפה כ־1,500 צעדים.":".")})}
+  /* 6. calories */
+  if(r4.kcal){var wks=Math.max(1,Math.min(4,(daysBetween(list[list.length-1].date,tk)+1)/7)),perW=r4.kcal/wks;F.push({l:"info",t:"קלוריות",d:"ההליכות שורפות בממוצע כ־"+Math.round(perW/10)*10+" קלוריות בשבוע מעבר למה שהגוף שורף במנוחה. זה שווה בערך "+n1(perW*4.3/7700)+" ק״ג שומן בחודש, רק מההליכה."})}
+  /* plan for next week */
+  var base=Math.max(last.min,r4.min/4,60),tgt=Math.min(300,Math.max(goal,Math.round(Math.min(base*1.1,base+30)/5)*5));
+  var n=tgt>=180?5:4,each=Math.round(tgt/n/5)*5,longOne=each+10;
+  var hrHigh=r4.hr&&r4.hr>z2,easy=r4.hr&&r4.hr<z1||(r4.cad&&r4.cad<100);
+  plan={tgt:tgt,items:[
+    (n-2)+" הליכות רגילות של כ־"+each+" דקות, בקצב שמאפשר לדבר אבל לא לשיר"+(r4.hr?" (דופק "+z1+"–"+z2+")":"")+".",
+    hrHigh?"הליכה אחת קלה ורגועה של "+each+" דקות, בדופק מתחת ל־"+z2+". מנוחה פעילה חשובה בדיוק כמו המאמץ.":
+     "הליכה אחת עם קטעים מהירים: 10 דקות חימום, ואז "+(easy?4:6)+" פעמים: 2 דקות מהר ו־2 דקות רגיל, ו־5 דקות שחרור.",
+    "הליכה ארוכה אחת של כ־"+longOne+" דקות, בקצב נוח, עדיף במסלול שטוח.",
+    "בימים בלי הליכה: 10 דקות הליכה קלה אחרי ארוחה גדולה."]};
+  return{F:F,plan:plan,hrMax:hrMax,z1:z1,z2:z2,r4:r4,W:W}}
+function viewInsights(){var A=walkInsights();
+  if(A.empty)return'<div class="card"><p class="muted" style="margin:0">עוד אין הליכות כושר לניתוח. אחרי כמה הליכות יופיעו כאן ניתוח והמלצות.</p></div>';
+  var col={good:"var(--good)",warn:"var(--warn)",info:"var(--c-pull)"},ic={good:"✔",warn:"⚠",info:"ℹ"};
+  return'<div class="card stack" style="--dc:var(--c-walk);border:2px solid var(--c-walk)"><h3 class="h3">התוכנית שלי לשבוע הבא: '+A.plan.tgt+' דקות</h3><ol class="steps" style="margin:0">'+A.plan.items.map(function(x){return"<li>"+esc(x)+"</li>"}).join("")+'</ol>'+
+   '<div class="small muted">לפני: כוס מים. נעליים טובות. בחום: בבוקר או אחרי השקיעה. כאב בברך שנמשך יותר מיום אחרי הליכה: מקצרים את ההליכה הבאה.</div></div>'+
+   '<div class="card stack"><h3 class="h3">מה ההליכות שלך מראות</h3>'+A.F.map(function(f){return'<div class="note small" style="border-inline-start-color:'+col[f.l]+'"><b style="color:'+col[f.l]+'">'+ic[f.l]+' '+esc(f.t)+':</b> '+esc(f.d)+'</div>'}).join("")+'</div>'+
+   '<div class="card stack"><h3 class="h3">הטווחים שלך</h3><div class="small">דופק מקסימלי משוער לגיל '+(+P().age||67)+': <b>'+A.hrMax+'</b>. הליכה בינונית: <b>'+A.z1+'–'+A.z2+'</b>. מעל '+A.z2+': מאמץ גבוה.</div><div class="small muted">הערכה לפי גיל בלבד. תרופות כמו חוסמי בטא מורידות את הדופק, ואז הטווח שלך נמוך יותר. בדוק עם הרופא.</div></div>'+
+   '<div class="card stack"><h3 class="h3">4 שבועות אחרונים</h3><div class="tbl"><table><thead><tr><th>שבוע</th><th>הליכות</th><th>דקות</th><th>ק״מ</th><th>קצב</th><th>דופק</th></tr></thead><tbody>'+
+    A.W.slice(0,5).map(function(x,i){return"<tr><td>"+fmtD(x.s)+(i===0?" (השבוע)":"")+"</td><td>"+x.n+"</td><td>"+Math.round(x.min)+"</td><td>"+n1(x.km)+"</td><td>"+(x.pace?fmtPace(x.pace,1):"–")+"</td><td>"+(x.hr?Math.round(x.hr):"–")+"</td></tr>"}).join("")+'</tbody></table></div></div>'+
+   '<p class="small muted">ההמלצות כלליות ולא מחליפות רופא. מבוססות על ההמלצות לגיל 65 ומעלה: 150–300 דקות הליכה בינונית בשבוע, ותרגילי כוח פעמיים בשבוע.</p>'}
 function addWalk(w){var m=w.date.slice(0,7),doc=S.walks[m]?JSON.parse(JSON.stringify(S.walks[m])):{items:{}};doc.items=doc.items||{};doc.items[w.id]=w;return put("walks",m,doc)}
 function parseCSV(text){
   var lines=text.replace(/\r/g,"").split("\n").filter(function(l){return l.trim()});
