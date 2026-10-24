@@ -43,6 +43,15 @@ class MusicService : MediaSessionService() {
             .setHandleAudioBecomingNoisy(true)   // אוזניות שהתנתקו: עוצר
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .build()
+        // שיר שלא מתנגן (פורמט לא נתמך וכד'): ממשיכים לשיר הבא, עד 5 פעמים ברצף
+        player.addListener(object : androidx.media3.common.Player.Listener {
+            var fails = 0
+            override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
+                val io = error.errorCode in 2000..2999
+                if (!io && fails < 5 && player.mediaItemCount > 1) { fails++; player.seekToNextMediaItem(); player.prepare(); player.play() }
+            }
+            override fun onIsPlayingChanged(isPlaying: Boolean) { if (isPlaying) fails = 0 }
+        })
         session = MediaSession.Builder(this, player).build()
     }
 

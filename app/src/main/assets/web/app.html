@@ -239,6 +239,7 @@ details summary{cursor:pointer;font-weight:600}
 .exlib{position:relative}
 .exlib .vid{align-self:flex-start;text-decoration:none;color:#fff;background:#E5322D;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
 .chart.bigt text{font-size:19px}
+.musbtn{background:linear-gradient(135deg,#7C3AED,#DB2777);border:0;color:#fff;font-weight:800;font-size:16px;padding:12px 18px;border-radius:999px;box-shadow:0 4px 14px rgba(124,58,237,.35)}
 .mrow{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:2px 0}
 .mrow.on{background:var(--walk-soft);border-radius:8px}
 .mdirb,.mfile{flex:1;text-align:start;background:none;border:0;padding:10px 4px;font-size:15px;color:var(--ink);cursor:pointer;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -274,7 +275,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="4.8",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="4.9",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -875,6 +876,10 @@ window.onFitHealth=function(r){
     for(var k in it){var x=it[k];if(x.date===w.date&&hm(x.time)!=null&&t0!=null&&Math.abs(hm(x.time)-t0)<=3)return}
     it[wid]=Object.assign({id:wid,date:w.date,time:String(w.time||"").slice(0,5),src:"watch"},data);added++});
   Object.keys(months).forEach(function(m){if(JSON.stringify(months[m])!==JSON.stringify(S.walks[m]||null))put("walks",m,months[m])});
+  /* body composition (Galaxy Watch or a scale that syncs to Samsung Health): fill that date's row; what you typed by hand wins */
+  (r.body||[]).forEach(function(b){if(!b.date||b.date.length!==10)return;var cur=S.measures[b.date]||{},o=Object.assign({},cur),auto=(cur.auto||[]).slice(),ch=false;
+    ["weight","fat","muscle","water","bmr"].forEach(function(f){if(b[f]==null)return;var mine=cur[f]!=null&&auto.indexOf(f)<0;if(mine||cur[f]===b[f])return;o[f]=b[f];if(auto.indexOf(f)<0)auto.push(f);ch=true});
+    if(ch){o.auto=auto;put("measures",b.date,o)}});
   var st=r.steps||{},bym={};Object.keys(st).forEach(function(k){if(k.length===10)(bym[k.slice(0,7)]=bym[k.slice(0,7)]||{})[k]=Math.round(+st[k])});
   Object.keys(bym).forEach(function(m){var cur=S.steps[m]||{},days=Object.assign({},cur.days||{},bym[m]);if(JSON.stringify(days)!==JSON.stringify(cur.days||{}))put("steps",m,Object.assign({},cur,{days:days}))});
   window.onFitSync({ok:true,added:added,updated:updated,found:(r.walks||[]).length});soft();
@@ -1403,7 +1408,7 @@ function xlsxBuild(sheets){/* sheets: [{name, head:[], rows:[[]], widths:[]}] */
     x+='</sheetData></worksheet>';f.push(["xl/worksheets/sheet"+(si+1)+".xml",x])});
   return zipStore(f.map(function(e){return[e[0],enc.encode(e[1])]}))}
 function r2(v){return v==null||v===""||isNaN(+v)?"":Math.round(+v*100)/100}
-function exportXlsx(){
+function exportXlsx(only){
   var walks=walkList().slice().sort(function(a,b){return(a.date+(a.time||""))<(b.date+(b.time||""))?-1:1});
   var wRows=walks.map(function(w){var sp=w.km&&w.min?r2(w.km/(w.min/60)):"";return[w.date,w.time||"",r2(w.km),r2(w.min),fmtPace(w.min,w.km)==="–"?"":fmtPace(w.min,w.km),sp,w.steps?Math.round(+w.steps):"",w.hr?Math.round(+w.hr):"",w.kcal?Math.round(+w.kcal):"",isFitWalk(w)?"כן":"לא",(w.src==="watch"||w.src==="samsung")?"שעון":"ידני",w.note||""]});
   var sRows=[];sessList().slice().reverse().forEach(function(s){var its=s.items||{};var any=false;
@@ -1411,11 +1416,12 @@ function exportXlsx(){
       sRows.push([s.date,wName(s.plan),EXI[id]?EXI[id].name:id,i+1,st.w!=null&&st.w!==""?+st.w:"",st.r!=null&&st.r!==""?+st.r:"",st.done?"כן":"לא",s.feel||"",(+s.knee?"ברך ":"")+(+s.shoulder?"כתף":""),s.notes||""])})});
     if(!any)sRows.push([s.date,wName(s.plan),"","","","","",s.feel||"","",s.notes||""])});
   var mRows=measList().map(function(m){return[m.id].concat(MF.map(function(f){return m[f[0]]!=null&&m[f[0]]!==""?+m[f[0]]:""}))});
-  var data=xlsxBuild([
+  var MS={name:"מדידות",head:["תאריך"].concat(MF.map(function(f){return f[1]+" ("+f[2]+")"})),rows:mRows,widths:[12,11,15,13,13,15,17,13,11,12,12,14]};
+  var data=only==="meas"?xlsxBuild([MS]):xlsxBuild([
     {name:"הליכות",head:["תאריך","שעה","מרחק (ק״מ)","זמן (דקות)","קצב (דק׳ לק״מ)","מהירות (קמ״ש)","צעדים","דופק ממוצע","קלוריות","הליכת כושר","מקור","הערה"],rows:wRows,widths:[12,8,11,11,13,13,10,11,10,11,8,24]},
     {name:"אימוני משקולות",head:["תאריך","אימון","תרגיל","סט","משקל (ק״ג)","חזרות","בוצע","קושי (1-10)","כאב","הערות"],rows:sRows,widths:[12,18,26,6,11,8,7,11,10,24]},
-    {name:"מדידות",head:["תאריך"].concat(MF.map(function(f){return f[1]+" ("+f[2]+")"})),rows:mRows,widths:[12,11,15,13,13,15,17,13]}]);
-  var name="fitness-log-"+today()+".xlsx";
+    MS]);
+  var name=(only==="meas"?"measurements-":"fitness-log-")+today()+".xlsx";
   if(FA&&FA.saveXlsx){var b="",ch=0x8000;for(var i=0;i<data.length;i+=ch)b+=String.fromCharCode.apply(null,data.subarray(i,i+ch));FA.saveXlsx(name,btoa(b));return}
   var url=URL.createObjectURL(new Blob([data],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})),a=document.createElement("a");
   a.href=url;a.download=name;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(url);a.remove()},2000);toast("קובץ האקסל ירד למחשב")}
@@ -1608,8 +1614,8 @@ function viewWalk(){
   var dcards=daily.slice(0,40).map(function(w){return card(w,false)}).join("");
   var now=new Date(),nowT=pad(now.getHours())+":"+pad(now.getMinutes());
   var sub=subOf("walk","sum");
-  return '<div class="stack">'+segBar("walk",[["sum","סיכום"],["ins","ניתוח והמלצות"],["list","ההליכות"],["music","🎵 מוזיקה"],["guide","מדריך הליכה"],["add","סנכרון ורישום"]],sub,"--c-walk")+
-  '<div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div></div><div class="tape walk"></div>'+
+  return '<div class="stack">'+segBar("walk",[["sum","סיכום"],["add","סנכרון ורישום"],["ins","ניתוח והמלצות"],["list","ההליכות"],["music","🎵 מוזיקה"],["guide","מדריך הליכה"]],sub,"--c-walk")+
+  '<div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div><button type="button" class="btn musbtn" data-sub="walk|music">🎵 מוזיקה להליכה'+(S.mstate&&S.mstate.playing?' · מתנגן':'')+'</button></div><div class="tape walk"></div>'+
   (sub==="sum"?((function(){try{var A=walkInsights();if(A.empty)return"";return'<div class="note walkn row" style="justify-content:space-between"><span><b>המלצה לשבוע הבא:</b> '+A.plan.tgt+' דקות הליכה. '+esc(A.plan.items[1])+'</span><button type="button" class="btn sm walk" data-sub="walk|ins">לניתוח המלא</button></div>'}catch(e){return""}})()+
   '<div class="card stack" id="t-wsum" style="--dc:var(--c-walk)"><div class="head"><h3 class="h3">השבוע</h3><span class="small muted">'+fmtD(ws)+'–'+fmtD(addDays(ws,6))+'</span></div><div class="wstats">'+
     stat("מרחק",n1(wk.km),"ק״מ")+stat("זמן הליכה",fmtDur(wk.min))+stat("קצב ממוצע",wk.pace?fmtPace(wk.pace,1):"–","דק׳ לק״מ")+stat("הליכות",wk.n)+'</div>'+
@@ -1692,12 +1698,13 @@ function walkInsights(){
     "הליכה ארוכה אחת של כ־"+longOne+" דקות, בקצב נוח, עדיף במסלול שטוח.",
     "בימים בלי הליכה: 10 דקות הליכה קלה אחרי ארוחה גדולה."]};
   return{F:F,plan:plan,hrMax:hrMax,z1:z1,z2:z2,r4:r4,W:W}}
-function viewInsights(){var A=walkInsights();
+function viewInsights(){var A=walkInsights(),lw=fitWalks().find(function(w){return w.trk&&w.trk.r});
+  var deep=lw?'<div class="card stack"><h3 class="h3">ההליכה האחרונה לעומק · '+fmtDL(lw.date)+'</h3>'+routeSvg(lw.trk.r)+walkDeepHtml(lw)+'</div>':"";
   if(A.empty)return'<div class="card"><p class="muted" style="margin:0">עוד אין הליכות כושר לניתוח. אחרי כמה הליכות יופיעו כאן ניתוח והמלצות.</p></div>';
   var col={good:"var(--good)",warn:"var(--warn)",info:"var(--c-pull)"},ic={good:"✔",warn:"⚠",info:"ℹ"};
   return'<div class="card stack" style="--dc:var(--c-walk);border:2px solid var(--c-walk)"><h3 class="h3">התוכנית שלי לשבוע הבא: '+A.plan.tgt+' דקות</h3><ol class="steps" style="margin:0">'+A.plan.items.map(function(x){return"<li>"+esc(x)+"</li>"}).join("")+'</ol>'+
    '<div class="small muted">לפני: כוס מים. נעליים טובות. בחום: בבוקר או אחרי השקיעה. כאב בברך שנמשך יותר מיום אחרי הליכה: מקצרים את ההליכה הבאה.</div></div>'+
-   '<div class="card stack"><h3 class="h3">מה ההליכות שלך מראות</h3>'+A.F.map(function(f){return'<div class="note small" style="border-inline-start-color:'+col[f.l]+'"><b style="color:'+col[f.l]+'">'+ic[f.l]+' '+esc(f.t)+':</b> '+esc(f.d)+'</div>'}).join("")+'</div>'+
+   deep+'<div class="card stack"><h3 class="h3">מה ההליכות שלך מראות</h3>'+A.F.map(function(f){return'<div class="note small" style="border-inline-start-color:'+col[f.l]+'"><b style="color:'+col[f.l]+'">'+ic[f.l]+' '+esc(f.t)+':</b> '+esc(f.d)+'</div>'}).join("")+'</div>'+
    '<div class="card stack"><h3 class="h3">הטווחים שלך</h3><div class="small">דופק מקסימלי משוער לגיל '+(+P().age||67)+': <b>'+A.hrMax+'</b>. הליכה בינונית: <b>'+A.z1+'–'+A.z2+'</b>. מעל '+A.z2+': מאמץ גבוה.</div><div class="small muted">הערכה לפי גיל בלבד. תרופות כמו חוסמי בטא מורידות את הדופק, ואז הטווח שלך נמוך יותר. בדוק עם הרופא.</div></div>'+
    '<div class="card stack"><h3 class="h3">4 שבועות אחרונים</h3><div class="tbl"><table><thead><tr><th>שבוע</th><th>הליכות</th><th>דקות</th><th>ק״מ</th><th>קצב</th><th>דופק</th></tr></thead><tbody>'+
     A.W.slice(0,5).map(function(x,i){return"<tr><td>"+fmtD(x.s)+(i===0?" (השבוע)":"")+"</td><td>"+x.n+"</td><td>"+Math.round(x.min)+"</td><td>"+n1(x.km)+"</td><td>"+(x.pace?fmtPace(x.pace,1):"–")+"</td><td>"+(x.hr?Math.round(x.hr):"–")+"</td></tr>"}).join("")+'</tbody></table></div></div>'+
@@ -1711,9 +1718,10 @@ function lineChart(pts,o){/* pts [[xMin,y|null]]; one series, one axis */
   var xmax=pts[pts.length-1][0]||1,X=function(x){return pl+(CW-pl-pr)*x/xmax},Y=function(v){return pt+(H-pt-pb)*(1-(v-lo)/(hi-lo))};
   var d="",pen=false;pts.forEach(function(p){if(p[1]==null){pen=false;return}d+=(pen?"L":"M")+X(p[0]).toFixed(1)+" "+Y(p[1]).toFixed(1);pen=true});
   var g="";[lo,(lo+hi)/2,hi].forEach(function(v){v=Math.round(v);g+='<line x1="'+pl+'" x2="'+(CW-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)"/><text x="'+(pl-5)+'" y="'+(Y(v)+4)+'" text-anchor="end">'+v+'</text>'});
-  var step=xmax>60?15:xmax>30?10:5;for(var m=0;m<=xmax;m+=step)g+='<text x="'+X(m)+'" y="'+(H-6)+'" text-anchor="middle">'+m+'′</text>';
+  if(o.xu==="km"){var ks=xmax>8?2:1;for(var m=0;m<=xmax+1e-9;m+=ks)g+='<text x="'+X(m)+'" y="'+(H-6)+'" text-anchor="middle">'+m+'</text>'}
+  else{var step=xmax>60?15:xmax>30?10:5;for(var m=0;m<=xmax;m+=step)g+='<text x="'+X(m)+'" y="'+(H-6)+'" text-anchor="middle">'+m+'′</text>'}
   if(o.band)g+='<rect x="'+pl+'" width="'+(CW-pl-pr)+'" y="'+Y(Math.min(hi,o.band[1]))+'" height="'+Math.max(0,Y(Math.max(lo,o.band[0]))-Y(Math.min(hi,o.band[1])))+'" fill="color-mix(in srgb,'+o.color+' 10%,transparent)"/>';
-  return'<div class="lcw"><div class="small" style="display:flex;justify-content:space-between"><b>'+o.title+'</b><span class="lct muted"></span></div><svg class="chart lc bigt" viewBox="0 0 '+CW+' '+H+'" role="img" aria-label="'+esc(o.title)+'" data-lc=\''+JSON.stringify({p:pts,lo:lo,hi:hi,xm:xmax,pl:pl,pr:pr,pt:pt,pb:pb,H:H,u:o.unit})+'\'>'+g+
+  return'<div class="lcw"><div class="small" style="display:flex;justify-content:space-between"><b>'+o.title+'</b><span class="lct muted"></span></div><svg class="chart lc bigt" viewBox="0 0 '+CW+' '+H+'" role="img" aria-label="'+esc(o.title)+'" data-lc=\''+JSON.stringify({p:pts,lo:lo,hi:hi,xm:xmax,pl:pl,pr:pr,pt:pt,pb:pb,H:H,u:o.unit,xu:o.xu||""})+'\'>'+g+
    '<path d="'+d+'" fill="none" stroke="'+o.color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><line class="cx" y1="'+pt+'" y2="'+(H-pb)+'" stroke="var(--muted)" stroke-width="1" visibility="hidden"/><circle class="cd" r="4.5" fill="'+o.color+'" stroke="var(--surface)" stroke-width="2" visibility="hidden"/></svg></div>'}
 function routeSvg(r){if(!r||r.length<5)return"";
   var lat0=r.reduce(function(a,p){return a+p[0]},0)/r.length,k=Math.cos(lat0*Math.PI/180);
@@ -1731,7 +1739,8 @@ function walkCharts(w){var t=w.trk;if(!t)return"";var h="",l=t.l||[];
   var a=walkZones();
   h+=lineChart(hrPts,{title:"דופק לאורך ההליכה",unit:"פעימות",color:"var(--c-push)",band:[a.z1,a.z2]});
   h+=lineChart(spPts,{title:"מהירות לאורך ההליכה",unit:"קמ״ש",color:"var(--c-walk)",zero:true});
-  return h?'<details class="small wch"><summary>גרפים ומסלול</summary><div class="stack" style="gap:12px;margin-top:8px">'+h+(hrPts.some(function(p){return p[1]!=null})?'<div class="muted">הפס הצבוע בגרף הדופק: הטווח הבינוני שלך ('+a.z1+'–'+a.z2+').</div>':'')+'</div></details>':""}
+  h+=walkDeepHtml(w);
+  return h?'<details class="small wch"><summary>גרפים, מסלול וניתוח לפי ק״מ</summary><div class="stack" style="gap:12px;margin-top:8px">'+h+(hrPts.some(function(p){return p[1]!=null})?'<div class="muted">הפס הצבוע בגרף הדופק: הטווח הבינוני שלך ('+a.z1+'–'+a.z2+').</div>':'')+'</div></details>':""}
 function walkZones(){var age=+P().age||67,mx=Math.round(208-0.7*age);return{mx:mx,z1:Math.round(mx*0.64),z2:Math.round(mx*0.76)}}
 function barChart(bars,o){var H=210,pl=46,pr=8,pt=24,pb=30,mx=niceMax(Math.max(o.goal||0,Math.max.apply(null,bars.map(function(b){return b.v})))*1.1),n=bars.length;
   var bw=(CW-pl-pr)/n,Y=function(v){return pt+(H-pt-pb)*(1-v/mx)},g="";
@@ -1754,7 +1763,7 @@ function bindCharts(root){root.querySelectorAll("svg.lc").forEach(function(sv){v
     D.p.forEach(function(p){if(p[1]!=null&&(best==null||Math.abs(p[0]-xm)<Math.abs(best[0]-xm)))best=p});if(!best)return;
     var X=D.pl+(CW-D.pl-D.pr)*best[0]/D.xm,Y=D.pt+(D.H-D.pt-D.pb)*(1-(best[1]-D.lo)/(D.hi-D.lo));
     cx.setAttribute("x1",X);cx.setAttribute("x2",X);cx.setAttribute("visibility","visible");cd.setAttribute("cx",X);cd.setAttribute("cy",Y);cd.setAttribute("visibility","visible");
-    if(lab)lab.textContent="דקה "+Math.round(best[0])+": "+best[1]+" "+D.u};
+    if(lab)lab.textContent=(D.xu==="km"?"ק״מ "+n1(best[0]):"דקה "+Math.round(best[0]))+": "+best[1]+" "+D.u};
   sv.addEventListener("pointermove",mv);sv.addEventListener("pointerdown",mv);
   sv.addEventListener("pointerleave",function(){cx.setAttribute("visibility","hidden");cd.setAttribute("visibility","hidden");if(lab)lab.textContent=""})})}
 /* ---------- walking guide (separate from the app help) ---------- */
@@ -1790,7 +1799,8 @@ function mCmd(c){if(FA&&FA.musicCmd){FA.musicCmd(c);return}if(!MAUDIO)return;
   else if(c==="stop"){MAUDIO.pause();MQ.items=[];window.onMusic({idle:true})}}
 var MPOLL=null;function mPoll(on){clearInterval(MPOLL);MPOLL=null;if(on&&FA&&FA.musicState){FA.musicState();MPOLL=setInterval(function(){try{FA.musicState()}catch(e){}},1500)}}
 function mTime(ms){var s=Math.max(0,Math.round((ms||0)/1000));return Math.floor(s/60)+":"+pad(s%60)}
-window.onMusic=function(st){S.mstate=st;var b=document.getElementById("mbar");if(!b)return;
+function mErr(e){return/BAD_HTTP_STATUS/.test(e)?"השיר לא הגיע מהשרת. אולי המחשב כבוי":/NETWORK|TIMEOUT/.test(e)?"אין חיבור לאינטרנט או לשרת הביתי":/DECOD|UNSUPPORTED|MALFORMED/.test(e)?"הקובץ בפורמט שהטלפון לא מנגן. עבר לשיר הבא":e}
+window.onMusic=function(st){if(st&&st.error)st.error=mErr(st.error);S.mstate=st;var b=document.getElementById("mbar");if(!b)return;
   if(!st||st.idle){b.hidden=true;if(FA)mPoll(false);return}
   if(FA&&!MPOLL)mPoll(true);
   b.hidden=false;b.querySelector(".mt").textContent=st.title||"";b.querySelector(".ma").textContent=(st.artist||"")+(st.count>1?" · "+(st.index+1)+"/"+st.count:"")+(st.dur?" · "+mTime(st.pos)+" / "+mTime(st.dur):"")+(st.error?" · שגיאה: "+st.error:"");
@@ -1800,7 +1810,7 @@ window.onMusicDl=function(d){S.mdl=d.end?null:d;var t=d.end?(d.error?d.error+" �
   document.querySelectorAll("[data-mdlmsg]").forEach(function(e){e.textContent=t});if(d.end){mLocal();if(TAB==="walk"&&S.sub.walk==="music")render();toast(t)}};
 function viewMusic(){
   var dir=S.mdir,c=S.mcache[dir],L=S.mlocal||mLocal();
-  if(!c&&!S.mloading){S.mloading=true;mFetch(dir).then(function(){S.mloading=false;S.merr=null;if(S.sub.walk==="music"&&TAB==="walk")render()}).catch(function(e){S.mloading=false;S.merr=1;if(S.sub.walk==="music"&&TAB==="walk")render()})}
+  if(!c&&!S.mloading&&!(S.merr&&Date.now()-S.merr<30000)){S.mloading=true;mFetch(dir).then(function(){S.mloading=false;S.merr=0;if(S.sub.walk==="music"&&TAB==="walk")render()}).catch(function(e){S.mloading=false;S.merr=Date.now();if(S.sub.walk==="music"&&TAB==="walk")render()})}
   var crumbs=['<button type="button" class="linkb" data-mdir="">מוזיקה</button>'],acc="";dir.split("/").filter(Boolean).forEach(function(p){acc=acc?acc+"/"+p:p;crumbs.push('<button type="button" class="linkb" data-mdir="'+esc(acc)+'">'+esc(p)+'</button>')});
   var saved=L&&L.files&&L.files.length?'<div class="card stack" style="border:2px solid var(--c-walk)"><div class="row" style="justify-content:space-between"><h3 class="h3">שמורים בטלפון ('+L.files.length+')</h3><span class="small muted">'+n1(L.bytes/1048576/1024)+' ג״ב · פנוי '+n1(L.free/1048576/1024)+' ג״ב</span></div><div class="small muted">עובד גם בלי אינטרנט. מתאים להליכה.</div><div class="row"><button type="button" class="btn walk" data-mplay-local="0">▶ נגן</button><button type="button" class="btn" data-mplay-local="1">🔀 ערבב</button><button type="button" class="btn ghost sm" id="m-delall">מחק את כל השמורים</button></div></div>':"";
   var dl=FA&&FA.musicDownload?'<div class="small" data-mdlmsg>'+(S.mdl?"שומר בטלפון: "+S.mdl.done+" מתוך "+S.mdl.total:"")+'</div>':"";
@@ -1812,8 +1822,19 @@ function viewMusic(){
     body='<div class="card stack"><div class="small">'+crumbs.join(" ‹ ")+'</div>'+(dir?allBtns:'<div class="small muted">'+c.total.toLocaleString("he-IL")+' שירים בשרת הביתי</div>')+
      c.dirs.map(function(d){var p=dir?dir+"/"+d.n:d.n;return'<div class="mrow"><button type="button" class="mdirb" data-mdir="'+esc(p)+'">📁 '+esc(d.n)+' <span class="small muted">('+d.c+')</span></button><button type="button" class="btn sm ghost" data-mplaydir="'+esc(p)+'|0" aria-label="נגן">▶</button></div>'}).join("")+
      c.files.map(function(f,i){var p=dir?dir+"/"+f.n:f.n;return'<div class="mrow" data-mrow="'+esc(p)+'"><button type="button" class="mfile" data-mplayi="'+i+'">♪ '+esc(f.n.replace(/\.[^.]+$/,""))+'</button>'+(mIsLocal(p)?'<span class="pill walk">✓ בטלפון</span>':'')+'</div>'}).join("")+'</div>'}
-  return'<div class="note walkn small">המוזיקה מהמחשב שלך, דרך השרת הביתי. בטלפון היא ממשיכה לנגן גם כשהמסך כבוי, והכפתורים מופיעים בהתראה ובמסך הנעילה. לפני הליכה: שמור בטלפון את מה שתרצה לשמוע, וזה יעבוד גם בלי אינטרנט.</div>'+saved+dl+body}
+  if(!S.mchkT||Date.now()-S.mchkT>60000)mCheck();
+  var appV=(function(){try{return FA&&FA.version?FA.version():""}catch(e){return""}})(),oldApp=FA&&!FA.musicPlay,ck=S.mchk;
+  var diag='<div class="card stack" style="border:2px solid '+(oldApp||(ck&&!ck.ok)?'var(--bad)':'var(--c-walk)')+'"><div class="row" style="justify-content:space-between"><h3 class="h3">חיבור למוזיקה</h3><button type="button" class="btn sm" id="m-check">בדוק חיבור</button></div><ul class="small" style="margin:0;padding-inline-start:18px">'+
+   (FA?'<li>'+(oldApp?'<b style="color:var(--bad)">✖ אפליקציית הטלפון בגרסה '+esc(appV)+'. המוזיקה עובדת מגרסה 4.7.</b> עדכן: פרופיל והגדרות ← עדכונים ← עדכן עכשיו.':'✔ אפליקציית הטלפון '+esc(appV)+': נגן מוזיקה פעיל, גם עם מסך כבוי.')+'</li>':'')+
+   '<li>'+(!ck?'בודק את החיבור לשרת ולמחשב…':ck.net?'<b style="color:var(--bad)">✖ אין חיבור לשרת הביתי.</b> בדוק אינטרנט, ושה־Tailscale בטלפון מחובר.':'✔ השרת הביתי מחובר · '+(ck.count||0).toLocaleString("he-IL")+' שירים ברשימה')+'</li>'+
+   (ck&&!ck.net?'<li>'+(ck.ok?'✔ המחשב עם המוזיקה דלוק ומחובר.':'<b style="color:var(--bad)">✖ '+esc(ck.error||"המחשב לא עונה")+'.</b> שירים ששמרת בטלפון עובדים בכל מקרה.')+'</li>':'')+
+   (S.mstate&&S.mstate.error?'<li><b style="color:var(--bad)">✖ שגיאת ניגון: '+esc(S.mstate.error)+'</b></li>':'')+
+   '</ul>'+(oldApp?'<div><button type="button" class="btn pri" data-apkgo>עדכן את האפליקציה עכשיו</button></div>':'')+'</div>';
+  return diag+'<div class="note walkn small">המוזיקה מהמחשב שלך, דרך השרת הביתי. בטלפון היא ממשיכה לנגן גם כשהמסך כבוי, והכפתורים מופיעים בהתראה ובמסך הנעילה. לפני הליכה: שמור בטלפון את מה שתרצה לשמוע, וזה יעבוד גם בלי אינטרנט.</div>'+saved+dl+body}
+function mCheck(){S.mchkT=Date.now();srvAny("GET","api/music/check").then(function(d){S.mchk=d||{net:true}}).catch(function(){S.mchk={net:true}}).then(function(){if(TAB==="walk"&&S.sub.walk==="music")render()})}
 function bindMusic(root){
+  var mc=root.querySelector("#m-check");if(mc)mc.onclick=function(){S.mchk=null;S.mcache={};S.merr=0;mCheck();render()};
+  root.querySelectorAll("[data-apkgo]").forEach(function(b){b.onclick=apkGo});
   root.querySelectorAll("[data-mdir]").forEach(function(b){b.onclick=function(){S.mdir=b.dataset.mdir;render();window.scrollTo(0,0)}});
   root.querySelectorAll("[data-mplayi]").forEach(function(b){b.onclick=function(){var c=S.mcache[S.mdir];if(!c)return;var pre=S.mdir?S.mdir+"/":"";mPlay(c.files.map(function(f){return pre+f.n}),+b.dataset.mplayi,false)}});
   root.querySelectorAll("[data-mplaydir]").forEach(function(b){b.onclick=function(){var pr=b.dataset.mplaydir.split("|");toast("טוען את השירים…");mAll(pr[0]).then(function(l){mPlay(l,pr[1]==="1"?Math.floor(Math.random()*l.length):0,pr[1]==="1")}).catch(function(){toast("אין חיבור לשרת הביתי")})}});
@@ -1823,6 +1844,39 @@ function bindMusic(root){
     S.mdl={done:0,total:need.length};FA.musicDownload(JSON.stringify(need));document.querySelectorAll("[data-mdlmsg]").forEach(function(e){e.textContent="מתחיל לשמור "+need.length+" שירים…"})}).catch(function(){toast("אין חיבור לשרת הביתי")})}});
   var da=root.querySelector("#m-delall");if(da)da.onclick=function(){var L=mLocal();if(!L)return;if(!da.dataset.sure){da.dataset.sure=1;da.textContent="בטוח? לחץ שוב כדי למחוק "+L.files.length+" שירים מהטלפון (בשרת הם נשארים)";return}FA.musicDelete(JSON.stringify(L.files));mLocal();render()};
 }
+/* ---------- one walk in depth: time per km, uphill / downhill / flat (from the watch's GPS route) ---------- */
+function hav(a,b){var R=6371000,r=Math.PI/180,dl=(b[0]-a[0])*r,dn=(b[1]-a[1])*r,x=Math.sin(dl/2)*Math.sin(dl/2)+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dn/2)*Math.sin(dn/2);return 2*R*Math.asin(Math.min(1,Math.sqrt(x)))}
+function walkDeep(w){var r=w.trk&&w.trk.r;if(!r||r.length<8||r[0].length<4||r[0][3]==null)return null;
+  var P=r.filter(function(p){return p[3]!=null}),d=[0];for(var i=1;i<P.length;i++){var s=hav(P[i-1],P[i]);d.push(d[i-1]+(s<300?s:0))}
+  var total=d[d.length-1];if(total<300)return null;
+  /* scale GPS distance to the watch's distance, so km marks match Samsung Health */
+  var k=w.km&&Math.abs(w.km*1000/total-1)<0.25?w.km*1000/total:1;d=d.map(function(x){return x*k});total=d[d.length-1];
+  var T=P.map(function(p){return p[3]});
+  var at=function(dist){for(var i=1;i<d.length;i++)if(d[i]>=dist){var f=(dist-d[i-1])/((d[i]-d[i-1])||1);return T[i-1]+f*(T[i]-T[i-1])}return T[T.length-1]};
+  var splits=[],prev=0;for(var km=1;km*1000<=total+1;km++){var t=at(km*1000);splits.push({km:km,sec:t-prev,full:true});prev=t}
+  var rest=total-(splits.length*1000);if(rest>=150){var tl=T[T.length-1]-prev;splits.push({km:n1(splits.length+rest/1000),sec:tl,part:rest,full:false})}
+  /* altitude: smooth, then 50 m pieces */
+  var hasAlt=P.filter(function(p){return p[2]!=null}).length>P.length*0.7,terr=null,prof=[];
+  if(hasAlt){var A=P.map(function(p,i){var s=0,n=0;for(var j=Math.max(0,i-3);j<=Math.min(P.length-1,i+3);j++)if(P[j][2]!=null){s+=P[j][2];n++}return n?s/n:null});
+    var pieces=[],a0=0;for(var i2=1;i2<P.length;i2++){if(d[i2]-d[a0]>=50||i2===P.length-1){if(A[i2]!=null&&A[a0]!=null){var dd=d[i2]-d[a0],dz=A[i2]-A[a0],dt=T[i2]-T[a0],g=dz/dd;pieces.push({c:g>0.02?"up":g<-0.02?"down":"flat",dd:dd,dz:dz,dt:dt})}a0=i2}}
+    terr={up:{n:0,m:0,s:0,z:0},down:{n:0,m:0,s:0,z:0},flat:{n:0,m:0,s:0,z:0}};var last=null,run=0;
+    pieces.forEach(function(p){var o=terr[p.c];o.m+=p.dd;o.s+=p.dt;o.z+=p.dz;if(p.c!==last){if(last&&last!=="flat"&&run>=80)terr[last].n++;run=0;last=p.c}run+=p.dd});
+    if(last&&last!=="flat"&&run>=80)terr[last].n++;terr.flat.n=terr.flat.m>0?1:0;
+    prof=P.map(function(p,i){return[Math.round(d[i])/1000,A[i]==null?null:Math.round(A[i])]})}
+  var sp=[];for(var i3=1;i3<P.length;i3++){var j=Math.max(0,i3-6),dd2=d[i3]-d[j],dt2=T[i3]-T[j];var v=dt2>0&&dd2>0?Math.round(dd2/dt2*36)/10:null;sp.push([Math.round(d[i3])/1000,v!=null&&v<=14?v:null])}
+  return{total:total,splits:splits,terr:terr,prof:prof,speed:sp}}
+function paceTxt(sec,m){if(!sec||!m)return"–";var s=Math.round(sec/(m/1000));return Math.floor(s/60)+":"+pad(s%60)}
+function walkDeepHtml(w){var D=walkDeep(w);if(!D)return(w.trk&&w.trk.r&&w.trk.r.length&&w.trk.r[0].length<4)?'<div class="small muted">לניתוח לפי קילומטר ולפי עליות: לחץ "סנכרן מהשעון עכשיו" בטלפון (מגרסה 4.9 של האפליקציה).</div>':"";
+  var h='<div class="stack" style="gap:6px"><b>זמן לכל קילומטר</b><div class="tbl"><table><thead><tr><th>ק״מ</th><th>זמן</th><th>קצב (דק׳ לק״מ)</th><th>מהירות</th></tr></thead><tbody>'+
+   D.splits.map(function(s){var m=s.full?1000:s.part,best=Math.min.apply(null,D.splits.filter(function(x){return x.full}).map(function(x){return x.sec}));return'<tr><td>'+s.km+'</td><td>'+mTime(s.sec*1000)+'</td><td>'+paceTxt(s.sec,m)+(s.full&&s.sec===best&&D.splits.length>2?' <span class="pill good">המהיר</span>':'')+'</td><td>'+n1(m/s.sec*3.6)+' קמ״ש</td></tr>'}).join("")+'</tbody></table></div></div>';
+  h+=lineChart(D.splits.filter(function(s){return s.full}).map(function(s){return[s.km,Math.round(s.sec/6)/10]}),{title:"זמן לכל ק״מ (דקות · ציר: ק״מ)",unit:"דק׳",color:"var(--c-pull)",xu:"km"});
+  if(D.terr){var L={up:"עליות",down:"ירידות",flat:"מישור"},C={up:"var(--c-push)",down:"var(--c-pull)",flat:"var(--c-walk)"};
+    h+='<div class="stack" style="gap:6px"><b>עליות, ירידות ומישור</b><div class="tbl"><table><thead><tr><th></th><th>כמה</th><th>אורך</th><th>גובה</th><th>מהירות</th></tr></thead><tbody>'+
+     ["up","down","flat"].map(function(k){var o=D.terr[k];return'<tr><td><b style="color:'+C[k]+'">'+L[k]+'</b></td><td>'+(k==="flat"?"–":o.n)+'</td><td>'+(o.m>=1000?n1(o.m/1000)+" ק״מ":Math.round(o.m)+" מ׳")+' <span class="small muted">('+Math.round(o.m/D.total*100)+'%)</span></td><td>'+(k==="flat"?"–":(o.z>0?"+":"")+Math.round(o.z)+" מ׳")+'</td><td>'+(o.s?n1(o.m/o.s*3.6)+" קמ״ש":"–")+'</td></tr>'}).join("")+'</tbody></table></div>'+
+     '<div class="small muted">עלייה או ירידה: שיפוע של יותר מ־2%. נספרות רק עליות וירידות של 80 מטר ומעלה. הגובה מה־GPS של השעון, ויכול לסטות בכמה מטרים.</div></div>';
+    h+=lineChart(D.prof,{title:"גובה לאורך המסלול (מטר · ציר: ק״מ)",unit:"מ׳",color:"var(--c-push)",xu:"km"})}
+  h+=lineChart(D.speed,{title:"מהירות לאורך המסלול (קמ״ש · ציר: ק״מ)",unit:"קמ״ש",color:"var(--c-walk)",xu:"km",zero:true});
+  return h}
 function addWalk(w){var m=w.date.slice(0,7),doc=S.walks[m]?JSON.parse(JSON.stringify(S.walks[m])):{items:{}};doc.items=doc.items||{};doc.items[w.id]=w;return put("walks",m,doc)}
 function parseCSV(text){
   var lines=text.replace(/\r/g,"").split("\n").filter(function(l){return l.trim()});
@@ -1871,7 +1925,15 @@ async function importCSV(file){
 }
 
 /* ---------- measurements ---------- */
-var MF=[["weight","משקל","ק״ג"],["waist","היקף מותניים","ס״מ"],["belly","היקף בטן","ס״מ"],["chest","היקף חזה","ס״מ"],["shoulders","היקף כתפיים","ס״מ"],["hips","היקף ירכיים (רוחב)","ס״מ"],["arm","היקף זרוע","ס״מ"]];
+var MF=[["weight","משקל","ק״ג"],["waist","היקף מותניים","ס״מ"],["belly","היקף בטן","ס״מ"],["chest","היקף חזה","ס״מ"],["shoulders","היקף כתפיים","ס״מ"],["hips","היקף ירכיים (רוחב)","ס״מ"],["arm","היקף זרוע","ס״מ"],
+ ["fat","אחוז שומן","%"],["muscle","מסת שריר","ק״ג"],["water","מים בגוף","ק״ג"],["bmr","שריפה במנוחה","קל׳"]];
+/* the measurements table: one row per date, nothing is overwritten; empty columns are hidden */
+function measTable(ms){if(!ms.length)return'<div class="card"><p class="muted" style="margin:0">עוד אין מדידות. המדידה הראשונה היא נקודת ההתחלה שלך.</p></div>';
+  var cols=MF.filter(function(f){return ms.some(function(m){return m[f[0]]!=null&&m[f[0]]!==""})});
+  var rows=ms.slice().reverse().map(function(m,i,arr){var prev=arr.slice(i+1);return"<tr><td><b>"+fmtD(m.id)+"</b>"+(m.auto?' <span class="small muted" title="נמדד בשעון">⌚</span>':'')+"</td>"+cols.map(function(f){var v=m[f[0]],pm=prev.find(function(x){return x[f[0]]!=null}),pv=pm&&pm[f[0]];return"<td>"+(v==null?"–":n1(v))+(v!=null&&pv!=null&&v!==pv?' <span class="small '+((f[0]==="muscle"||f[0]==="bmr"?pv-v:v-pv)<0?"dn-good":"dn-bad")+'">'+(v-pv>0?"+":"")+n1(v-pv)+"</span>":"")+"</td>"}).join("")+'<td><button class="btn ghost sm" data-delm="'+m.id+'">מחק</button></td></tr>'}).join("");
+  return'<div class="card stack" id="t-mtable"><div class="row" style="justify-content:space-between"><h3 class="h3">כל המדידות לפי תאריך ('+ms.length+')</h3><button type="button" class="btn sm pri" data-xlsm="1">⬇ ייצוא לאקסל</button></div>'+
+   '<div class="small muted">כל מדידה נשמרת בשורה משלה לפי התאריך. מדידה חדשה לא מוחקת את הקודמות. שמירה שוב באותו תאריך מעדכנת רק את השדות שמילאת. ⌚ = נמדד בשעון או במשקל חכם.</div>'+
+   '<div class="tbl"><table><thead><tr><th>תאריך</th>'+cols.map(function(f){return"<th>"+f[1]+"<br><span class=\"small muted\">"+f[2]+"</span></th>"}).join("")+'<th></th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'}
 S.mm="weight";
 function viewMeasure(){
   var tk=today(),ms=measList(),p=P();
@@ -1889,11 +1951,11 @@ function viewMeasure(){
    '<div class="row"><button class="btn pri" id="m-save">שמור מדידה</button></div></div>'+
   '<div class="card stack" id="t-mhow"><h3 class="h3">איך מודדים נכון</h3><div class="howgrid"><div class="howlist">'+HOWTO.map(function(h){return'<button type="button" class="howi" data-how="'+h[0]+'"><b>'+h[1]+':</b> '+esc(h[2])+'</button>'}).join("")+
    '<div class="small muted" style="padding:4px 10px">הסרט צמוד לעור אבל לא לוחץ. אותו סרט בכל פעם.</div></div>'+tapeFig()+'</div>'+
-   '<div class="note small">בשבועות הראשונים של אימוני משקולות המשקל יכול לעמוד במקום בזמן שהמותניים יורדים. לכן מודדים גם סרט ולא רק משקל.</div></div></div>'):"")+
+   '<div class="note small">בשבועות הראשונים של אימוני משקולות המשקל יכול לעמוד במקום בזמן שהמותניים יורדים. לכן מודדים גם סרט ולא רק משקל.</div></div></div>'+measTable(ms)):"")+
   (sub==="prog"?(
   '<div class="grid g4" id="t-mkpi">'+MF.map(function(f){var a=first(f[0]),b=lastv(f[0]);return'<div class="card"><div class="eyebrow">'+f[1]+'</div><div class="row" style="align-items:baseline;gap:6px;margin-top:4px"><span class="big" style="font-size:36px">'+n1(b)+'</span><span class="muted small">'+f[2]+'</span></div><div class="small" style="min-height:20px">'+(a!=null&&b!=null&&ms.length>1?delta(b-a,f[2]+" מההתחלה"):'<span class="muted">'+(f[0]==="weight"?"יעד "+p.goalWeight:"")+'</span>')+'</div></div>'}).join("")+'</div>'+
   '<div class="card stack" id="t-mchart"><div class="head"><h3 class="h3">מגמה</h3><div class="chips">'+MF.map(function(f){return'<button class="chip" data-mm="'+f[0]+'" aria-pressed="'+(S.mm===f[0])+'">'+f[1].replace(" (רוחב)","")+'</button>'}).join("")+'</div></div>'+chartM(ms,S.mm)+'</div>'+
-  '<div class="card stack"><h3 class="h3">כל המדידות</h3>'+(ms.length?'<div class="tbl"><table><thead><tr><th>תאריך</th>'+MF.map(function(f){return"<th>"+f[1]+"</th>"}).join("")+'<th></th></tr></thead><tbody>'+rows+'</tbody></table></div>':'<p class="muted">עוד אין מדידות. המדידה הראשונה היא נקודת ההתחלה שלך.</p>')+'</div>'):"")+
+  measTable(ms)):"")+
   (sub==="export"?viewExport():"")+
   '</div>';
 }
@@ -2120,6 +2182,7 @@ function chipGroup(id){var g=document.getElementById(id);g.querySelectorAll(".ch
 function bind(){
   try{bindCharts(main)}catch(e){}
   try{bindMusic(main)}catch(e){}
+  main.querySelectorAll("[data-xlsm]").forEach(function(x){x.onclick=function(){try{exportXlsx("meas")}catch(e){toast("הייצוא נכשל: "+(e&&e.message||e))}}});
   main.querySelectorAll("[data-xls]").forEach(function(x){x.onclick=function(){try{exportXlsx()}catch(e){toast("הייצוא נכשל: "+(e&&e.message||e))}}});
   main.querySelectorAll("[data-pdf]").forEach(function(x){x.onclick=function(){var k=x.dataset.pdf;try{if(k==="menus")printMenus();else if(k==="recipes")printRecipes();else printShop()}catch(e){toast("ההדפסה נכשלה: "+(e&&e.message||e))}}});
   main.querySelectorAll("[data-sub]").forEach(function(b){b.onclick=function(){var pr=b.dataset.sub.split("|");
@@ -2228,7 +2291,7 @@ function bind(){
     MF.forEach(function(f){var inp=$("m-"+f[0]);if(inp)inp.addEventListener("focus",function(){clearInterval(HOWT);howShow(f[0])})})}
   if($("m-save"))$("m-save").onclick=function(){
     var k=$("m-date").value||today(),o=Object.assign({},S.measures[k]||{}),any=false;
-    MF.forEach(function(f){var v=num("m-"+f[0]);if(v!=null){o[f[0]]=v;any=true}});
+    MF.forEach(function(f){var v=num("m-"+f[0]);if(v!=null){if(o[f[0]]!==v&&o.auto)o.auto=o.auto.filter(function(x){return x!==f[0]});o[f[0]]=v;any=true}});
     if(!any){toast("הזן לפחות ערך אחד");return}
     put("measures",k,o);render();toast("המדידה נשמרה");
   };
