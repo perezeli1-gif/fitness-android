@@ -275,7 +275,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="4.9",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="5.0",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1262,8 +1262,8 @@ var FI={/* name, amount, kcal, protein(g), kind: d=dairy m=meat p=parve */
  oats:["שיבולת שועל","3 כפות (30 ג׳)",115,4,"p"],oats40:["שיבולת שועל","4 כפות (40 ג׳)",150,5,"p"],rice2:["פריכיות אורז מלא","2 יחידות",70,1.5,"p"],
  hummus:["חומוס","2 כפות (40 ג׳)",100,3,"p"],tahini:["טחינה גולמית","כף (15 ג׳)",90,3,"p"],cuc:["מלפפון","אחד",15,0.5,"p"],
  chicken:["חזה עוף בתנור","150 ג׳ מבושל (כף יד)",245,46,"m"],beef:["קציצות בקר רזה בתנור","150 ג׳ (4 קציצות קטנות)",300,38,"m"],
- turkey:["חזה הודו פרוס","100 ג׳",110,22,"m"],salmon:["סלמון אפוי","150 ג׳",300,33,"p"],tuna:["טונה במים","קופסה, 100 ג׳ מסונן",110,25,"p"],
- shak:["שקשוקה","2 ביצים ברוטב עגבניות",210,14,"p"],tofu:["טופו בתנור","150 ג׳",180,18,"p"]};
+ turkey:["חזה הודו פרוס","100 ג׳",110,22,"m"],salmon:["סלמון אפוי","150 ג׳",300,33,"p"],tuna:["טונה בשמן צמחי","קופסה, 100 ג׳ מסונן היטב",190,25,"p"],
+ shak:["שקשוקה","2 ביצים ברוטב עגבניות",210,14,"p"],fish:["פילה דג לבן אפוי (אמנון או מושט)","180 ג׳",190,38,"p"]};
 var MEALS=[["07:30","ארוחת בוקר"],["10:30","ביניים"],["13:30","ארוחת צהריים"],["16:30","ביניים"],["19:30","ארוחת ערב"]];
 var MENUS=[
  {name:"עוף ויוגורט",m:[["egg2","rye","avocado","cottage","veg"],["dates"],["chicken","rice","salad","tbspoil"],["rice2","hummus","cuc"],["yog","oats","berries","walnuts"]]},
@@ -1286,8 +1286,8 @@ var RCP={
  chicken:"משטחים לעובי אחיד. מרינדה: כפית שמן זית, מיץ לימון, שום, פפריקה מתוקה, כורכום, מלח ופלפל, 20 דקות במקרר. תנור 200° 18–20 דקות, או מחבת פסים 5–6 דקות לכל צד. מגוון: זעתר ולימון, או שווארמה (כמון, כורכום, פפריקה).",
  beef:"500 ג׳ בקר טחון רזה (עד 5% שומן), בצל מגורר, פטרוזיליה, ביצה, 2 כפות פירורי לחם, כמון, מלח ופלפל. 12–14 קציצות. תנור 200° 20 דקות, או 25 דקות ברוטב עגבניות.",
  salmon:"מלח, פלפל, לימון ושמיר. תנור 200°, 12–15 דקות. לא צריך שמן, יש בדג מספיק.",
- tuna:"מסננים היטב. מערבבים עם בצל סגול, מלפפון חמוץ, לימון ופלפל, ומעט מיונז לייט או טחינה במקום מיונז.",
- tofu:"סוחטים מהנוזלים וחותכים לקוביות. רוטב סויה מופחת נתרן, שום, ג׳ינג׳ר וכפית שמן שומשום. תנור 220°, 25 דקות.",
+ tuna:"טונה בשמן צמחי: מסננים היטב ולוחצים עם מזלג על המכסה, כך יורד רוב השמן ונשארות פחות קלוריות. מערבבים עם בצל סגול, מלפפון חמוץ, לימון ופלפל, ומעט טחינה במקום מיונז.",
+ fish:"פילה אמנון או מושט: מלח, פלפל, שום, פפריקה ולימון. תנור 200°, 15–18 דקות. או במחבת עם כפית שמן, 3–4 דקות לכל צד. לא מתייבש אם לא מאריכים.",
  shak:"בצל ופלפל בכפית שמן, קופסת עגבניות מרוסקות או 4 עגבניות, שום, פפריקה, כמון, מלח ומעט חריף. 10 דקות, שוברים 2 ביצים, מכסים 6–8 דקות.",
  egg2:"חביתה במחבת נון־סטיק עם כפית שמן. ביצה קשה: 10 דקות ממים רותחים ואז מים קרים. תיבול: מלח, פלפל, זעתר, בצל ירוק.",
  stir:"פלפלים, גזר, ברוקולי, פטריות, בצל ושעועית ירוקה. כפית שמן, אש גבוהה 5–7 דקות, רוטב סויה מופחת נתרן, שום וג׳ינג׳ר.",
@@ -1310,7 +1310,7 @@ var MP={
  S1:[["dates"],["milk","banana"],["yog"],["fruit","walnuts"],["apple","almonds"],["dates1","milk"],["yog","berries"]],
  L:[{n:"עוף ואורז",i:["chicken","rice","salad","tbspoil"]},{n:"סלמון ובטטה",i:["salmon","sweet","salad","tahini"]},{n:"קציצות וקינואה",i:["beef","quinoa","stir","tspoil"]},
     {n:"מרק ועוף",i:["soup","chicken","potato","salad","tbspoil"]},{n:"עוף ובורגול",i:["chicken","bulgur","salad","tahini"]},{n:"מג׳דרה (צמחוני)",i:["lentils","rice","salad","tahini"]},
-    {n:"הודו ופסטה",i:["turkey","pasta","sauce","salad"]},{n:"טופו מוקפץ (צמחוני)",i:["tofu","rice","stir","tspoil"]},{n:"סלמון וקינואה",i:["salmon","quinoa","salad"]},{n:"קציצות ותפוח אדמה",i:["beef","potato","salad","tspoil"]}],
+    {n:"הודו ופסטה",i:["turkey","pasta","sauce","salad"]},{n:"דג לבן ואורז",i:["fish","rice","stir","tspoil"]},{n:"סלמון וקינואה",i:["salmon","quinoa","salad"]},{n:"קציצות ותפוח אדמה",i:["beef","potato","salad","tspoil"]}],
  S2:[["rice2","hummus","cuc"],["apple","almonds"],["fruit","walnuts"],["dates1","fruit"],["bread1","turkeyp","cuc"],["rice2","tahini","cuc"]],
  D:[["yog","oats","berries","walnuts"],["shak","pita","labane","salad"],["soup","tuna","salad","rye1"],["pasta","sauce","cottage","salad","olives"],["egg2","kafri","white","avocado","salad"],
     ["shak","pita","salad","bulgarian"],["tuna","egg2","bread1","salad"],["cottage","rye","egg2","salad"],["soup","egg2","bread1","white"]]
@@ -1350,7 +1350,7 @@ function viewFood(){
      return'<div class="card" style="padding:12px;border-inline-start:5px solid '+KIND[k][1]+'"><div class="row" style="justify-content:space-between;gap:6px"><b>'+MEALS[i][0]+' · '+MEALS[i][1]+'</b><span class="pill" style="background:color-mix(in srgb,'+KIND[k][1]+' 16%,transparent)">'+KIND[k][0]+'</span></div>'+
       '<ul style="margin:8px 0 4px;padding-inline-start:18px">'+ids.map(function(x){return RCP[x]?'<li><details class="rcp"><summary><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+' <span class="small" style="color:var(--c-legs);white-space:nowrap">· איך מכינים?</span></summary><div class="small" style="margin:4px 0 6px;color:var(--ink)">'+esc(RCP[x])+'</div></details></li>':'<li><b>'+esc(FI[x][0])+'</b> · '+esc(FI[x][1])+'</li>'}).join("")+'</ul><div class="small muted">כ־'+Math.round(kc/10)*10+' קל׳ · '+Math.round(pp)+' ג׳ חלבון</div></div>'}).join("")+
    (adds.length?'<div class="note small"><b>להשלמה עד '+T.kcal.toLocaleString("he-IL")+' קל׳:</b> '+adds.map(function(x){return FI[x][0]+" ("+FI[x][1]+")"}).join(", ")+'. מוסיפים לאחת הביניים.</div>':(T.kcal<tot-60?'<div class="note small"><b>היעד שלך '+T.kcal.toLocaleString("he-IL")+' קל׳:</b> מורידים פרוסת לחם או חצי מנת פחמימה בצהריים.</div>':""))+
-   (clash?'<div class="note warnn small">בתפריט הזה יש פחות מ־'+wait+' שעות בין הבשר בצהריים לחלב בערב. אפשר להזיז את ארוחת הערב לשעה מאוחרת יותר, או לאכול ערב פרווה: טונה, ביצים או טופו.</div>':"")+
+   (clash?'<div class="note warnn small">בתפריט הזה יש פחות מ־'+wait+' שעות בין הבשר בצהריים לחלב בערב. אפשר להזיז את ארוחת הערב לשעה מאוחרת יותר, או לאכול ערב פרווה: טונה בשמן, ביצים או דג.</div>':"")+
   '</div>'+
   '<div class="card stack" id="t-fsched" style="--dc:var(--c-legs)"><h3 class="h3">שעות קבועות</h3>'+
    '<p class="small muted" style="margin:0">3 ארוחות ו־2 ביניים, כל 3 שעות. כך אין רעב גדול ואין נשנושים. לא אוכלים 3 שעות לפני השינה.</p>'+
@@ -1372,7 +1372,7 @@ function viewFood(){
   '</div>';
 }
 /* all the recipes in one place, by kind */
-var RCPG=[["עיקריות",["chicken","beef","salmon","tuna","tofu","shak","egg2","turkeyp"]],["תוספות",["rice","bulgur","quinoa","lentils","pasta","sauce","sweet","potato"]],["ירקות ומרק",["salad","soup","stir"]],["בוקר, לחם וממרחים",["oats","oats40","tahini","kafri","rye","avocado","olives","challah"]],["מתוק",["dates","dates1"]]];
+var RCPG=[["עיקריות",["chicken","beef","salmon","fish","tuna","shak","egg2","turkeyp"]],["תוספות",["rice","bulgur","quinoa","lentils","pasta","sauce","sweet","potato"]],["ירקות ומרק",["salad","soup","stir"]],["בוקר, לחם וממרחים",["oats","oats40","tahini","kafri","rye","avocado","olives","challah"]],["מתוק",["dates","dates1"]]];
 function viewRecipes(){return'<div class="row"><button type="button" class="btn sm pri" data-pdf="recipes">🖨 הדפסה / PDF של כל המתכונים</button></div>'+
   RCPG.map(function(g){var items=g[1].filter(function(k){return RCP[k]&&FI[k]});if(!items.length)return"";return'<div class="card stack"><h3 class="h3">'+g[0]+'</h3>'+items.map(function(k){return'<details class="rcp"><summary><b>'+esc(FI[k][0])+'</b> <span class="small muted">· '+esc(FI[k][1])+'</span></summary><div class="small" style="margin:6px 0 4px">'+esc(RCP[k])+'</div></details>'}).join("")+'</div>'}).join("")}
 
@@ -1446,7 +1446,7 @@ function printMenus(){var T=foodTargets(),cw=menuWeek(),ws=weekStart(today());
 function printRecipes(){var b='<h1>מתכונים</h1><div class="meta">כל המתכונים מהתפריטים, לפי סוג</div>';
   RCPG.forEach(function(g){var it=g[1].filter(function(k){return RCP[k]&&FI[k]});if(!it.length)return;b+='<h2>'+g[0]+'</h2>'+it.map(function(k){return'<div class="rcp"><h3>'+esc(FI[k][0])+' <span class="meta">('+esc(FI[k][1])+')</span></h3>'+esc(RCP[k])+'</div>'}).join("")});
   printDoc("מתכונים - יומן כושר",b)}
-function printShop(){var t=shopList(),b='<h1>רשימת קניות</h1><div class="meta">'+(S.shopMode==="rest"?"מהיום עד שבת":"שבוע מלא")+' · '+((+S.shopPpl||1)===2?"2 אנשים":"אדם אחד")+'</div>';
+function printShop(){var t=shopList(),b='<h1>רשימת קניות</h1><div class="meta">'+shopModeName()+' · '+((+S.shopPpl||1)===2?"2 אנשים":"אדם אחד")+'</div>';
   SHOPG.forEach(function(g){var ks=Object.keys(t).filter(function(k){return PR[k][1]===g[0]});if(!ks.length)return;b+='<h2>'+g[1]+'</h2><table class="shop">'+ks.map(function(k){var q=shopQty(k,t[k]);return'<tr><td>☐</td><td>'+esc(PR[k][0])+'</td><td><b>'+esc(q.buy)+'</b></td></tr>'}).join("")+'</table>'});
   b+='<p><b>לבדוק שיש בבית:</b> '+esc(SHOP_STAPLES)+'</p>';printDoc("רשימת קניות - יומן כושר",b)}
 /* ---------- detailed coaching + demo videos for every exercise ---------- */
@@ -1521,11 +1521,11 @@ var PR={
  apple:["תפוחים","fruit","יח׳"],banana:["בננות","fruit","יח׳"],fruit:["פירות עונה","fruit","יח׳"],berries:["פירות יער קפואים","fruit","ג׳",400,"שקית 400 ג׳"],
  eggs:["ביצים","fridge","יח׳",12,"תבנית 12"],cottage:["קוטג׳ 5%","fridge","ג׳",250,"גביע 250 ג׳"],white:["גבינה לבנה 5%","fridge","ג׳",250,"גביע 250 ג׳"],
  yellow:["גבינה צהובה 9% פרוסה","fridge","ג׳",200,"חבילה 200 ג׳"],labane:["לבנה 5%","fridge","ג׳",250,"גביע 250 ג׳"],bulg:["גבינה בולגרית 5%","fridge","ג׳",250,"גביע 250 ג׳"],
- milk:["חלב 1%","fridge","מ״ל",1000,"קרטון 1 ליטר"],yog:["יוגורט חלבון","fridge","גביעים",1,"גביע"],hummus:["חומוס (ממרח)","fridge","ג׳",400,"גביע 400 ג׳"],tofu:["טופו","fridge","ג׳",300,"חבילה 300 ג׳"],
- chicken:["חזה עוף","meat","ג׳",1000,"ק״ג"],beef:["בקר טחון רזה (עד 5% שומן)","meat","ג׳",500,"חבילה 500 ג׳"],turkeyp:["פסטרמה מחזה הודו (דלת נתרן)","meat","ג׳",200,"חבילה 200 ג׳"],salmon:["פילה סלמון","meat","ג׳",1000,"ק״ג"],
+ milk:["חלב 1%","fridge","מ״ל",1000,"קרטון 1 ליטר"],yog:["יוגורט חלבון","fridge","גביעים",1,"גביע"],hummus:["חומוס (ממרח)","fridge","ג׳",400,"גביע 400 ג׳"],
+ chicken:["חזה עוף","meat","ג׳",1000,"ק״ג"],beef:["בקר טחון רזה (עד 5% שומן)","meat","ג׳",500,"חבילה 500 ג׳"],turkeyp:["פסטרמה מחזה הודו (דלת נתרן)","meat","ג׳",200,"חבילה 200 ג׳"],salmon:["פילה סלמון","meat","ג׳",1000,"ק״ג"],fish:["פילה אמנון או מושט (טרי או קפוא)","meat","ג׳",1000,"ק״ג"],
  bread:["לחם מלא פרוס","bread","פרוסות",25,"כיכר 750 ג׳"],kafri:["לחם כפרי מחמצת (עדיף מקמח מלא)","bread","פרוסות",20,"כיכר"],rye:["לחם שיפון מלא","bread","פרוסות",16,"כיכר 500 ג׳"],pita:["פיתות מלאות","bread","יח׳",10,"שקית 10"],challah:["חלה","bread","יח׳",1,"חלה"],rice2:["פריכיות אורז מלא","bread","יח׳",20,"חבילה"],
  rice:["אורז מלא","dry","ג׳",1000,"ק״ג"],quinoa:["קינואה","dry","ג׳",500,"500 ג׳"],bulgur:["בורגול גס","dry","ג׳",500,"500 ג׳"],lentils:["עדשים ירוקות או חומות","dry","ג׳",500,"500 ג׳"],
- pasta:["פסטה מחיטה מלאה","dry","ג׳",500,"500 ג׳"],oats:["שיבולת שועל","dry","ג׳",500,"500 ג׳"],tomcan:["עגבניות מרוסקות","dry","קופסאות",1,"קופסה"],tuna:["טונה במים","dry","קופסאות",1,"קופסה"],
+ pasta:["פסטה מחיטה מלאה","dry","ג׳",500,"500 ג׳"],oats:["שיבולת שועל","dry","ג׳",500,"500 ג׳"],tomcan:["עגבניות מרוסקות","dry","קופסאות",1,"קופסה"],tuna:["טונה בשמן צמחי","dry","קופסאות",1,"קופסה"],
  tahini:["טחינה גולמית","dry","ג׳",500,"צנצנת 500 ג׳"],olives:["זיתים","dry","ג׳",300,"צנצנת 300 ג׳"],avocado:["אבוקדו","fruit","יח׳"],
  almonds:["שקדים טבעיים","nuts","ג׳",200,"200 ג׳"],walnuts:["אגוזי מלך","nuts","ג׳",200,"200 ג׳"],dates:["תמרי מג׳הול","nuts","יח׳",20,"קופסה (כ־20)"]
 };
@@ -1540,12 +1540,18 @@ var SHOP={
  rice:[["rice",50]],quinoa:[["quinoa",60]],bulgur:[["bulgur",60],["onion",0.25]],lentils:[["lentils",80]],pasta:[["pasta",50]],sauce:[["tomcan",0.5],["garlic",0.1]],
  sweet:[["sweet",170]],potato:[["potato",220]],oats:[["oats",30]],oats40:[["oats",40]],rice2:[["rice2",2]],hummus:[["hummus",40]],tahini:[["tahini",15],["lemon",0.25]],
  chicken:[["chicken",200],["lemon",0.25],["garlic",0.1]],beef:[["beef",190],["onion",0.25],["herbs",0.25]],turkeyp:[["turkeyp",60]],salmon:[["salmon",170],["lemon",0.25],["herbs",0.25]],
- tuna:[["tuna",1],["onion",0.25]],tofu:[["tofu",150]],shak:[["eggs",2],["tomcan",1],["onion",0.5],["pepper",0.5],["garlic",0.1]]
+ tuna:[["tuna",1],["onion",0.25]],fish:[["fish",200],["lemon",0.25]],shak:[["eggs",2],["tomcan",1],["onion",0.5],["pepper",0.5],["garlic",0.1]]
 };
 var SHOP_STAPLES="שמן זית · מלח · פלפל שחור · כמון · פפריקה מתוקה · כורכום · זעתר · סומאק · קינמון · רוטב סויה מופחת נתרן";
-function shopDays(){var mode=S.shopMode||"week",d0=new Date().getDay(),out=[];for(var d=(mode==="rest"?d0:0);d<7;d++)out.push(d);return out}
+/* shopping period: from today to Saturday, or 1-4 full weeks of the monthly menu */
+var SHOPMODES=[["rest","מהיום עד שבת"],["w1","שבוע"],["w2","שבועיים"],["w3","3 שבועות"],["w4","חודש"]];
+function shopMode(){var m=S.shopMode||"w1";return m==="week"?"w1":m}
+function shopModeName(){var m=shopMode();return(SHOPMODES.find(function(x){return x[0]===m})||SHOPMODES[1])[1]}
+function shopPlan(){var m=shopMode(),sw=S.fw!=null?S.fw:menuWeek(),out=[];
+  if(m==="rest"){for(var d=new Date().getDay();d<7;d++)out.push([sw,d]);return out}
+  var n=+m.slice(1)||1;for(var i=0;i<n;i++)for(var d2=0;d2<7;d2++)out.push([(sw+i)%4,d2]);return out}
 function shopList(){var tot={},ppl=+S.shopPpl||1;
-  var sw=S.fw!=null?S.fw:menuWeek();shopDays().forEach(function(d){dayMenu(sw,d).m.forEach(function(ids){ids.forEach(function(x){(SHOP[x]||[]).forEach(function(r){tot[r[0]]=(tot[r[0]]||0)+r[1]*ppl})})})});
+  shopPlan().forEach(function(wd){dayMenu(wd[0],wd[1]).m.forEach(function(ids){ids.forEach(function(x){(SHOP[x]||[]).forEach(function(r){tot[r[0]]=(tot[r[0]]||0)+r[1]*ppl})})})});
   return tot}
 function shopQty(k,q){var p=PR[k],u=p[2],n;
   if(u==="ג׳"&&p[3]>=1000&&(p[1]==="veg"||p[1]==="meat")){var g=Math.ceil(q/50)*50;return{buy:g>=1000?n1(Math.round(g/100)/10)+" ק״ג":"כ־"+g+" ג׳",need:""}}
@@ -1554,7 +1560,7 @@ function shopQty(k,q){var p=PR[k],u=p[2],n;
   n=Math.max(1,Math.ceil(q-0.2));return{buy:n+" "+u,need:""}}
 function shopKey(){return"kg-shop-"+weekStart(today())}
 function shopChecked(){try{return JSON.parse(localStorage.getItem(shopKey())||"{}")}catch(e){return{}}}
-function shopText(){var t=shopList(),lines=["רשימת קניות – יומן כושר ("+(S.shopMode==="rest"?"מהיום עד שבת":"שבוע מלא")+")"];
+function shopText(){var t=shopList(),lines=["רשימת קניות – יומן כושר ("+shopModeName()+")"];
   SHOPG.forEach(function(g){var ks=Object.keys(t).filter(function(k){return PR[k][1]===g[0]});if(!ks.length)return;lines.push("");lines.push("*"+g[1]+"*");
     ks.forEach(function(k){var q=shopQty(k,t[k]);lines.push("☐ "+PR[k][0]+" – "+q.buy)})});
   lines.push("");lines.push("לבדוק שיש בבית: "+SHOP_STAPLES);return lines.join("\n")}
@@ -1562,9 +1568,9 @@ function viewShop(){var t=shopList(),ck=shopChecked(),n=0,done=0;
   var groups=SHOPG.map(function(g){var ks=Object.keys(t).filter(function(k){return PR[k][1]===g[0]});if(!ks.length)return"";
     return'<div class="stack" style="gap:4px"><b class="small" style="color:var(--muted)">'+g[1]+'</b>'+ks.map(function(k){var q=shopQty(k,t[k]);n++;if(ck[k])done++;
       return'<label class="row shopi" style="gap:10px;flex-wrap:nowrap;align-items:center;padding:6px 2px;border-bottom:1px solid var(--line);'+(ck[k]?'opacity:.5;text-decoration:line-through':'')+'"><input type="checkbox" data-shop="'+k+'"'+(ck[k]?" checked":"")+' style="width:22px;height:22px;flex:none"><span style="flex:1">'+esc(PR[k][0])+(q.need?' <span class="small muted">(צריך '+q.need+')</span>':'')+'</span><b class="small" style="white-space:nowrap">'+esc(q.buy)+'</b></label>'}).join("")+'</div>'}).join("");
-  return'<div class="card stack" id="t-fshop"><div class="row" style="justify-content:space-between"><h3 class="h3">רשימת קניות לשבוע</h3><span class="small muted">'+done+' מתוך '+n+'</span></div>'+
-   '<p class="small muted" style="margin:0">מחושבת מהתפריט של '+WEEKN[S.fw!=null?S.fw:menuWeek()]+' (אפשר לבחור שבוע אחר בכרטיסיית "תפריט"). הכמויות מעוגלות לאריזות בסופר.</p>'+
-   '<div class="chips"><button type="button" class="chip" data-shopmode="week" aria-pressed="'+(S.shopMode!=="rest")+'">שבוע מלא</button><button type="button" class="chip" data-shopmode="rest" aria-pressed="'+(S.shopMode==="rest")+'">מהיום עד שבת</button>'+
+  return'<div class="card stack" id="t-fshop"><div class="row" style="justify-content:space-between"><h3 class="h3">רשימת קניות · '+shopModeName()+'</h3><span class="small muted">'+done+' מתוך '+n+'</span></div>'+
+   '<p class="small muted" style="margin:0">מחושבת מהתפריט החודשי, החל מ'+WEEKN[S.fw!=null?S.fw:menuWeek()]+'. הכמויות מעוגלות לאריזות בסופר. לתקופה ארוכה: פירות, ירקות, לחם ודגים טריים כדאי לקנות כל שבוע, או לקנות קפוא.</p>'+
+   '<div class="small"><b>לכמה זמן?</b></div><div class="chips">'+SHOPMODES.map(function(o){return'<button type="button" class="chip daychip" style="--dc:var(--c-legs)" data-shopmode="'+o[0]+'" aria-pressed="'+(shopMode()===o[0])+'">'+o[1]+'</button>'}).join("")+'</div><div class="chips">'+
    '<button type="button" class="chip" data-shopppl="1" aria-pressed="'+((+S.shopPpl||1)===1)+'">אדם אחד</button><button type="button" class="chip" data-shopppl="2" aria-pressed="'+(+S.shopPpl===2)+'">2 אנשים</button></div>'+
    groups+
    '<div class="small"><b>לבדוק שיש בבית:</b> '+esc(SHOP_STAPLES)+'</div>'+
@@ -2254,7 +2260,7 @@ function bind(){
   main.querySelectorAll("[data-fw]").forEach(function(b){b.onclick=function(){S.fw=+b.dataset.fw;render()}});
   main.querySelectorAll("[data-fd]").forEach(function(b){b.onclick=function(){S.fd=+b.dataset.fd;render()}});
   main.querySelectorAll("[data-shop]").forEach(function(c){c.onchange=function(){var ck=shopChecked();if(c.checked)ck[c.dataset.shop]=1;else delete ck[c.dataset.shop];try{localStorage.setItem(shopKey(),JSON.stringify(ck))}catch(e){}render()}});
-  main.querySelectorAll("[data-shopmode]").forEach(function(b){b.onclick=function(){S.shopMode=b.dataset.shopmode;render()}});
+  main.querySelectorAll("[data-shopmode]").forEach(function(b){b.onclick=function(){S.shopMode=b.dataset.shopmode;try{localStorage.setItem("kg-shopmode",S.shopMode)}catch(e){}render()}});
   main.querySelectorAll("[data-shopppl]").forEach(function(b){b.onclick=function(){S.shopPpl=+b.dataset.shopppl;render()}});
   if($("shop-copy"))$("shop-copy").onclick=function(){var t=shopText();try{navigator.clipboard.writeText(t).then(function(){toast("הרשימה הועתקה")},function(){toast("ההעתקה נכשלה")})}catch(e){toast("ההעתקה נכשלה")}};
   if($("shop-clear"))$("shop-clear").onclick=function(){try{localStorage.removeItem(shopKey())}catch(e){}render()};
@@ -2299,7 +2305,7 @@ function bind(){
     if(b.dataset.armed!=="1"){b.dataset.armed="1";b.textContent="בטוח?";setTimeout(function(){if(b.isConnected){b.dataset.armed="";b.textContent="מחק"}},3000);return}
     del("measures",b.dataset.delm);render()}});
 }
-try{var t0=localStorage.getItem("kg-tab");if(t0)TAB=t0;var fm=localStorage.getItem("kg-fmenu");if(fm)S.fmenu=+fm}catch(e){}
+try{var sm0=localStorage.getItem("kg-shopmode");if(sm0)S.shopMode=sm0;var t0=localStorage.getItem("kg-tab");if(t0)TAB=t0;var fm=localStorage.getItem("kg-fmenu");if(fm)S.fmenu=+fm}catch(e){}
 render();init();
 </script>
 </body></html>
