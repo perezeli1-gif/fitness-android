@@ -275,7 +275,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="5.0",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="5.1",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1255,6 +1255,9 @@ var FI={/* name, amount, kcal, protein(g), kind: d=dairy m=meat p=parve */
  turkeyp:["פסטרמה מחזה הודו","4 פרוסות (60 ג׳)",65,12,"m"],challah:["חלה","פרוסה (40 ג׳)",115,3.5,"p"],bulgarian:["גבינה בולגרית 5%","50 ג׳ (קובייה)",60,8,"d"],
  dates:["תמרים ממולאים","2 תמרי מג׳הול, בכל אחד חצי אגוז מלך או 2 שקדים",160,2.5,"p"],dates1:["תמר ממולא","תמר מג׳הול אחד עם חצי אגוז מלך או 2 שקדים",80,1.2,"p"],
  walnuts:["אגוזי מלך","3 חצאים גדולים (15 ג׳)",100,2,"p"],
+ cashews:["קשיו טבעי, לא קלוי ובלי מלח","12 יחידות (15 ג׳)",85,2.7,"p"],pistachio:["פיסטוקים טבעיים בלי מלח","25 יחידות (15 ג׳)",85,3,"p"],hazel:["אגוזי לוז טבעיים","10 יחידות (15 ג׳)",95,2.2,"p"],
+ raisins:["צימוקים","2 כפות (20 ג׳)",60,0.6,"p"],apricots:["משמש מיובש","4 יחידות (30 ג׳)",70,1,"p"],figs:["תאנים מיובשות","2 יחידות (30 ג׳)",75,1,"p"],prunes:["שזיפים מיובשים","3 יחידות (30 ג׳)",70,0.7,"p"],
+ mix:["מיקס פיצוחים ופירות יבשים","חופן קטן: 10 ג׳ אגוזים + 15 ג׳ פירות יבשים",105,2,"p"],
  kafri:["לחם כפרי","2 פרוסות דקות (60 ג׳)",160,6,"p"],kafri1:["לחם כפרי","פרוסה (30 ג׳)",80,3,"p"],rye:["לחם שיפון מלא","2 פרוסות (60 ג׳)",140,5,"p"],rye1:["לחם שיפון מלא","פרוסה (30 ג׳)",70,2.5,"p"],
  olives:["זיתים","8 יחידות (30 ג׳)",45,0.3,"p"],avocado:["אבוקדו","רבע בינוני (50 ג׳)",80,1,"p"],
  rice:["אורז מלא מבושל","כוס (150 ג׳)",165,3.5,"p"],quinoa:["קינואה מבושלת","כוס (180 ג׳)",220,8,"p"],sweet:["בטטה אפויה","150 ג׳ (בינונית)",130,2.5,"p"],
@@ -1295,6 +1298,9 @@ var RCP={
  salad:"עגבנייה, מלפפון, פלפל, בצל וחסה. לימון, מלח, פלפל, וסומאק או זעתר. השמן נספר בנפרד.",
  oats:"עם חצי כוס מים או חלב, 3 דקות על אש קטנה. קינמון, בלי סוכר: המתיקות מהפירות.",oats40:"עם כוס החלב, 3–4 דקות על אש קטנה. קינמון, בלי סוכר: המתיקות מהתמר.",
  tahini:"טחינה גולמית עם מים קרים, לימון, שום ומלח, מערבבים עד שמבהיר. כף גולמית היא כ־3 כפות מוכנה.",
+ mix:"מכינים בבית: קשיו, שקדים ואגוזי מלך טבעיים (לא קלויים ובלי מלח), עם צימוקים, משמש ותאנים מיובשים בלי סוכר. שוקלים מנה (25 ג׳) לקופסה קטנה, ולא אוכלים מהשקית.",
+ cashews:"קשיו טבעי, לא קלוי ובלי מלח. 12 יחידות. שומרים במקרר או במקפיא כדי שלא יתעפש.",pistachio:"פיסטוקים טבעיים בלי מלח (לא \"קלויים ומלוחים\"). 25 יחידות. הקליפה מאטה את האכילה, וזה טוב.",hazel:"אגוזי לוז טבעיים, 10 יחידות.",
+ raisins:"צימוקים בלי סוכר מוסף, 2 כפות. מתאים עם יוגורט או דייסה.",apricots:"משמש מיובש בלי סוכר מוסף (עדיף בלי גופרית, הכהה). 4 יחידות.",figs:"תאנים מיובשות, 2 יחידות. עשירות בסיבים ובסידן.",prunes:"שזיפים מיובשים, 3 יחידות. טובים לעיכול.",
  dates:"חוצים כל תמר לאורך, מוציאים את הגלעין, מכניסים חצי אגוז מלך או 2 שקדים וסוגרים.",dates1:"חוצים לאורך, מוציאים את הגלעין, מכניסים חצי אגוז מלך או 2 שקדים.",
  turkeyp:"בוחרים פסטרמה מחזה הודו עם פחות מ־500 מ״ג נתרן ל־100 ג׳. מתאים 2–3 פעמים בשבוע, לא כל יום.",
  challah:"פרוסה אחת. חלה מקמח מלא משביעה יותר.",
@@ -1307,11 +1313,11 @@ var RCP={
 var MP={
  B:[["egg2","rye","avocado","cottage","veg"],["kafri","white","yellow","olives","veg"],["oats40","milk","almonds","berries","cottage"],["egg2","bread2","hummus","veg"],["egg2","tspoil","bread2","bulgarian","veg"],
     ["oats40","milk","dates1","cottage"],["rye","cottage","egg2","veg"],["bread2","labane","olives","egg2","veg"],["yog","oats","berries","walnuts"],["kafri","cottage","avocado","veg"]],
- S1:[["dates"],["milk","banana"],["yog"],["fruit","walnuts"],["apple","almonds"],["dates1","milk"],["yog","berries"]],
+ S1:[["dates"],["milk","banana"],["yog"],["fruit","walnuts"],["apple","almonds"],["dates1","milk"],["yog","berries"],["apricots","cashews"],["mix"],["prunes","almonds"],["yog","raisins"]],
  L:[{n:"עוף ואורז",i:["chicken","rice","salad","tbspoil"]},{n:"סלמון ובטטה",i:["salmon","sweet","salad","tahini"]},{n:"קציצות וקינואה",i:["beef","quinoa","stir","tspoil"]},
     {n:"מרק ועוף",i:["soup","chicken","potato","salad","tbspoil"]},{n:"עוף ובורגול",i:["chicken","bulgur","salad","tahini"]},{n:"מג׳דרה (צמחוני)",i:["lentils","rice","salad","tahini"]},
     {n:"הודו ופסטה",i:["turkey","pasta","sauce","salad"]},{n:"דג לבן ואורז",i:["fish","rice","stir","tspoil"]},{n:"סלמון וקינואה",i:["salmon","quinoa","salad"]},{n:"קציצות ותפוח אדמה",i:["beef","potato","salad","tspoil"]}],
- S2:[["rice2","hummus","cuc"],["apple","almonds"],["fruit","walnuts"],["dates1","fruit"],["bread1","turkeyp","cuc"],["rice2","tahini","cuc"]],
+ S2:[["rice2","hummus","cuc"],["apple","almonds"],["fruit","walnuts"],["dates1","fruit"],["bread1","turkeyp","cuc"],["rice2","tahini","cuc"],["figs","pistachio"],["apple","hazel"],["mix"],["dates1","cashews"]],
  D:[["yog","oats","berries","walnuts"],["shak","pita","labane","salad"],["soup","tuna","salad","rye1"],["pasta","sauce","cottage","salad","olives"],["egg2","kafri","white","avocado","salad"],
     ["shak","pita","salad","bulgarian"],["tuna","egg2","bread1","salad"],["cottage","rye","egg2","salad"],["soup","egg2","bread1","white"]]
 };
@@ -1325,7 +1331,7 @@ function dayMenu(w,d){
 var MENU_START="2026-10-18";
 function menuWeek(k){var n=Math.floor(daysBetween(P().menuStart||MENU_START,weekStart(k||today()))/7);return((n%4)+4)%4}
 
-var ADDON=[["dates1",80],["fruit",80],["bread1",75],["almonds",70],["milk",100]];
+var ADDON=[["mix",105],["dates1",80],["fruit",80],["bread1",75],["almonds",70],["milk",100]];
 function foodTargets(){var p=P(),w=+currentWeight()||p.startWeight,bmr=10*w+6.25*(+p.height||180)-5*(+p.age||67)+5;
   var tdee=bmr*1.4,kcal=Math.max(1500,Math.round((tdee-500)/50)*50),prot=Math.min(140,Math.round(w*1.4/5)*5),water=Math.round(w*0.03*10)/10;
   var toGo=Math.max(0,w-(+p.goalWeight||75));return{w:w,bmr:Math.round(bmr),tdee:Math.round(tdee/50)*50,kcal:kcal,prot:prot,water:Math.min(3,Math.max(2,water)),weeks:Math.ceil(toGo/0.5),toGo:toGo}}
@@ -1366,13 +1372,16 @@ function viewFood(){
    '<li>דג הוא פרווה, אבל לא אוכלים אותו יחד עם בשר.</li><li>ביצים, ירקות, פירות, קטניות, דגנים ואגוזים הם פרווה ומתאימים לכל ארוחה.</li><li>במוצרים קנויים: לבדוק הכשר מוכר.</li></ul></div>'+
   '<div class="card stack" id="t-frules"><h3 class="h3">כללים שעובדים</h3><ol class="steps" style="margin:0">'+
    ['<b>צלחת חכמה:</b> חצי ירקות, רבע חלבון, רבע פחמימה מלאה.','<b>חלבון בכל ארוחה:</b> בגיל 67 הוא שומר על השריר בזמן הירידה במשקל.','<b>שמן נמדד בכפית,</b> לא שופכים מהבקבוק. כף שמן היא 120 קלוריות.','<b>שותים מים:</b> מים, סודה, תה וקפה בלי סוכר. בלי מיצים ומשקאות מתוקים. היעד הוא מינימום, לא תקרה: מותר לשתות יותר, רק לא יותר מכליטר בשעה. מי שהרופא הגביל לו נוזלים (לב, כליות, משתנים) – לפי הרופא.','<b>אוכלים לאט:</b> 20 דקות לארוחה, ומפסיקים כשכמעט שבעים.','<b>מעט מאוד:</b> בורקס, מאפים, מטוגנים ושקדי מרק. הרבה קלוריות ומעט שובע.','<b>נקניק ונקניקיות – להמעיט, לא אסור:</b> בשר מעובד מסווג על ידי ארגון הבריאות העולמי כגורם לסרטן המעי הגס, יש בו הרבה מלח (מעלה לחץ דם) וחומרים משמרים (ניטריטים), ובנקניק רגיל גם הרבה שומן. <b>פסטרמה מחזה הודו</b> רזה ועשירה בחלבון: 2–3 פעמים בשבוע, 50–60 ג׳, ועדיף עם פחות נתרן.','<b>שבת וחג:</b> פרוסת חלה אחת, כוס קטנה של יין לקידוש, ארוחה חגיגית אחת והשנייה קלה.','<b>מסעדה ואירוע:</b> מתחילים בסלט, בוחרים מנה צלויה, ומוותרים על הלחם או על הקינוח.','<b>מתוק:</b> תמר ממולא באגוז מלך או בשקדים, פרי, או 2 קוביות שוקולד מריר. לא ממתקים בין הארוחות.','<b>שוקלים פעם בשבוע,</b> באותו יום ובאותה שעה. ירידה של חצי קילו בשבוע היא הצלחה.'].map(function(x){return"<li>"+x+"</li>"}).join("")+'</ol></div>'+
+  '<div class="card stack" id="t-fnuts"><h3 class="h3">פיצוחים ופירות יבשים</h3><p class="small" style="margin:0">בריאים מאוד, אבל צפופים בקלוריות. לכן: <b>עד 2 מנות ביום</b>, בתוך הביניים, ותמיד מנה מדודה ולא מהשקית. רק טבעיים: לא קלויים, בלי מלח ובלי סוכר מוסף.</p><div class="tbl"><table><thead><tr><th>מנה אחת</th><th>כמה</th><th>קלוריות</th></tr></thead><tbody>'+
+   ["almonds","walnuts","cashews","pistachio","hazel","raisins","apricots","figs","prunes","dates1","mix"].map(function(k){return'<tr><td>'+esc(FI[k][0])+'</td><td>'+esc(FI[k][1])+'</td><td>'+FI[k][2]+'</td></tr>'}).join("")+'</tbody></table></div>'+
+   '<div class="small muted">טיפ: ביום ראשון מכינים 7 קופסאות קטנות של מיקס (25 ג׳ כל אחת). אגוזים שומרים במקרר. פירות יבשים מתוקים: עדיף לצד אגוזים או יוגורט, שהסוכר ייספג לאט.</div></div>'+
   '<div class="card stack" id="t-fswap"><h3 class="h3">החלפות טובות</h3><div class="stack" style="gap:6px">'+
    [["לחם לבן, לחמניה","לחם מלא או קל, פרוסה אחת"],["אורז לבן, פתיתים","אורז מלא, קינואה או בורגול, כוס"],["שניצל מטוגן","חזה עוף או הודו בתנור"],["גבינה צהובה 28%","גבינה 9% או קוטג׳ 5%"],["מיץ פירות","פרי שלם"],["עוגיות, ופלים","2 תמרים ממולאים באגוז מלך או בשקדים"],["שמנת לרוטב","יוגורט 3%"],["ביסלי, במבה","פופקורן ביתי בלי חמאה, 2 כוסות"],["קפה עם סוכר","קפה עם חלב 1%, בלי סוכר"]].map(function(r){return'<div class="row small" style="gap:8px;flex-wrap:nowrap"><span style="flex:1;color:var(--muted)">'+r[0]+'</span><b aria-hidden="true">←</b><span style="flex:1"><b>'+r[1]+'</b></span></div>'}).join("")+'</div></div>'+
   '<div class="note small">המידע כאן כללי ולא מחליף רופא או דיאטנית. אם יש לך סוכרת, בעיה בכליות, או שאתה לוקח תרופות ללחץ דם או לדילול דם, בדוק עם הרופא לפני שינוי בתזונה. הקלוריות בתפריטים הן הערכה.</div>'):"")+
   '</div>';
 }
 /* all the recipes in one place, by kind */
-var RCPG=[["עיקריות",["chicken","beef","salmon","fish","tuna","shak","egg2","turkeyp"]],["תוספות",["rice","bulgur","quinoa","lentils","pasta","sauce","sweet","potato"]],["ירקות ומרק",["salad","soup","stir"]],["בוקר, לחם וממרחים",["oats","oats40","tahini","kafri","rye","avocado","olives","challah"]],["מתוק",["dates","dates1"]]];
+var RCPG=[["עיקריות",["chicken","beef","salmon","fish","tuna","shak","egg2","turkeyp"]],["תוספות",["rice","bulgur","quinoa","lentils","pasta","sauce","sweet","potato"]],["ירקות ומרק",["salad","soup","stir"]],["בוקר, לחם וממרחים",["oats","oats40","tahini","kafri","rye","avocado","olives","challah"]],["מתוק, פיצוחים ופירות יבשים",["dates","dates1","mix","cashews","pistachio","hazel","raisins","apricots","figs","prunes"]]];
 function viewRecipes(){return'<div class="row"><button type="button" class="btn sm pri" data-pdf="recipes">🖨 הדפסה / PDF של כל המתכונים</button></div>'+
   RCPG.map(function(g){var items=g[1].filter(function(k){return RCP[k]&&FI[k]});if(!items.length)return"";return'<div class="card stack"><h3 class="h3">'+g[0]+'</h3>'+items.map(function(k){return'<details class="rcp"><summary><b>'+esc(FI[k][0])+'</b> <span class="small muted">· '+esc(FI[k][1])+'</span></summary><div class="small" style="margin:6px 0 4px">'+esc(RCP[k])+'</div></details>'}).join("")+'</div>'}).join("")}
 
@@ -1512,7 +1521,7 @@ function vidHtml(e,small){var v=VID[e.id]||[];if(!v.length)return"";
   return'<div class="row" style="gap:6px">'+v.map(function(x,i){return'<a class="btn sm'+(i?' ghost':'')+'" style="text-decoration:none;color:var(--ink)" target="_blank" rel="noopener" href="https://www.youtube.com/watch?v='+x[0]+'">▶ '+(small?"סרטון":"סרטון הדגמה")+(x[1]==="he"?" בעברית":x[1]==="en"?" (אנגלית)":"")+(x[2]?' · '+esc(x[2]):'')+'</a>'}).join("")+'</div>'}
 
 /* ---------- weekly shopping list (from the 7 day-menus) ---------- */
-var SHOPG=[["veg","ירקות"],["fruit","פירות"],["fridge","מקרר: חלב, ביצים וממרחים"],["meat","עוף, בשר ודגים"],["bread","לחם ומאפים"],["dry","יבשים ושימורים"],["nuts","אגוזים ותמרים"]];
+var SHOPG=[["veg","ירקות"],["fruit","פירות"],["fridge","מקרר: חלב, ביצים וממרחים"],["meat","עוף, בשר ודגים"],["bread","לחם ומאפים"],["dry","יבשים ושימורים"],["nuts","אגוזים, פיצוחים ופירות יבשים"]];
 /* product: [name, group, unit, packSize, packLabel] */
 var PR={
  tomato:["עגבניות","veg","יח׳"],cucumber:["מלפפונים","veg","יח׳"],pepper:["פלפלים","veg","יח׳"],onion:["בצל","veg","יח׳"],lettuce:["חסה","veg","ראש",1,"ראש"],
@@ -1527,7 +1536,8 @@ var PR={
  rice:["אורז מלא","dry","ג׳",1000,"ק״ג"],quinoa:["קינואה","dry","ג׳",500,"500 ג׳"],bulgur:["בורגול גס","dry","ג׳",500,"500 ג׳"],lentils:["עדשים ירוקות או חומות","dry","ג׳",500,"500 ג׳"],
  pasta:["פסטה מחיטה מלאה","dry","ג׳",500,"500 ג׳"],oats:["שיבולת שועל","dry","ג׳",500,"500 ג׳"],tomcan:["עגבניות מרוסקות","dry","קופסאות",1,"קופסה"],tuna:["טונה בשמן צמחי","dry","קופסאות",1,"קופסה"],
  tahini:["טחינה גולמית","dry","ג׳",500,"צנצנת 500 ג׳"],olives:["זיתים","dry","ג׳",300,"צנצנת 300 ג׳"],avocado:["אבוקדו","fruit","יח׳"],
- almonds:["שקדים טבעיים","nuts","ג׳",200,"200 ג׳"],walnuts:["אגוזי מלך","nuts","ג׳",200,"200 ג׳"],dates:["תמרי מג׳הול","nuts","יח׳",20,"קופסה (כ־20)"]
+ almonds:["שקדים טבעיים","nuts","ג׳",200,"200 ג׳"],cashews:["קשיו טבעי (לא קלוי, בלי מלח)","nuts","ג׳",200,"200 ג׳"],pistachio:["פיסטוקים טבעיים בלי מלח","nuts","ג׳",200,"200 ג׳"],hazel:["אגוזי לוז טבעיים","nuts","ג׳",200,"200 ג׳"],
+ raisins:["צימוקים (בלי סוכר מוסף)","nuts","ג׳",250,"250 ג׳"],apricots:["משמש מיובש","nuts","ג׳",250,"250 ג׳"],figs:["תאנים מיובשות","nuts","ג׳",250,"250 ג׳"],prunes:["שזיפים מיובשים","nuts","ג׳",250,"250 ג׳"],walnuts:["אגוזי מלך","nuts","ג׳",200,"200 ג׳"],dates:["תמרי מג׳הול","nuts","יח׳",20,"קופסה (כ־20)"]
 };
 /* menu item -> products per serving (raw amounts) */
 var SHOP={
@@ -1535,7 +1545,8 @@ var SHOP={
  cottage:[["cottage",100]],white:[["white",100]],yellow:[["yellow",40]],labane:[["labane",40]],bulgarian:[["bulg",50]],milk:[["milk",240]],yog:[["yog",1]],
  veg:[["cucumber",0.5],["tomato",0.5],["pepper",0.25]],salad:[["tomato",1],["cucumber",1],["pepper",0.5],["onion",0.25],["lettuce",0.15],["lemon",0.25]],
  soup:[["soupveg",350],["onion",0.5]],stir:[["stirveg",300],["garlic",0.1]],cuc:[["cucumber",1]],
- apple:[["apple",1]],banana:[["banana",1]],fruit:[["fruit",1]],berries:[["berries",70]],almonds:[["almonds",12]],walnuts:[["walnuts",15]],
+ apple:[["apple",1]],banana:[["banana",1]],fruit:[["fruit",1]],berries:[["berries",70]],almonds:[["almonds",12]],walnuts:[["walnuts",15]],cashews:[["cashews",15]],pistachio:[["pistachio",15]],hazel:[["hazel",15]],raisins:[["raisins",20]],apricots:[["apricots",30]],figs:[["figs",30]],prunes:[["prunes",30]],
+ mix:[["cashews",4],["almonds",3],["walnuts",3],["raisins",5],["apricots",5],["figs",5]],
  dates:[["dates",2],["walnuts",8]],dates1:[["dates",1],["walnuts",4]],
  rice:[["rice",50]],quinoa:[["quinoa",60]],bulgur:[["bulgur",60],["onion",0.25]],lentils:[["lentils",80]],pasta:[["pasta",50]],sauce:[["tomcan",0.5],["garlic",0.1]],
  sweet:[["sweet",170]],potato:[["potato",220]],oats:[["oats",30]],oats40:[["oats",40]],rice2:[["rice2",2]],hummus:[["hummus",40]],tahini:[["tahini",15],["lemon",0.25]],
