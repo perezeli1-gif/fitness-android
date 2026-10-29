@@ -239,6 +239,7 @@ details summary{cursor:pointer;font-weight:600}
 .exlib{position:relative}
 .exlib .vid{align-self:flex-start;text-decoration:none;color:#fff;background:#E5322D;border-radius:999px;padding:5px 12px;font-size:13px;font-weight:700}
 .chart.bigt text{font-size:19px}
+.kcalt td,.kcalt th{white-space:normal}.kcalt tr.kg td{background:var(--sunk);padding-top:10px}
 .musbtn{background:linear-gradient(135deg,#7C3AED,#DB2777);border:0;color:#fff;font-weight:800;font-size:16px;padding:12px 18px;border-radius:999px;box-shadow:0 4px 14px rgba(124,58,237,.35)}
 .mrow{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--line);padding:2px 0}
 .mrow.on{background:var(--walk-soft);border-radius:8px}
@@ -275,7 +276,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="5.1",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="5.2",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1344,7 +1345,7 @@ function viewFood(){
   var meatAt=null,clash=false;menu.m.forEach(function(ids,i){var k=mealKind(ids);if(k==="m")meatAt=i;if(k==="d"&&meatAt!=null){var h=(parseInt(MEALS[i][0])-parseInt(MEALS[meatAt][0]));if(h<wait)clash=true}});
   var kpi=function(l,v,u,sub){return'<div class="card"><div class="eyebrow">'+l+'</div><div class="row" style="align-items:baseline;gap:6px;margin-top:4px"><span class="big" style="font-size:34px">'+v+'</span><span class="muted small">'+u+'</span></div><div class="small muted">'+sub+'</div></div>'};
   var sub=subOf("food","menu");
-  return '<div class="stack">'+segBar("food",[["menu","תפריט"],["recipes","מתכונים"],["shop","קניות"],["rules","יעדים וכללים"]],sub,"--c-legs")+
+  return '<div class="stack">'+segBar("food",[["menu","תפריט"],["kcal","טבלת קלוריות"],["recipes","מתכונים"],["shop","קניות"],["rules","יעדים וכללים"]],sub,"--c-legs")+
   (sub==="menu"?(
   '<div class="hero" style="--dc:var(--c-legs)"><div class="eyebrow">תזונה לירידה במשקל</div><h1 class="h1">מה, מתי וכמה לאכול</h1><p class="muted" style="margin:0">הכול כשר. המספרים מחושבים לפי הגיל, הגובה והמשקל האחרון שלך ('+n1(T.w)+' ק״ג), ומתעדכנים לבד כשהמשקל יורד.</p></div>'+
 '<div class="row"><button type="button" class="btn sm pri" data-pdf="menus">🖨 הדפסה / PDF של התפריט החודשי</button></div>'+
@@ -1362,6 +1363,7 @@ function viewFood(){
    '<p class="small muted" style="margin:0">3 ארוחות ו־2 ביניים, כל 3 שעות. כך אין רעב גדול ואין נשנושים. לא אוכלים 3 שעות לפני השינה.</p>'+
    '<div class="stack" style="gap:6px">'+[["07:00","כוס מים גדולה כשקמים"]].concat(MEALS.map(function(m,i){var k=0;menu.m[i].forEach(function(x){k+=FI[x][2]});return[m[0],m[1]+" · כ־"+Math.round(k/10)*10+" קל׳"]})).concat([["21:30","סוף האוכל להיום. מים, תה או קפה בלי סוכר"]]).map(function(r){return'<div class="row" style="gap:12px;flex-wrap:nowrap"><b style="min-width:52px;direction:ltr;text-align:right">'+r[0]+'</b><span>'+esc(r[1])+'</span></div>'}).join("")+'</div>'+
    '<div class="note small"><b>ביום אימון משקולות:</b> שעה עד שעה וחצי לפני: פרי או פרוסה עם מעט חומוס. עד שעתיים אחרי: ארוחה עם חלבון. <b>הליכה בבוקר:</b> כוס מים לפני, ואפשר ללכת לפני ארוחת הבוקר אם אתה מרגיש טוב.</div></div>'):"")+
+  (sub==="kcal"?viewKcal():"")+
   (sub==="recipes"?viewRecipes():"")+
   (sub==="shop"?viewShop():"")+
   (sub==="rules"?(
@@ -1382,6 +1384,19 @@ function viewFood(){
 }
 /* all the recipes in one place, by kind */
 var RCPG=[["עיקריות",["chicken","beef","salmon","fish","tuna","shak","egg2","turkeyp"]],["תוספות",["rice","bulgur","quinoa","lentils","pasta","sauce","sweet","potato"]],["ירקות ומרק",["salad","soup","stir"]],["בוקר, לחם וממרחים",["oats","oats40","tahini","kafri","rye","avocado","olives","challah"]],["מתוק, פיצוחים ופירות יבשים",["dates","dates1","mix","cashews","pistachio","hazel","raisins","apricots","figs","prunes"]]];
+/* calorie table: every food in the menus, by group */
+var KCALG=[["חלבון: עוף, בשר, דגים וביצים",["chicken","turkey","turkeyp","beef","salmon","fish","tuna","egg2","shak","lentils"]],["חלב וגבינות",["cottage","white","yellow","bulgarian","labane","milk","yog"]],
+ ["לחם ודגנים",["bread1","bread2","kafri1","kafri","rye1","rye","pita","challah","rice2","oats","oats40"]],["תוספות",["rice","bulgur","quinoa","pasta","potato","sweet"]],
+ ["ירקות",["veg","salad","soup","stir","cuc","sauce"]],["פירות",["apple","banana","fruit","berries"]],
+ ["פיצוחים ופירות יבשים",["almonds","walnuts","cashews","pistachio","hazel","raisins","apricots","figs","prunes","mix","dates1","dates"]],["שומנים וממרחים",["tspoil","tbspoil","tahini","hummus","avocado","olives"]]];
+function kcalRows(q){q=(q||"").trim();return KCALG.map(function(g){var it=g[1].filter(function(k){return FI[k]&&(!q||(FI[k][0]+" "+FI[k][1]).indexOf(q)>=0)});if(!it.length)return"";
+  return'<tr class="kg"><td colspan="5"><b>'+g[0]+'</b></td></tr>'+it.map(function(k){var f=FI[k];return'<tr><td>'+esc(f[0])+'</td><td class="small">'+esc(f[1])+'</td><td><b>'+f[2]+'</b></td><td>'+f[3]+'</td><td><span class="pill" style="background:color-mix(in srgb,'+KIND[f[4]][1]+' 16%,transparent)">'+KIND[f[4]][0]+'</span></td></tr>'}).join("")}).join("")}
+function viewKcal(){var T=foodTargets();return'<div class="card stack" id="t-kcal"><div class="row" style="justify-content:space-between"><h3 class="h3">טבלת קלוריות</h3><button type="button" class="btn sm pri" data-pdf="kcal">🖨 הדפסה / PDF</button></div>'+
+  '<p class="small muted" style="margin:0">כל המאכלים שבתפריטים, במנה שמופיעה בתפריט. היעד שלך: כ־'+T.kcal.toLocaleString("he-IL")+' קלוריות ו־'+T.prot+' ג׳ חלבון ביום.</p>'+
+  '<input type="text" id="kcal-q" placeholder="חיפוש: למשל קשיו, לחם, גבינה" value="'+esc(S.kq||"")+'">'+
+  '<div class="tbl"><table class="kcalt"><thead><tr><th>מאכל</th><th>מנה</th><th>קל׳</th><th>חלבון (ג׳)</th><th>סוג</th></tr></thead><tbody id="kcal-body">'+kcalRows(S.kq)+'</tbody></table></div></div>'}
+function printKcal(){var b='<h1>טבלת קלוריות</h1><div class="meta">כל המאכלים בתפריטים, במנה שבתפריט</div><table class="shop" style="width:100%"><tr><th style="text-align:right">מאכל</th><th style="text-align:right">מנה</th><th>קל׳</th><th>חלבון</th><th>סוג</th></tr>'+
+  KCALG.map(function(g){return'<tr><td colspan="5" style="padding-top:10px"><b>'+g[0]+'</b></td></tr>'+g[1].filter(function(k){return FI[k]}).map(function(k){var f=FI[k];return'<tr><td>'+esc(f[0])+'</td><td>'+esc(f[1])+'</td><td style="text-align:center"><b>'+f[2]+'</b></td><td style="text-align:center">'+f[3]+'</td><td>'+KIND[f[4]][0]+'</td></tr>'}).join("")}).join("")+'</table>';printDoc("טבלת קלוריות - יומן כושר",b)}
 function viewRecipes(){return'<div class="row"><button type="button" class="btn sm pri" data-pdf="recipes">🖨 הדפסה / PDF של כל המתכונים</button></div>'+
   RCPG.map(function(g){var items=g[1].filter(function(k){return RCP[k]&&FI[k]});if(!items.length)return"";return'<div class="card stack"><h3 class="h3">'+g[0]+'</h3>'+items.map(function(k){return'<details class="rcp"><summary><b>'+esc(FI[k][0])+'</b> <span class="small muted">· '+esc(FI[k][1])+'</span></summary><div class="small" style="margin:6px 0 4px">'+esc(RCP[k])+'</div></details>'}).join("")+'</div>'}).join("")}
 
@@ -1977,7 +1992,7 @@ function viewMeasure(){
   '</div>';
 }
 function viewExport(){return'<div class="card stack"><h3 class="h3">אקסל: כל הנתונים</h3><p class="small muted" style="margin:0">קובץ אקסל עם 3 גיליונות: הליכות, אימוני משקולות (כל סט), ומדידות.</p><div><button type="button" class="btn pri" data-xls="1">⬇ ייצוא לאקסל</button></div></div>'+
-  '<div class="card stack"><h3 class="h3">הדפסה או PDF</h3><p class="small muted" style="margin:0">נפתח מסך הדפסה. כדי לקבל קובץ, בוחרים במדפסת: "שמירה כ־PDF".</p><div class="row"><button type="button" class="btn" data-pdf="menus">🖨 התפריט החודשי</button><button type="button" class="btn" data-pdf="recipes">🖨 כל המתכונים</button><button type="button" class="btn" data-pdf="shop">🖨 רשימת הקניות</button></div></div>'}
+  '<div class="card stack"><h3 class="h3">הדפסה או PDF</h3><p class="small muted" style="margin:0">נפתח מסך הדפסה. כדי לקבל קובץ, בוחרים במדפסת: "שמירה כ־PDF".</p><div class="row"><button type="button" class="btn" data-pdf="menus">🖨 התפריט החודשי</button><button type="button" class="btn" data-pdf="recipes">🖨 כל המתכונים</button><button type="button" class="btn" data-pdf="kcal">🖨 טבלת קלוריות</button><button type="button" class="btn" data-pdf="shop">🖨 רשימת הקניות</button></div></div>'}
 var HOWTO=[["weight","משקל","בבוקר, אחרי שירותים ולפני אוכל, באותו משקל ביתי."],["waist","מותניים","הנקודה הצרה ביותר, בערך באמצע בין הצלע התחתונה לעצם האגן."],["belly","בטן","בגובה הטבור, בסוף נשיפה רגילה, בלי להכניס בטן."],["chest","חזה","בגובה הפטמות, הסרט מקביל לרצפה."],["shoulders","כתפיים","סביב הנקודה הרחבה ביותר של הכתפיים, ידיים רפויות לצד הגוף."],["hips","ירכיים","ההיקף הרחב ביותר של הישבן."],["arm","זרוע","אמצע היד העליונה, יד רפויה. תמיד אותה יד."]];
 function tapeFig(){
   var n='fill="var(--bodyoff)"';
@@ -2197,11 +2212,12 @@ function chipGroup(id){var g=document.getElementById(id);g.querySelectorAll(".ch
 
 /* ---------- events ---------- */
 function bind(){
+  var kq=document.getElementById("kcal-q");if(kq)kq.oninput=function(){S.kq=kq.value;document.getElementById("kcal-body").innerHTML=kcalRows(S.kq)};
   try{bindCharts(main)}catch(e){}
   try{bindMusic(main)}catch(e){}
   main.querySelectorAll("[data-xlsm]").forEach(function(x){x.onclick=function(){try{exportXlsx("meas")}catch(e){toast("הייצוא נכשל: "+(e&&e.message||e))}}});
   main.querySelectorAll("[data-xls]").forEach(function(x){x.onclick=function(){try{exportXlsx()}catch(e){toast("הייצוא נכשל: "+(e&&e.message||e))}}});
-  main.querySelectorAll("[data-pdf]").forEach(function(x){x.onclick=function(){var k=x.dataset.pdf;try{if(k==="menus")printMenus();else if(k==="recipes")printRecipes();else printShop()}catch(e){toast("ההדפסה נכשלה: "+(e&&e.message||e))}}});
+  main.querySelectorAll("[data-pdf]").forEach(function(x){x.onclick=function(){var k=x.dataset.pdf;try{if(k==="menus")printMenus();else if(k==="recipes")printRecipes();else if(k==="kcal")printKcal();else printShop()}catch(e){toast("ההדפסה נכשלה: "+(e&&e.message||e))}}});
   main.querySelectorAll("[data-sub]").forEach(function(b){b.onclick=function(){var pr=b.dataset.sub.split("|");
     if(pr[0]==="train"){go(pr[1]);return}
     S.sub[pr[0]]=pr[1];try{localStorage.setItem("kg-sub",JSON.stringify(S.sub))}catch(e){}render();window.scrollTo(0,0)}});
