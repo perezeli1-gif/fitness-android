@@ -51,7 +51,9 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
 
     companion object {
-        const val DEFAULT_SERVER = "https://eli1959fit.pythonanywhere.com/"
+        const val DEFAULT_SERVER = "https://homeserver.tail8db545.ts.net:8445/"
+        /** כתובות ישנות של יומן הכושר: עוברים לכתובת החדשה אוטומטית, בלי להתחבר מחדש */
+        val OLD_SERVERS = setOf("https://homeserver.tail8db545.ts.net/", "https://homeserver.tail8db545.ts.net", "http://192.168.50.83:5050/")
         private const val HOST = "appassets.androidplatform.net"
         private const val PAGE_URL = "https://$HOST/app.html"
         private const val AUTO_SYNC_EVERY_MS = 10 * 60 * 1000L
@@ -211,6 +213,8 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // הכתובת הראשית של השרת עברה לשרת הסרטים: יומן הכושר נמצא עכשיו בפורט 8445. אותו שרת, אז קוד החיבור נשאר תקף.
+        prefs.getString("server", null)?.let { if (it.trim() in OLD_SERVERS) prefs.edit().putString("server", DEFAULT_SERVER).apply() }
         web = WebView(this)
         // אנדרואיד 15 מצייר את האפליקציה מתחת לשורת המצב ולכפתורי הניווט של הטלפון.
         // מרחיקים את הדף מהם, אחרת תפריט הלשוניות למטה מוסתר ולא לחיץ.
