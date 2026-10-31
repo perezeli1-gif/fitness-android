@@ -276,7 +276,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="5.7",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="5.8",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1601,16 +1601,19 @@ function shopText(){var t=shopList(),lines=["רשימת קניות – יומן 
   SHOPG.forEach(function(g){var ks=Object.keys(t).filter(function(k){return PR[k][1]===g[0]});if(!ks.length)return;lines.push("");lines.push("*"+g[1]+"*");
     ks.forEach(function(k){var q=shopQty(k,t[k]);lines.push("☐ "+PR[k][0]+" – "+q.buy)})});
   lines.push("");lines.push("לבדוק שיש בבית: "+SHOP_STAPLES);return lines.join("\n")}
-function viewShop(){var t=shopList(),ck=shopChecked(),n=0,done=0;
+var SHOPFS=[["רגיל",17],["גדול",22],["ענק",28]];
+function shopFs(){var v=null;try{v=localStorage.getItem("kg-shopfs")}catch(e){}v=v==null?(FA?1:0):+v;return SHOPFS[v]?v:1}
+function viewShop(){var t=shopList(),ck=shopChecked(),n=0,done=0,fs=SHOPFS[shopFs()][1],cb=Math.round(fs*1.25);
   var groups=SHOPG.map(function(g){var ks=Object.keys(t).filter(function(k){return PR[k][1]===g[0]});if(!ks.length)return"";
-    return'<div class="stack" style="gap:4px"><b class="small" style="color:var(--muted)">'+g[1]+'</b>'+ks.map(function(k){var q=shopQty(k,t[k]);n++;if(ck[k])done++;
-      return'<label class="row shopi" style="gap:10px;flex-wrap:nowrap;align-items:center;padding:6px 2px;border-bottom:1px solid var(--line);'+(ck[k]?'opacity:.5;text-decoration:line-through':'')+'"><input type="checkbox" data-shop="'+k+'"'+(ck[k]?" checked":"")+' style="width:22px;height:22px;flex:none"><span style="flex:1">'+esc(PR[k][0])+(q.need?' <span class="small muted">(צריך '+q.need+')</span>':'')+'</span><b class="small" style="white-space:nowrap">'+esc(q.buy)+'</b></label>'}).join("")+'</div>'}).join("");
+    return'<div class="stack" style="gap:4px"><b style="color:var(--muted);font-size:'+Math.round(fs*0.85)+'px">'+g[1]+'</b>'+ks.map(function(k){var q=shopQty(k,t[k]);n++;if(ck[k])done++;
+      return'<label class="row shopi" style="gap:10px;flex-wrap:nowrap;align-items:center;padding:'+Math.round(fs*0.5)+'px 2px;font-size:'+fs+'px;line-height:1.35;border-bottom:1px solid var(--line);'+(ck[k]?'opacity:.5;text-decoration:line-through':'')+'"><input type="checkbox" data-shop="'+k+'"'+(ck[k]?" checked":"")+' style="width:'+cb+'px;height:'+cb+'px;flex:none"><span style="flex:1;font-weight:600">'+esc(PR[k][0])+(q.need?' <span class="muted" style="font-size:.75em;font-weight:400">(צריך '+q.need+')</span>':'')+'</span><b style="white-space:nowrap">'+esc(q.buy)+'</b></label>'}).join("")+'</div>'}).join("");
   return'<div class="card stack" id="t-fshop"><div class="row" style="justify-content:space-between"><h3 class="h3">רשימת קניות · '+shopModeName()+'</h3><span class="small muted">'+done+' מתוך '+n+'</span></div>'+
    '<p class="small muted" style="margin:0">מחושבת מהתפריט החודשי, החל מ'+WEEKN[S.fw!=null?S.fw:menuWeek()]+'. הכמויות מעוגלות לאריזות בסופר. לתקופה ארוכה: פירות, ירקות, לחם ודגים טריים כדאי לקנות כל שבוע, או לקנות קפוא.</p>'+
    '<div class="small"><b>לכמה זמן?</b></div><div class="chips">'+SHOPMODES.map(function(o){return'<button type="button" class="chip daychip" style="--dc:var(--c-legs)" data-shopmode="'+o[0]+'" aria-pressed="'+(shopMode()===o[0])+'">'+o[1]+'</button>'}).join("")+'</div><div class="chips">'+
    '<button type="button" class="chip" data-shopppl="1" aria-pressed="'+((+S.shopPpl||1)===1)+'">אדם אחד</button><button type="button" class="chip" data-shopppl="2" aria-pressed="'+(+S.shopPpl===2)+'">2 אנשים</button></div>'+
+   '<div class="row" style="gap:6px;align-items:center"><b class="small">גודל כתב:</b>'+SHOPFS.map(function(o,i){return'<button type="button" class="chip" data-shopfs="'+i+'" aria-pressed="'+(shopFs()===i)+'" style="font-size:'+(13+i*3)+'px">'+o[0]+'</button>'}).join("")+'</div>'+
    groups+
-   '<div class="small"><b>לבדוק שיש בבית:</b> '+esc(SHOP_STAPLES)+'</div>'+
+   '<div style="font-size:'+Math.round(fs*0.8)+'px"><b>לבדוק שיש בבית:</b> '+esc(SHOP_STAPLES)+'</div>'+
    '<div class="row"><a class="btn pri sm" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/?text='+encodeURIComponent(shopText())+'">שלח בוואטסאפ</a><button type="button" class="btn sm" id="shop-copy">העתק</button><button type="button" class="btn sm ghost" id="shop-clear">נקה סימונים</button></div></div>'}
 
 /* ---------- walking ---------- */
@@ -2229,6 +2232,7 @@ function chipGroup(id){var g=document.getElementById(id);g.querySelectorAll(".ch
 
 /* ---------- events ---------- */
 function bind(){
+  main.querySelectorAll("[data-shopfs]").forEach(function(b){b.onclick=function(){try{localStorage.setItem("kg-shopfs",b.dataset.shopfs)}catch(e){}render()}});
   main.querySelectorAll("[data-mrand]").forEach(function(b){b.onclick=function(){mRandom(b)}});
   var ks2=document.getElementById("k-sync2");if(ks2)ks2.onclick=function(){this.disabled=true;this.textContent="מסנכרן…";try{FA.syncNow();toast("מסנכרן מהשעון… התוצאה בלשונית \"סנכרון ורישום\"")}catch(e){toast("הסנכרון לא זמין")}var t=this;setTimeout(function(){t.disabled=false;t.textContent="⌚ סנכרן מהשעון"},8000)};
   var kq=document.getElementById("kcal-q");if(kq)kq.oninput=function(){S.kq=kq.value;document.getElementById("kcal-body").innerHTML=kcalRows(S.kq)};
