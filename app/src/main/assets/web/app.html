@@ -276,7 +276,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="5.8",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="5.9",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1661,7 +1661,7 @@ function viewWalk(){
   var now=new Date(),nowT=pad(now.getHours())+":"+pad(now.getMinutes());
   var sub=subOf("walk","sum");
   return '<div class="stack">'+segBar("walk",[["sum","סיכום"],["add","סנכרון ורישום"],["ins","ניתוח והמלצות"],["list","ההליכות"],["music","🎵 מוזיקה"],["guide","מדריך הליכה"]],sub,"--c-walk")+
-  '<div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div><div class="row" style="gap:8px;flex-wrap:wrap">'+(FA?'<button type="button" class="btn" id="k-sync2" style="background:var(--c-walk);color:#fff;border:0;font-weight:800;font-size:16px;padding:12px 16px;border-radius:999px">⌚ סנכרן מהשעון</button>':'')+'<button type="button" class="btn musbtn" data-mrand>🎵 10 שירים להליכה'+(S.mstate&&S.mstate.playing?' · מתנגן':'')+'</button></div></div><div class="tape walk"></div>'+
+  '<div class="head"><div><div class="eyebrow">יעד השבוע: '+goal+' דקות</div><h1 class="h1" style="color:color-mix(in srgb,var(--c-walk) 70%,var(--ink))">הליכה</h1></div><div class="row" style="gap:8px;flex-wrap:wrap">'+(FA?'<button type="button" class="btn" id="k-sync2" style="background:var(--c-walk);color:#fff;border:0;font-weight:800;font-size:16px;padding:12px 16px;border-radius:999px">⌚ סנכרן מהשעון</button>':'')+'<button type="button" class="btn musbtn" data-mrand>🎵 30 שירים להליכה'+(S.mstate&&S.mstate.playing?' · מתנגן':'')+'</button></div></div><div class="tape walk"></div>'+
   (sub==="sum"?((function(){try{var A=walkInsights();if(A.empty)return"";return'<div class="note walkn row" style="justify-content:space-between"><span><b>המלצה לשבוע הבא:</b> '+A.plan.tgt+' דקות הליכה. '+esc(A.plan.items[1])+'</span><button type="button" class="btn sm walk" data-sub="walk|ins">לניתוח המלא</button></div>'}catch(e){return""}})()+
   '<div class="card stack" id="t-wsum" style="--dc:var(--c-walk)"><div class="head"><h3 class="h3">השבוע</h3><span class="small muted">'+fmtD(ws)+'–'+fmtD(addDays(ws,6))+'</span></div><div class="wstats">'+
     stat("מרחק",n1(wk.km),"ק״מ")+stat("זמן הליכה",fmtDur(wk.min))+stat("קצב ממוצע",wk.pace?fmtPace(wk.pace,1):"–","דק׳ לק״מ")+stat("הליכות",wk.n)+'</div>'+
@@ -1876,13 +1876,13 @@ function viewMusic(){
    (ck&&!ck.net?'<li>'+(ck.ok?'✔ המחשב עם המוזיקה דלוק ומחובר.':'<b style="color:var(--bad)">✖ '+esc(ck.error||"המחשב לא עונה")+'.</b> שירים ששמרת בטלפון עובדים בכל מקרה.')+'</li>':'')+
    (S.mstate&&S.mstate.error?'<li><b style="color:var(--bad)">✖ שגיאת ניגון: '+esc(S.mstate.error)+'</b></li>':'')+
    '</ul>'+(oldApp?'<div><button type="button" class="btn pri" data-apkgo>עדכן את האפליקציה עכשיו</button></div>':'')+'</div>';
-  var rnd='<div class="card stack" style="border:2px solid #7C3AED"><button type="button" class="btn musbtn" data-mrand style="font-size:18px">🎲 10 שירים אקראיים מכל הספרייה</button><div class="small muted">כל לחיצה מביאה 10 שירים אחרים, בלי לחזור על שירים שכבר יצאו לאחרונה.</div></div>';
+  var rnd='<div class="card stack" style="border:2px solid #7C3AED"><button type="button" class="btn musbtn" data-mrand style="font-size:18px">🎲 30 שירים אקראיים מכל הספרייה</button><div class="small muted">כל לחיצה מביאה 30 שירים אחרים (בערך שעה ו-50 דקות), בלי לחזור על שירים שכבר יצאו לאחרונה.</div></div>';
   return rnd+diag+'<div class="note walkn small">המוזיקה מהמחשב שלך, דרך השרת הביתי. בטלפון היא ממשיכה לנגן גם כשהמסך כבוי, והכפתורים מופיעים בהתראה ובמסך הנעילה. לפני הליכה: שמור בטלפון את מה שתרצה לשמוע, וזה יעבוד גם בלי אינטרנט.</div>'+saved+dl+body}
 function mRandom(btn){if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent="בוחר שירים…"}
-  srvAny("GET","api/music/random?n=10").then(function(d){var items=(d&&d.files||[]).map(function(f){return f.p});
+  srvAny("GET","api/music/random?n=30").then(function(d){var items=(d&&d.files||[]).map(function(f){return f.p});
     if(!items.length){toast("לא נמצאו שירים. בדוק שהמחשב עם המוזיקה דלוק");return}
-    mPlay(items,0,false);toast("מנגן 10 שירים אקראיים 🎵")}).catch(function(){toast("אין חיבור לשרת הביתי, אז אי אפשר להביא שירים עכשיו")})
-  .then(function(){if(btn){btn.disabled=false;btn.textContent=btn.dataset.t||"🎵 10 שירים להליכה"}})}
+    mPlay(items,0,false);toast("מנגן 30 שירים אקראיים 🎵")}).catch(function(){toast("אין חיבור לשרת הביתי, אז אי אפשר להביא שירים עכשיו")})
+  .then(function(){if(btn){btn.disabled=false;btn.textContent=btn.dataset.t||"🎵 30 שירים להליכה"}})}
 function mCheck(){S.mchkT=Date.now();srvAny("GET","api/music/check").then(function(d){S.mchk=d||{net:true}}).catch(function(){S.mchk={net:true}}).then(function(){if(TAB==="walk"&&S.sub.walk==="music")render()})}
 function bindMusic(root){
   var mc=root.querySelector("#m-check");if(mc)mc.onclick=function(){S.mchk=null;S.mcache={};S.merr=0;mCheck();render()};
