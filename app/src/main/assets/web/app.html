@@ -276,7 +276,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="5.4",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="5.5",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -874,7 +874,10 @@ window.onFitHealth=function(r){
     if(it[wid]){/* already here: refresh the numbers from the watch (keeps the note and the fitness/daily choice) */
       if(it[wid].src==="watch"&&w.sec){var before=JSON.stringify(it[wid]),lk=it[wid].locked||[];if(lk.indexOf("min")>=0)lk=lk.concat(["sec"]);if(lk.indexOf("steps")>=0)lk=lk.concat(["stepsEst"]);if(!data.stepsEst)delete it[wid].stepsEst;Object.keys(data).forEach(function(f){if(data[f]!=null&&lk.indexOf(f)<0)it[wid][f]=data[f]});if(JSON.stringify(it[wid])!==before)updated++}
       else if(w.rec!=null&&it[wid].rec==null)it[wid].rec=w.rec;return}
-    for(var k in it){var x=it[k];if(x.date===w.date&&hm(x.time)!=null&&t0!=null&&Math.abs(hm(x.time)-t0)<=3)return}
+    /* same start time: if the watch first sent a few seconds and now sends the whole walk, the whole walk replaces it */
+    var dup=false;for(var k in it){var x=it[k];if(x.date===w.date&&hm(x.time)!=null&&t0!=null&&Math.abs(hm(x.time)-t0)<=3){
+      if(x.src==="watch"&&(w.sec||0)>(x.sec||(x.min||0)*60||0)+60&&(w.km||0)>=(x.km||0)){if(x.note)data.note=x.note;delete it[k];updated++}else dup=true}}
+    if(dup)return;
     it[wid]=Object.assign({id:wid,date:w.date,time:String(w.time||"").slice(0,5),src:"watch"},data);added++});
   Object.keys(months).forEach(function(m){if(JSON.stringify(months[m])!==JSON.stringify(S.walks[m]||null))put("walks",m,months[m])});
   /* body composition (Galaxy Watch or a scale that syncs to Samsung Health): fill that date's row; what you typed by hand wins */
