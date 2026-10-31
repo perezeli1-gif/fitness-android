@@ -216,6 +216,8 @@ ol.steps{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;g
 .howi.on{background:var(--tape-soft)}
 .howi b{color:color-mix(in srgb,var(--tape) 60%,var(--ink))}
 .tapefig{width:100%;height:auto;position:sticky;top:12px}
+.mfw{display:flex;flex-direction:column;gap:4px}.mhelp{background:none;border:0;color:var(--c-walk);font-weight:700;font-size:13px;padding:2px 0;text-align:start;cursor:pointer;text-decoration:underline}
+.mhov{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;display:grid;place-items:center;padding:16px}.mhbox{max-width:440px;width:100%;max-height:88vh;overflow:auto}
 .tp{opacity:0;transition:opacity .3s}
 .tp.on{opacity:1}
 .tp.on>ellipse,.tp.on>rect{stroke-dasharray:100;stroke-dashoffset:100;animation:tapedraw 1.1s ease forwards}
@@ -276,7 +278,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="5.9",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="6.1",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -881,6 +883,7 @@ window.onFitHealth=function(r){
     it[wid]=Object.assign({id:wid,date:w.date,time:String(w.time||"").slice(0,5),src:"watch"},data);added++});
   Object.keys(months).forEach(function(m){if(JSON.stringify(months[m])!==JSON.stringify(S.walks[m]||null))put("walks",m,months[m])});
   /* body composition (Galaxy Watch or a scale that syncs to Samsung Health): fill that date's row; what you typed by hand wins */
+  try{localStorage.setItem("kg-bodydiag",JSON.stringify({t:Date.now(),n:r.body?r.body.length:null,last:r.body&&r.body.length?r.body[r.body.length-1].date:null}))}catch(e){}
   (r.body||[]).forEach(function(b){if(!b.date||b.date.length!==10)return;var cur=S.measures[b.date]||{},o=Object.assign({},cur),auto=(cur.auto||[]).slice(),ch=false;
     ["weight","fat","muscle","water","bmr"].forEach(function(f){if(b[f]==null)return;var mine=cur[f]!=null&&auto.indexOf(f)<0;if(mine||cur[f]===b[f])return;o[f]=b[f];if(auto.indexOf(f)<0)auto.push(f);ch=true});
     if(ch){o.auto=auto;put("measures",b.date,o)}});
@@ -1994,13 +1997,13 @@ function viewMeasure(){
   var lastv=function(f){var x=ms.slice().reverse().find(function(m){return m[f]});return x?x[f]:null};
   var rows=ms.slice().reverse().map(function(m,i,arr){var prev=arr[i+1];return"<tr><td>"+fmtD(m.id)+"</td>"+MF.map(function(f){var v=m[f[0]],pv=prev&&prev[f[0]];return"<td>"+n1(v)+(v&&pv?' <span class="small '+(v-pv<0?"dn-good":v-pv>0?"dn-bad":"muted")+'">'+(v-pv>0?"+":"")+n1(v-pv)+"</span>":"")+"</td>"}).join("")+'<td><button class="btn ghost sm" data-delm="'+m.id+'">מחק</button></td></tr>'}).join("");
   var sub=subOf("measure","new");
-  return '<div class="stack">'+segBar("measure",[["new","מדידה חדשה"],["prog","התקדמות"],["export","ייצוא והדפסה"]],sub,"--c-pull")+
+  return '<div class="stack">'+segBar("measure",[["new","מדידה חדשה"],["ana","ניתוח והתקדמות"],["prog","גרפים"],["export","ייצוא והדפסה"]],sub,"--c-pull")+
   '<div><div class="eyebrow">מדידה אחת בשבוע · אותו יום, אותה שעה</div><h1 class="h1">מדידות</h1></div><div class="tape"></div>'+
   (sub==="new"?(
   '<div class="grid g2"><div class="card stack" id="t-mform"><h3 class="h3">מדידה חדשה</h3>'+
    '<label class="f">תאריך<input type="date" id="m-date" value="'+tk+'"></label>'+
-   '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">'+MF.map(function(f){return fld("m-"+f[0],f[1]+" ("+f[2]+")",ex[f[0]])}).join("")+'</div>'+
-   '<div class="row"><button class="btn pri" id="m-save">שמור מדידה</button></div></div>'+
+   '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">'+MF.map(function(f){return'<div class="mfw">'+fld("m-"+f[0],f[1]+" ("+f[2]+")",ex[f[0]])+'<button type="button" class="mhelp" data-mhelp="'+f[0]+'">'+(BCHOW[f[0]]?"⌚ מאיפה?":"📏 איפה מודדים?")+'</button></div>'}).join("")+'</div>'+
+   '<div class="row"><button class="btn pri" id="m-save">שמור מדידה</button></div>'+bodyDiag()+'</div>'+measLastCard(ms)+
   '<div class="card stack" id="t-mhow"><h3 class="h3">איך מודדים נכון</h3><div class="howgrid"><div class="howlist">'+HOWTO.map(function(h){return'<button type="button" class="howi" data-how="'+h[0]+'"><b>'+h[1]+':</b> '+esc(h[2])+'</button>'}).join("")+
    '<div class="small muted" style="padding:4px 10px">הסרט צמוד לעור אבל לא לוחץ. אותו סרט בכל פעם.</div></div>'+tapeFig()+'</div>'+
    '<div class="note small">בשבועות הראשונים של אימוני משקולות המשקל יכול לעמוד במקום בזמן שהמותניים יורדים. לכן מודדים גם סרט ולא רק משקל.</div></div></div>'+measTable(ms)):"")+
@@ -2008,12 +2011,81 @@ function viewMeasure(){
   '<div class="grid g4" id="t-mkpi">'+MF.map(function(f){var a=first(f[0]),b=lastv(f[0]);return'<div class="card"><div class="eyebrow">'+f[1]+'</div><div class="row" style="align-items:baseline;gap:6px;margin-top:4px"><span class="big" style="font-size:36px">'+n1(b)+'</span><span class="muted small">'+f[2]+'</span></div><div class="small" style="min-height:20px">'+(a!=null&&b!=null&&ms.length>1?delta(b-a,f[2]+" מההתחלה"):'<span class="muted">'+(f[0]==="weight"?"יעד "+p.goalWeight:"")+'</span>')+'</div></div>'}).join("")+'</div>'+
   '<div class="card stack" id="t-mchart"><div class="head"><h3 class="h3">מגמה</h3><div class="chips">'+MF.map(function(f){return'<button class="chip" data-mm="'+f[0]+'" aria-pressed="'+(S.mm===f[0])+'">'+f[1].replace(" (רוחב)","")+'</button>'}).join("")+'</div></div>'+chartM(ms,S.mm)+'</div>'+
   measTable(ms)):"")+
+  (sub==="ana"?measAnalysis(ms):"")+
   (sub==="export"?viewExport():"")+
   '</div>';
 }
+/* ---------- measurements analysis ---------- */
+var MGOOD={weight:-1,waist:-1,belly:-1,hips:-1,fat:-1,chest:0,shoulders:0,arm:1,muscle:1,water:1,bmr:1};
+function mSeries(ms,f){return ms.filter(function(m){return m[f]!=null&&m[f]!==""&&!isNaN(+m[f])}).map(function(m){return{d:m.id,v:+m[f]}})}
+function mCls(f,d){var g=MGOOD[f];if(!d||!g)return"muted";return d*g>0?"dn-good":"dn-bad"}
+function mSign(d){return(d>0?"+":"")+n1(d)}
+function measLastCard(ms){if(ms.length<2)return"";var L=ms[ms.length-1],rows=[];
+  MF.forEach(function(f){if(L[f[0]]==null)return;var pr=mSeries(ms.slice(0,-1),f[0]).pop();if(!pr)return;var d=+L[f[0]]-pr.v;
+    rows.push('<tr><td>'+f[1]+'</td><td><b>'+n1(L[f[0]])+'</b></td><td class="'+mCls(f[0],d)+'"><b>'+(d?mSign(d):"ללא שינוי")+'</b> '+f[2]+'</td><td class="small muted">מ־'+fmtD(pr.d)+'</td></tr>')});
+  if(!rows.length)return"";
+  return'<div class="card stack"><h3 class="h3">מה השתנה מהמדידה הקודמת · '+fmtD(L.id)+'</h3><div class="tbl"><table><tbody>'+rows.join("")+'</tbody></table></div><div><button type="button" class="btn sm pri" data-sub="measure|ana">לניתוח המלא ←</button></div></div>'}
+function measAnalysis(ms){var p=P(),hm_=(+p.height||180)/100,tk=today(),out=[],warn=[],good=[],todo=[];
+  if(!ms.length)return'<div class="card"><p style="margin:0">עוד אין מדידות. אחרי המדידה הראשונה יופיע כאן ניתוח מלא.</p></div>';
+  var W=mSeries(ms,"weight"),Wa=mSeries(ms,"waist"),last=ms[ms.length-1],since=daysBetween(last.id,tk);
+  /* --- weight --- */
+  var w0=W.length?W[0]:null,w1=W.length?W[W.length-1]:null,start=+p.startWeight||(w0&&w0.v);
+  if(w1){var lost=start-w1.v,days=Math.max(1,daysBetween(p.start&&p.start<W[0].d?p.start:W[0].d,w1.d)),rate=lost/(days/7),toGo=w1.v-(+p.goalWeight||0),bmi=w1.v/(hm_*hm_);
+    var wl='<li>משקל נוכחי <b>'+n1(w1.v)+' ק״ג</b> ('+fmtD(w1.d)+'). מתחילת הדרך ('+n1(start)+' ק״ג): <b class="'+(lost>0?"dn-good":lost<0?"dn-bad":"")+'">'+(lost>0?"ירדת "+n1(lost)+" ק״ג":lost<0?"עלית "+n1(-lost)+" ק״ג":"ללא שינוי")+'</b>.</li>';
+    if(W.length>1&&days>=6)wl+='<li>קצב: <b>'+n1(Math.abs(rate))+' ק״ג '+(rate>=0?"ירידה":"עלייה")+' בשבוע</b> בממוצע. '+(rate>0.9?'מהיר מהמומלץ בגילך (0.3–0.8 ק״ג בשבוע). ירידה מהירה מדי מורידה גם שריר: הקפד על חלבון ועל אימוני המשקולות.':rate>=0.25?'קצב בריא ומצוין.':rate>0?'איטי. אם זה נמשך 3 שבועות, כדאי להקטין מעט את המנות או להוסיף הליכה.':'המשקל לא יורד. בדוק את גודל המנות והחטיפים.')+'</li>';
+    if(p.goalWeight&&toGo>0)wl+='<li>נשארו <b>'+n1(toGo)+' ק״ג</b> עד היעד ('+p.goalWeight+' ק״ג).'+(rate>0.1&&W.length>1?' בקצב הנוכחי: בעוד כ־<b>'+Math.ceil(toGo/Math.min(rate,0.8))+' שבועות</b>.':'')+'</li>';
+    else if(p.goalWeight&&toGo<=0)good.push("הגעת ליעד המשקל! 🎉");
+    wl+='<li>מדד מסת גוף (BMI): <b>'+n1(bmi)+'</b> · '+(bmi<25?"תקין":bmi<30?"עודף משקל קל":"השמנה")+'. בגיל 67 טווח של 23–27 נחשב טוב.</li>';
+    out.push(['⚖️ משקל',wl])}
+  /* --- waist (the most important number for health) --- */
+  if(Wa.length){var a=Wa[Wa.length-1],a0=Wa[0],whr=a.v/(+p.height||180);
+    var tl='<li>היקף מותניים <b>'+n1(a.v)+' ס״מ</b>'+(Wa.length>1?' · מההתחלה: <b class="'+mCls("waist",a.v-a0.v)+'">'+mSign(a.v-a0.v)+' ס״מ</b>':'')+'.</li>'+
+      '<li>סיכון בריאותי לפי מותניים (גבר): '+(a.v<94?'<b class="dn-good">נמוך</b> (פחות מ־94).':a.v<102?'<b>מוגבר</b> (94–102). היעד: מתחת ל־94 ס״מ, עוד '+n1(a.v-93.9)+' ס״מ.':'<b class="dn-bad">גבוה</b> (מעל 102). היעד הראשון: מתחת ל־102, אחר כך מתחת ל־94.')+'</li>'+
+      '<li>יחס מותניים לגובה: <b>'+(Math.round(whr*100)/100)+'</b> · '+(whr<0.5?"מצוין (מתחת ל־0.5)":"היעד: מתחת ל־0.5, כלומר מותניים עד "+Math.round((+p.height||180)/2)+" ס״מ")+'.</li>';
+    out.push(['📏 מותניים',tl])}
+  /* --- every field: change from last time and from the start --- */
+  var rows=MF.map(function(f){var S_=mSeries(ms,f[0]);if(!S_.length)return"";var a=S_[S_.length-1],pr=S_.length>1?S_[S_.length-2]:null,f0=S_[0];
+    var dp=pr?a.v-pr.v:null,ds=S_.length>1?a.v-f0.v:null,dd=pr?daysBetween(pr.d,a.d):null;
+    if(pr&&["waist","belly","chest","shoulders","arm","hips"].indexOf(f[0])>=0&&Math.abs(dp)/Math.max(1,dd/7)>3)warn.push('<b>'+f[1]+'</b>: שינוי של '+n1(Math.abs(dp))+' ס״מ ב־'+dd+' ימים. זה הרבה יותר ממה שהגוף משתנה, כנראה הסרט היה במקום אחר. לחץ "📏 איפה מודדים?" במסך המדידה, ומדוד בדיוק שם בכל פעם.');
+    return'<tr><td><b>'+f[1]+'</b></td><td>'+n1(a.v)+' <span class="small muted">'+f[2]+'</span><div class="small muted">'+fmtD(a.d)+'</div></td><td class="'+mCls(f[0],dp)+'">'+(pr?'<b>'+mSign(dp)+'</b><div class="small muted">מ־'+fmtD(pr.d)+'</div>':'–')+'</td><td class="'+mCls(f[0],ds)+'">'+(ds!=null?'<b>'+mSign(ds)+'</b><div class="small muted">מ־'+fmtD(f0.d)+'</div>':'–')+'</td><td class="small">'+S_.length+'</td></tr>'}).join("");
+  /* --- combined meaning --- */
+  var dW=W.length>1?W[W.length-1].v-W[0].v:null,dWa=Wa.length>1?Wa[Wa.length-1].v-Wa[0].v:null,A=mSeries(ms,"arm"),dA=A.length>1?A[A.length-1].v-A[0].v:null;
+  var waSus=warn.some(function(x){return x.indexOf("היקף מותניים")>=0});
+  if(dWa!=null&&dWa<0&&!waSus)good.push("המותניים ירדו "+n1(-dWa)+" ס״מ. זה הסימן הכי טוב שהשומן בבטן יורד.");
+  if(dW!=null&&dW<0)good.push("המשקל ירד "+n1(-dW)+" ק״ג מהמדידה הראשונה.");
+  if(!waSus&&dW!=null&&dWa!=null&&Math.abs(dW)<0.5&&dWa<-1)good.push("המשקל כמעט לא זז אבל המותניים ירדו: שורפים שומן ובונים שריר. ממשיכים כך.");
+  if(dA!=null&&dA>=0&&dW!=null&&dW<0)good.push("הזרוע נשמרה בזמן שהמשקל ירד: אימוני המשקולות שומרים על השריר.");
+  if(dA!=null&&dA<-1)warn.push("היקף הזרוע ירד. אם זה ממשיך, כדאי יותר חלבון (ביצים, עוף, יוגורט) ולהקפיד על אימוני הידיים.");
+  var hp=mSeries(ms,"hips").pop();if(hp&&hp.v<70)warn.push("<b>היקף ירכיים "+n1(hp.v)+" ס״מ</b> נראה כמו היקף של ירך אחת (רגל) ולא של הירכיים. היקף ירכיים נמדד סביב החלק הרחב של הישבן, בדרך כלל 95–115 ס״מ.");
+  ["fat","muscle","water","bmr"].forEach(function(k){if(!mSeries(ms,k).length&&todo.indexOf("bc")<0)todo.push("bc")});
+  if(since>9)warn.push("המדידה האחרונה הייתה לפני "+since+" ימים. מומלץ למדוד פעם בשבוע, באותו יום ובאותה שעה.");
+  /* --- next steps --- */
+  var tips=[];if(Wa.length&&Wa[Wa.length-1].v>=94)tips.push("היעד הקרוב: להוריד עוד 2–3 ס״מ במותניים בחודש הקרוב. הליכה של 150 דקות בשבוע ושמירה על התפריט מספיקות לזה.");
+  if(todo.length)tips.push('אחוז שומן ומסת שריר: מדוד "הרכב גוף" בשעון פעם בשבוע (הוראות: מסך המדידה ← "⌚ מאיפה?" ליד אחוז שומן). כך תדע אם הירידה היא שומן ולא שריר.');
+  tips.push("מדידה הבאה: "+fmtD(addDays(last.id,7))+", באותה שעה ובאותו מצב (בבוקר, לפני אוכל).");
+  var li=function(a){return'<ul style="margin:0;padding-inline-start:20px;line-height:1.7">'+a.map(function(x){return"<li>"+x+"</li>"}).join("")+'</ul>'};
+  return (good.length?'<div class="card stack" style="border:2px solid var(--good,#16a34a)"><h3 class="h3">👏 מה הולך טוב</h3>'+li(good)+'</div>':'')+
+   out.map(function(o){return'<div class="card stack"><h3 class="h3">'+o[0]+'</h3><ul style="margin:0;padding-inline-start:20px;line-height:1.7">'+o[1]+'</ul></div>'}).join("")+
+   '<div class="card stack"><h3 class="h3">כל המדדים: מהפעם הקודמת ומההתחלה</h3><div class="small muted">ירוק = שינוי בכיוון הטוב, אדום = בכיוון ההפוך.</div><div class="tbl"><table><thead><tr><th>מדד</th><th>עכשיו</th><th>מהפעם הקודמת</th><th>מההתחלה</th><th>מדידות</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>'+
+   (warn.length?'<div class="card stack" style="border:2px solid var(--bad)"><h3 class="h3">⚠️ שים לב</h3>'+li(warn)+'</div>':'')+
+   '<div class="card stack"><h3 class="h3">➡️ מה הלאה</h3>'+li(tips)+'</div>'}
 function viewExport(){return'<div class="card stack"><h3 class="h3">אקסל: כל הנתונים</h3><p class="small muted" style="margin:0">קובץ אקסל עם 3 גיליונות: הליכות, אימוני משקולות (כל סט), ומדידות.</p><div><button type="button" class="btn pri" data-xls="1">⬇ ייצוא לאקסל</button></div></div>'+
   '<div class="card stack"><h3 class="h3">הדפסה או PDF</h3><p class="small muted" style="margin:0">נפתח מסך הדפסה. כדי לקבל קובץ, בוחרים במדפסת: "שמירה כ־PDF".</p><div class="row"><button type="button" class="btn" data-pdf="menus">🖨 התפריט החודשי</button><button type="button" class="btn" data-pdf="recipes">🖨 כל המתכונים</button><button type="button" class="btn" data-pdf="kcal">🖨 טבלת קלוריות</button><button type="button" class="btn" data-pdf="shop">🖨 רשימת הקניות</button></div></div>'}
 var HOWTO=[["weight","משקל","בבוקר, אחרי שירותים ולפני אוכל, באותו משקל ביתי."],["waist","מותניים","הנקודה הצרה ביותר, בערך באמצע בין הצלע התחתונה לעצם האגן."],["belly","בטן","בגובה הטבור, בסוף נשיפה רגילה, בלי להכניס בטן."],["chest","חזה","בגובה הפטמות, הסרט מקביל לרצפה."],["shoulders","כתפיים","סביב הנקודה הרחבה ביותר של הכתפיים, ידיים רפויות לצד הגוף."],["hips","ירכיים","ההיקף הרחב ביותר של הישבן."],["arm","זרוע","אמצע היד העליונה, יד רפויה. תמיד אותה יד."]];
+var BCHOW={fat:["אחוז שומן","נמדד בשעון במדידת \"הרכב גוף\". השעון לא מודד את זה לבד: צריך להפעיל מדידה."],
+  muscle:["מסת שריר","נמדדת בשעון באותה מדידה של \"הרכב גוף\", יחד עם אחוז השומן."],
+  water:["מים בגוף","נמדדים בשעון באותה מדידה של \"הרכב גוף\"."],
+  bmr:["שריפה במנוחה","כמה קלוריות הגוף שורף ביום בלי פעילות. מחושב בשעון באותה מדידה של \"הרכב גוף\"."]};
+var BCSTEPS=["בשעון: פתח את Samsung Health ← <b>Body composition</b> (הרכב גוף).","בפעם הראשונה: הזן משקל וגובה.","שים את האמה והקמיצה על שני הכפתורים בצד השעון, בלי לגעת בכפות הידיים זו בזו. כ־15 שניות.","אחר כך באפליקציה: הליכה ← ⌚ סנכרן מהשעון. הערכים נכנסים לכאן לבד, לתאריך המדידה.","מומלץ: פעם בשבוע, בבוקר, לפני אוכל ושתייה, באותה שעה."];
+function bodyDiag(){if(!FA)return"";var d=null;try{d=JSON.parse(localStorage.getItem("kg-bodydiag")||"null")}catch(e){}
+  var st=!d?"עוד לא היה סנכרון מהשעון.":d.n==null?'<b style="color:var(--bad)">האפליקציה לא קיבלה הרשאה לקרוא "הרכב גוף" מ-Samsung Health.</b> לחץ "⌚ סנכרן מהשעון" ואשר את ההרשאה כשתופיע.':d.n===0?'<b style="color:var(--bad)">ב-Samsung Health אין מדידת "הרכב גוף" ב-4 החודשים האחרונים.</b> השעון לא מודד את זה לבד: צריך להפעיל מדידה (לחץ "⌚ מאיפה?" ליד אחוז שומן).':"✔ נמצאו "+d.n+" מדידות הרכב גוף בשעון. האחרונה: "+fmtD(d.last)+".";
+  return'<div class="note small" style="border-inline-start:4px solid var(--c-walk)"><b>⌚ אחוז שומן, שריר, מים ושריפה במנוחה מהשעון:</b> '+st+'</div>'}
+function mHelp(k){var h=HOWTO.find(function(x){return x[0]===k}),b=BCHOW[k],f=MF.find(function(x){return x[0]===k});
+  var body=b?'<p style="margin:0;font-size:18px">'+esc(b[1])+'</p><ol style="margin:0;padding-inline-start:22px;font-size:17px;line-height:1.6">'+BCSTEPS.map(function(x){return"<li>"+x+"</li>"}).join("")+'</ol>'
+    :'<div id="mh-fig" style="max-width:260px;margin:0 auto;width:100%">'+tapeFig()+'</div><p style="margin:0;font-size:19px;line-height:1.5"><b>'+esc(h?h[1]:f[1])+':</b> '+esc(h?h[2]:"")+'</p><p class="small muted" style="margin:0">הסרט צמוד לעור אבל לא לוחץ, מקביל לרצפה. אותו סרט ואותה שעה בכל פעם.</p>';
+  var o=document.createElement("div");o.className="mhov";o.innerHTML='<div class="mhbox card stack" role="dialog" aria-modal="true"><div class="row" style="justify-content:space-between"><h3 class="h3" style="margin:0">'+esc(f?f[1]:"")+'</h3><button type="button" class="btn sm" data-mhclose>✕ סגור</button></div>'+body+'</div>';
+  o.onclick=function(e){if(e.target===o||e.target.closest("[data-mhclose]"))o.remove()};document.body.appendChild(o);
+  var g=o.querySelector('#mh-fig .tp[data-k="'+k+'"]');if(g)g.classList.add("on");var t=o.querySelector("#mh-fig .tplabel");if(t)t.textContent=""}
 function tapeFig(){
   var n='fill="var(--bodyoff)"';
   var band=function(k,cx,cy,rx,ry,extra){return'<g class="tp" data-k="'+k+'"><ellipse cx="'+cx+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="none" stroke="var(--tape)" stroke-width="3" pathLength="100"/>'+(extra||"")+'</g>'};
@@ -2232,6 +2304,7 @@ function chipGroup(id){var g=document.getElementById(id);g.querySelectorAll(".ch
 
 /* ---------- events ---------- */
 function bind(){
+  main.querySelectorAll("[data-mhelp]").forEach(function(b){b.onclick=function(){mHelp(b.dataset.mhelp)}});
   main.querySelectorAll("[data-shopfs]").forEach(function(b){b.onclick=function(){try{localStorage.setItem("kg-shopfs",b.dataset.shopfs)}catch(e){}render()}});
   main.querySelectorAll("[data-mrand]").forEach(function(b){b.onclick=function(){mRandom(b)}});
   var ks2=document.getElementById("k-sync2");if(ks2)ks2.onclick=function(){this.disabled=true;this.textContent="מסנכרן…";try{FA.syncNow();toast("מסנכרן מהשעון… התוצאה בלשונית \"סנכרון ורישום\"")}catch(e){toast("הסנכרון לא זמין")}var t=this;setTimeout(function(){t.disabled=false;t.textContent="⌚ סנכרן מהשעון"},8000)};
