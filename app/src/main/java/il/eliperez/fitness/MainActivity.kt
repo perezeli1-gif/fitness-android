@@ -51,9 +51,9 @@ import java.util.Locale
 class MainActivity : ComponentActivity() {
 
     companion object {
-        const val DEFAULT_SERVER = "https://homeserver.tail8db545.ts.net:8445/"
+        const val DEFAULT_SERVER = "https://homeserver.tail8db545.ts.net:10000/"
         /** כתובות ישנות של יומן הכושר: עוברים לכתובת החדשה אוטומטית, בלי להתחבר מחדש */
-        val OLD_SERVERS = setOf("https://homeserver.tail8db545.ts.net/", "https://homeserver.tail8db545.ts.net", "http://192.168.50.83:5050/")
+        val OLD_SERVERS = setOf("https://homeserver.tail8db545.ts.net:8445/", "https://homeserver.tail8db545.ts.net:8445", "https://homeserver.tail8db545.ts.net/", "https://homeserver.tail8db545.ts.net", "http://192.168.50.83:5050/")
         private const val HOST = "appassets.androidplatform.net"
         private const val PAGE_URL = "https://$HOST/app.html"
         private const val AUTO_SYNC_EVERY_MS = 10 * 60 * 1000L
