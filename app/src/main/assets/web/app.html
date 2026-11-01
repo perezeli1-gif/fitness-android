@@ -278,7 +278,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="6.4",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="6.5",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1879,10 +1879,12 @@ function viewMusic(){
    (ck&&!ck.net?'<li>'+(ck.ok?'✔ המחשב עם המוזיקה דלוק ומחובר.':'<b style="color:var(--bad)">✖ '+esc(ck.error||"המחשב לא עונה")+'.</b> שירים ששמרת בטלפון עובדים בכל מקרה.')+'</li>':'')+
    (S.mstate&&S.mstate.error?'<li><b style="color:var(--bad)">✖ שגיאת ניגון: '+esc(S.mstate.error)+'</b></li>':'')+
    '</ul>'+(oldApp?'<div><button type="button" class="btn pri" data-apkgo>עדכן את האפליקציה עכשיו</button></div>':'')+'</div>';
-  var rnd='<div class="card stack" style="border:2px solid #7C3AED"><button type="button" class="btn musbtn" data-mrand style="font-size:18px">🎲 30 שירים אקראיים מכל הספרייה</button><div class="small muted">כל לחיצה מביאה 30 שירים אחרים (בערך שעה ו-50 דקות), בלי לחזור על שירים שכבר יצאו לאחרונה.</div></div>';
+  var rnd='<div class="card stack" style="border:2px solid #7C3AED"><button type="button" class="btn musbtn" data-mrand style="font-size:18px">🎲 30 שירים אקראיים מכל הספרייה</button><div class="small muted">כל לחיצה מביאה 30 שירים אחרים (בערך שעה ו-50 דקות): בעיקר זמרים מוכרים ושירים מאוספי להיטים, לא יותר משני שירים לכל זמר, ובלי שירים שכבר יצאו לאחרונה.</div><div class="small"><b>איזו מוזיקה?</b></div><div class="chips">'+MCATL.map(function(c){return'<button type="button" class="chip" data-mcat="'+c[0]+'" aria-pressed="'+(mCats().indexOf(c[0])>=0)+'">'+c[1]+'</button>'}).join("")+'</div></div>';
   return rnd+diag+'<div class="note walkn small">המוזיקה מהמחשב שלך, דרך השרת הביתי. בטלפון היא ממשיכה לנגן גם כשהמסך כבוי, והכפתורים מופיעים בהתראה ובמסך הנעילה. לפני הליכה: שמור בטלפון את מה שתרצה לשמוע, וזה יעבוד גם בלי אינטרנט.</div>'+saved+dl+body}
+var MCATL=[["il","ישראלי"],["mz","ים תיכוני ומרוקאי"],["lz","לועזי"],["dt","חסידי ודתי"]];
+function mCats(){var v=null;try{v=JSON.parse(localStorage.getItem("kg-mcats")||"null")}catch(e){}return Array.isArray(v)&&v.length?v:["il","mz"]}
 function mRandom(btn){if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent="בוחר שירים…"}
-  srvAny("GET","api/music/random?n=30").then(function(d){var items=(d&&d.files||[]).map(function(f){return f.p});
+  srvAny("GET","api/music/random?n=30&cats="+mCats().join(",")).then(function(d){var items=(d&&d.files||[]).map(function(f){return f.p});
     if(!items.length){toast("לא נמצאו שירים. בדוק שהמחשב עם המוזיקה דלוק");return}
     mPlay(items,0,false);toast("מנגן 30 שירים אקראיים 🎵")}).catch(function(){toast("אין חיבור לשרת הביתי, אז אי אפשר להביא שירים עכשיו")})
   .then(function(){if(btn){btn.disabled=false;btn.textContent=btn.dataset.t||"🎵 30 שירים להליכה"}})}
@@ -2330,6 +2332,7 @@ function chipGroup(id){var g=document.getElementById(id);g.querySelectorAll(".ch
 function bind(){
   main.querySelectorAll("[data-mhelp]").forEach(function(b){b.onclick=function(){mHelp(b.dataset.mhelp)}});
   main.querySelectorAll("[data-shopfs]").forEach(function(b){b.onclick=function(){try{localStorage.setItem("kg-shopfs",b.dataset.shopfs)}catch(e){}render()}});
+  main.querySelectorAll("[data-mcat]").forEach(function(b){b.onclick=function(){var c=mCats(),k=b.dataset.mcat,i=c.indexOf(k);if(i>=0){if(c.length>1)c.splice(i,1)}else c.push(k);try{localStorage.setItem("kg-mcats",JSON.stringify(c))}catch(e){}render()}});
   main.querySelectorAll("[data-mrand]").forEach(function(b){b.onclick=function(){mRandom(b)}});
   var ks2=document.getElementById("k-sync2");if(ks2)ks2.onclick=function(){this.disabled=true;this.textContent="מסנכרן…";try{FA.syncNow();toast("מסנכרן מהשעון… התוצאה בלשונית \"סנכרון ורישום\"")}catch(e){toast("הסנכרון לא זמין")}var t=this;setTimeout(function(){t.disabled=false;t.textContent="⌚ סנכרן מהשעון"},8000)};
   var kq=document.getElementById("kcal-q");if(kq)kq.oninput=function(){S.kq=kq.value;document.getElementById("kcal-body").innerHTML=kcalRows(S.kq)};

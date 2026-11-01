@@ -42,6 +42,12 @@ class MusicService : MediaSessionService() {
             .setAudioAttributes(AudioAttributes.Builder().setUsage(C.USAGE_MEDIA).setContentType(C.AUDIO_CONTENT_TYPE_MUSIC).build(), true)
             .setHandleAudioBecomingNoisy(true)   // אוזניות שהתנתקו: עוצר
             .setWakeMode(C.WAKE_MODE_NETWORK)
+            // בהליכה הקליטה הסלולרית קופצת: מורידים כמה שיותר מראש (עד 10 דקות, כמה שירים קדימה), כדי שהשיר לא ייעצר
+            .setLoadControl(androidx.media3.exoplayer.DefaultLoadControl.Builder()
+                .setBufferDurationsMs(180_000, 600_000, 2_500, 8_000)
+                .setTargetBufferBytes(96 * 1024 * 1024)
+                .setPrioritizeTimeOverSizeThresholds(true)
+                .build())
             .build()
         // שיר שלא מתנגן (פורמט לא נתמך וכד'): ממשיכים לשיר הבא, עד 5 פעמים ברצף
         player.addListener(object : androidx.media3.common.Player.Listener {
