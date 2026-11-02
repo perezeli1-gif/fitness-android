@@ -265,7 +265,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <div id="timer" class="timer" hidden></div>
 <div id="goon" class="goon" hidden></div>
 <div id="toast" class="toast" hidden></div>
-<div id="mbar" class="mbar" hidden><div class="mi"><div class="mt"></div><div class="ma small"></div></div><div class="mb"><button type="button" data-m="prev" aria-label="שיר קודם">⏮</button><button type="button" data-m="toggle" aria-label="נגן או עצור">▶</button><button type="button" data-m="next" aria-label="שיר הבא">⏭</button><button type="button" data-m="stop" aria-label="סגור את הנגן">✕</button></div></div>
+<div id="mbar" class="mbar" hidden><div class="mi"><div class="mt"></div><div class="ma small"></div></div><div class="mb"><button type="button" data-m="down" aria-label="לא אוהב את הזמר הזה" title="לא אוהב: לא להשמיע את הזמר הזה">👎</button><button type="button" data-m="up" aria-label="אוהב את הזמר הזה" title="אוהב: יותר מהזמר הזה">👍</button><button type="button" data-m="prev" aria-label="שיר קודם">⏮</button><button type="button" data-m="toggle" aria-label="נגן או עצור">▶</button><button type="button" data-m="next" aria-label="שיר הבא">⏭</button><button type="button" data-m="stop" aria-label="סגור את הנגן">✕</button></div></div>
 <button type="button" class="helpfab" id="helpfab" aria-label="עזרה" hidden>?</button>
 <div class="helpmenu" id="helpmenu" hidden>
   <button type="button" id="hm-tour">הסבר על המסך הזה</button>
@@ -278,7 +278,7 @@ body:has(#mbar:not([hidden])) .helpfab{bottom:calc(150px + env(safe-area-inset-b
 <script>window.FIT_PHONE=true;</script>
 <script>
 /* ============ ENGINE START ============ */
-var APP_VERSION="6.6",APP_AUTHOR="אלי פרץ";
+var APP_VERSION="6.7",APP_AUTHOR="אלי פרץ";
 var LEN={torso:44,neck:6,head:9,ua:24,fa:22,th:30,sh:28,ft:11};
 function d2r(d){return d*Math.PI/180}
 function ik(P,T,a,b,s){
@@ -1255,7 +1255,11 @@ function openEx(id){
   document.getElementById("dlg-x").onclick=function(){dl.close()};
 }
 document.getElementById("dlg").addEventListener("click",function(ev){if(ev.target===this)this.close()});
-document.querySelectorAll("#mbar [data-m]").forEach(function(b){b.onclick=function(){var m=b.dataset.m;if(m==="toggle")m=S.mstate&&S.mstate.playing?"pause":"play";mCmd(m)}});
+document.querySelectorAll("#mbar [data-m]").forEach(function(b){b.onclick=function(){var m=b.dataset.m,st=S.mstate||{};
+  if(m==="up"||m==="down"){if(!st.id)return;mFeed(st.id,m).then(function(d){var a=d&&d.artist&&d.artist.indexOf("/")<0?d.artist:"השיר";toast(m==="up"?"👍 "+a+": יותר ממנו בהליכות הבאות":"👎 "+a+": לא יושמע יותר. (אפשר להחזיר ב\"הזמרים שלי\")")});if(m==="down")mCmd("next");return}
+  if(m==="next"&&st.id&&st.pos!=null&&st.pos<40000)mFeed(st.id,"skip");
+  if(m==="toggle")m=st.playing?"pause":"play";mCmd(m)}});
+function mFeed(p,v){return srvAny("POST","api/music/feedback",{p:p,v:v}).catch(function(){return null})}
 setTimeout(function(){if(FA&&FA.musicState)try{FA.musicState()}catch(e){}},2500);
 
 /* ---------- nutrition ---------- */
@@ -1857,7 +1861,7 @@ window.onMusic=function(st){if(st&&st.error)st.error=mErr(st.error);S.mstate=st;
   document.querySelectorAll("[data-mrow]").forEach(function(r){r.classList.toggle("on",r.dataset.mrow===st.id)})};
 window.onMusicDl=function(d){S.mdl=d.end?null:d;var t=d.end?(d.error?d.error+" · ":"")+"נשמרו "+d.done+" מתוך "+d.total:"שומר בטלפון: "+d.done+" מתוך "+d.total;
   document.querySelectorAll("[data-mdlmsg]").forEach(function(e){e.textContent=t});if(d.end){mLocal();if(TAB==="walk"&&S.sub.walk==="music")render();toast(t)}};
-function viewMusic(){
+function viewMusic(){mPrefsLoad();
   var dir=S.mdir,c=S.mcache[dir],L=S.mlocal||mLocal();
   if(!c&&!S.mloading&&!(S.merr&&Date.now()-S.merr<30000)){S.mloading=true;mFetch(dir).then(function(){S.mloading=false;S.merr=0;if(S.sub.walk==="music"&&TAB==="walk")render()}).catch(function(e){S.mloading=false;S.merr=Date.now();if(S.sub.walk==="music"&&TAB==="walk")render()})}
   var crumbs=['<button type="button" class="linkb" data-mdir="">מוזיקה</button>'],acc="";dir.split("/").filter(Boolean).forEach(function(p){acc=acc?acc+"/"+p:p;crumbs.push('<button type="button" class="linkb" data-mdir="'+esc(acc)+'">'+esc(p)+'</button>')});
@@ -1879,8 +1883,19 @@ function viewMusic(){
    (ck&&!ck.net?'<li>'+(ck.ok?'✔ המחשב עם המוזיקה דלוק ומחובר.':'<b style="color:var(--bad)">✖ '+esc(ck.error||"המחשב לא עונה")+'.</b> שירים ששמרת בטלפון עובדים בכל מקרה.')+'</li>':'')+
    (S.mstate&&S.mstate.error?'<li><b style="color:var(--bad)">✖ שגיאת ניגון: '+esc(S.mstate.error)+'</b></li>':'')+
    '</ul>'+(oldApp?'<div><button type="button" class="btn pri" data-apkgo>עדכן את האפליקציה עכשיו</button></div>':'')+'</div>';
-  var rnd='<div class="card stack" style="border:2px solid #7C3AED"><button type="button" class="btn musbtn" data-mrand style="font-size:18px">🎲 30 שירים אקראיים מכל הספרייה</button><div class="small muted">כל לחיצה מביאה 30 שירים אחרים (בערך שעה ו-50 דקות): בעיקר זמרים מוכרים ושירים מאוספי להיטים, לא יותר משני שירים לכל זמר, ובלי שירים שכבר יצאו לאחרונה.</div><div class="small"><b>איזו מוזיקה?</b></div><div class="chips">'+MCATL.map(function(c){return'<button type="button" class="chip" data-mcat="'+c[0]+'" aria-pressed="'+(mCats().indexOf(c[0])>=0)+'">'+c[1]+'</button>'}).join("")+'</div></div>';
+  var rnd='<div class="card stack" style="border:2px solid #7C3AED"><button type="button" class="btn musbtn" data-mrand style="font-size:18px">🎲 30 שירים אקראיים מכל הספרייה</button><div class="small muted">כל לחיצה מביאה 30 שירים אחרים (בערך שעה ו-50 דקות): בעיקר זמרים מוכרים ושירים מאוספי להיטים, לא יותר משני שירים לכל זמר, ובלי שירים שכבר יצאו לאחרונה.</div><div class="small"><b>מאיזו תקופה?</b></div><div class="chips">'+[[1980,"שנות ה־80 ומעלה"],[1990,"שנות ה־90 ומעלה"],[2000,"2000 ומעלה"],[0,"הכול"]].map(function(e){return'<button type="button" class="chip" data-mera="'+e[0]+'" aria-pressed="'+(mEra()===e[0])+'">'+e[1]+'</button>'}).join("")+'</div><div class="row"><button type="button" class="btn sm" data-mfavs>⭐ הזמרים שלי'+(S.mprefs&&S.mprefs.fav.length?' ('+S.mprefs.fav.length+')':'')+'</button><span class="small muted">בזמן הנגינה: 👍 = יותר מהזמר, 👎 = לא להשמיע אותו יותר. דילוג מהיר על שיר = פחות כמוהו.</span></div><div class="small"><b>איזו מוזיקה?</b></div><div class="chips">'+MCATL.map(function(c){return'<button type="button" class="chip" data-mcat="'+c[0]+'" aria-pressed="'+(mCats().indexOf(c[0])>=0)+'">'+c[1]+'</button>'}).join("")+'</div></div>';
   return rnd+diag+'<div class="note walkn small">המוזיקה מהמחשב שלך, דרך השרת הביתי. בטלפון היא ממשיכה לנגן גם כשהמסך כבוי, והכפתורים מופיעים בהתראה ובמסך הנעילה. לפני הליכה: שמור בטלפון את מה שתרצה לשמוע, וזה יעבוד גם בלי אינטרנט.</div>'+saved+dl+body}
+function mEra(){var e=S.mprefs?S.mprefs.era:1990;return e==null?1990:+e}
+function mPrefsLoad(){if(S.mprefsT&&Date.now()-S.mprefsT<60000)return;S.mprefsT=Date.now();srvAny("GET","api/music/prefs").then(function(d){if(d&&d.fav){S.mprefs=d;if(TAB==="walk"&&S.sub.walk==="music")render()}}).catch(function(){})}
+function mPrefsSave(){return srvAny("POST","api/music/prefs",S.mprefs).catch(function(){toast("לא נשמר: אין חיבור לשרת")})}
+function mFavs(){var o=document.createElement("div");o.className="mhov";o.innerHTML='<div class="mhbox card stack" role="dialog" aria-modal="true"><div class="row" style="justify-content:space-between"><h3 class="h3" style="margin:0">⭐ הזמרים שלי</h3><button type="button" class="btn sm" data-mhclose>✕ סגור</button></div><div class="small muted">⭐ = יותר שירים שלו בהליכות (גם אם הוא מתקופה ישנה). 🚫 = לא להשמיע אותו בכלל.</div><input type="search" id="mf-q" placeholder="חיפוש זמר…" style="font-size:17px"><div id="mf-list" class="stack" style="gap:2px"><p class="muted">טוען…</p></div></div>';
+  o.onclick=function(e){if(e.target===o||e.target.closest("[data-mhclose]")){o.remove();render()}};document.body.appendChild(o);
+  var A=[];function draw(){var q=(o.querySelector("#mf-q").value||"").trim(),P=S.mprefs||{fav:[],ban:[]};
+    var L=A.filter(function(a){return!q||a.n.indexOf(q)>=0});L.sort(function(a,b){var fa=P.fav.indexOf(a.n)>=0,fb=P.fav.indexOf(b.n)>=0;return fa!==fb?(fa?-1:1):b.c-a.c});
+    o.querySelector("#mf-list").innerHTML=L.slice(0,150).map(function(a){var f=P.fav.indexOf(a.n)>=0,b=P.ban.indexOf(a.n)>=0;return'<div class="row" style="justify-content:space-between;flex-wrap:nowrap;padding:6px 0;border-bottom:1px solid var(--line);font-size:17px"><span style="flex:1">'+esc(a.n)+' <span class="small muted">'+a.c+' שירים'+(a.y?' · מ־'+a.y:'')+'</span></span><button type="button" class="chip" data-fv="'+esc(a.n)+'" aria-pressed="'+f+'">⭐</button><button type="button" class="chip" data-bn="'+esc(a.n)+'" aria-pressed="'+b+'">🚫</button></div>'}).join("")||'<p class="muted">לא נמצא</p>'}
+  o.addEventListener("input",draw);
+  o.addEventListener("click",function(e){var x=e.target.closest("[data-fv],[data-bn]");if(!x)return;var P=S.mprefs,n=x.dataset.fv||x.dataset.bn,k=x.dataset.fv?"fav":"ban",other=k==="fav"?"ban":"fav",i=P[k].indexOf(n);if(i>=0)P[k].splice(i,1);else{P[k].push(n);var j=P[other].indexOf(n);if(j>=0)P[other].splice(j,1)}mPrefsSave();draw()});
+  srvAny("GET","api/music/artists").then(function(d){A=d&&d.artists||[];S.mprefs={era:d.era,fav:d.fav||[],ban:d.ban||[]};draw()}).catch(function(){o.querySelector("#mf-list").innerHTML='<p>אין חיבור לשרת הביתי.</p>'})}
 var MCATL=[["il","ישראלי"],["mz","ים תיכוני ומרוקאי"],["lz","לועזי"],["dt","חסידי ודתי"]];
 function mCats(){var v=null;try{v=JSON.parse(localStorage.getItem("kg-mcats")||"null")}catch(e){}return Array.isArray(v)&&v.length?v:["il","mz"]}
 function mRandom(btn){if(btn){btn.disabled=true;btn.dataset.t=btn.textContent;btn.textContent="בוחר שירים…"}
@@ -2332,6 +2347,8 @@ function chipGroup(id){var g=document.getElementById(id);g.querySelectorAll(".ch
 function bind(){
   main.querySelectorAll("[data-mhelp]").forEach(function(b){b.onclick=function(){mHelp(b.dataset.mhelp)}});
   main.querySelectorAll("[data-shopfs]").forEach(function(b){b.onclick=function(){try{localStorage.setItem("kg-shopfs",b.dataset.shopfs)}catch(e){}render()}});
+  main.querySelectorAll("[data-mera]").forEach(function(b){b.onclick=function(){S.mprefs=S.mprefs||{fav:[],ban:[]};S.mprefs.era=+b.dataset.mera;mPrefsSave();render()}});
+  main.querySelectorAll("[data-mfavs]").forEach(function(b){b.onclick=mFavs});
   main.querySelectorAll("[data-mcat]").forEach(function(b){b.onclick=function(){var c=mCats(),k=b.dataset.mcat,i=c.indexOf(k);if(i>=0){if(c.length>1)c.splice(i,1)}else c.push(k);try{localStorage.setItem("kg-mcats",JSON.stringify(c))}catch(e){}render()}});
   main.querySelectorAll("[data-mrand]").forEach(function(b){b.onclick=function(){mRandom(b)}});
   var ks2=document.getElementById("k-sync2");if(ks2)ks2.onclick=function(){this.disabled=true;this.textContent="מסנכרן…";try{FA.syncNow();toast("מסנכרן מהשעון… התוצאה בלשונית \"סנכרון ורישום\"")}catch(e){toast("הסנכרון לא זמין")}var t=this;setTimeout(function(){t.disabled=false;t.textContent="⌚ סנכרן מהשעון"},8000)};
